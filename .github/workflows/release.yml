@@ -76,14 +76,21 @@ jobs:
           image: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ env.DIGEST }}
           format: spdx-json
           output-file: sbom-${{ steps.meta.outputs.version }}.json
+      # Check which signing secrets are available
+      - name: Check signing secrets
+        id: secrets
+        run: |
+          echo "has_cosign=${{ secrets.COSIGN_PRIVATE_KEY != '' }}" >> $GITHUB_OUTPUT
+          echo "has_gpg=${{ secrets.GPG_PRIVATE_KEY != '' && secrets.GPG_PASSPHRASE != '' }}" >> $GITHUB_OUTPUT
+          echo "has_minisign=${{ secrets.MINISIGN_KEY != '' && secrets.MINISIGN_PASS != '' }}" >> $GITHUB_OUTPUT
       # Cosign signing/attestation (optional; skip if secrets not set)
-      - name: Cosign sign image
-        if: env.DIGEST != '' && secrets.COSIGN_PRIVATE_KEY != ''
+      - name: Install cosign
+        if: steps.secrets.outputs.has_cosign == 'true'
         uses: sigstore/cosign-installer@v3
         with:
           cosign-release: "v2.4.0"
-      - name: Run cosign sign
-        if: env.DIGEST != '' && secrets.COSIGN_PRIVATE_KEY != ''
+      - name: Cosign sign image
+        if: steps.secrets.outputs.has_cosign == 'true'
         env:
           COSIGN_YES: "true"
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
@@ -92,7 +99,7 @@ jobs:
           cosign sign --key env://COSIGN_PRIVATE_KEY \
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ env.DIGEST }}
       - name: Cosign attest (SBOM)
-        if: env.DIGEST != '' && secrets.COSIGN_PRIVATE_KEY != ''
+        if: steps.secrets.outputs.has_cosign == 'true'
         env:
           COSIGN_YES: "true"
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
@@ -111,12 +118,12 @@ jobs:
             echo "$DIGEST  $REGISTRY/$OWNER/$IMAGE_NAME:latest";
           } > SHA256SUMS
       - name: GPG sign SHA256SUMS
-        if: secrets.GPG_PRIVATE_KEY && secrets.GPG_PASSPHRASE
+        if: steps.secrets.outputs.has_gpg == 'true'
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --yes --import
           gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" --armor --detach-sign --output SHA256SUMS.asc SHA256SUMS
       - name: Minisign sign SHA256SUMS
-        if: secrets.MINISIGN_KEY && secrets.MINISIGN_PASS
+        if: steps.secrets.outputs.has_minisign == 'true'
         run: |
           printf "%s" "${{ secrets.MINISIGN_KEY }}" > minisign.key
           minisign -Sm SHA256SUMS -s minisign.key -p /dev/null -x SHA256SUMS.minisig -t "fulmen-toolbox ${{ steps.meta.outputs.version }}"
