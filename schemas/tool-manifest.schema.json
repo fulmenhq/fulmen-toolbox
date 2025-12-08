@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.fulmenhq.dev/fulmen-toolbox/tool-manifest.schema.json",
+  "title": "Fulmen Toolbox Tool Manifest",
+  "type": "object",
+  "required": ["tools"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "version", "source", "images"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "version": { "type": "string", "minLength": 1 },
+          "source": {
+            "type": "string",
+            "enum": ["npm", "go", "apk", "binary", "other"]
+          },
+          "images": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "minItems": 1
+          },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

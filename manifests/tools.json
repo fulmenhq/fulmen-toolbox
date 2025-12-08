@@ -1,0 +1,77 @@
+{
+  "$schema": "https://schema.fulmenhq.dev/fulmen-toolbox/tool-manifest.schema.json",
+  "tools": [
+    {
+      "name": "prettier",
+      "version": "3.7.4",
+      "source": "npm",
+      "images": ["goneat-tools"],
+      "notes": "Pinned npm global install for formatting."
+    },
+    {
+      "name": "biome",
+      "version": "2.3.8",
+      "source": "npm",
+      "images": ["goneat-tools"],
+      "notes": "Pinned npm global install; complements Prettier (JS/TS/JSON lint/format)."
+    },
+    {
+      "name": "yamlfmt",
+      "version": "v0.20.0",
+      "source": "go",
+      "images": ["goneat-tools"],
+      "notes": "Go install from github.com/google/yamlfmt/cmd/yamlfmt."
+    },
+    {
+      "name": "jq",
+      "version": "1.8.1-r0",
+      "source": "apk",
+      "images": ["goneat-tools"]
+    },
+    {
+      "name": "yq-go",
+      "version": "4.49.2-r1",
+      "source": "apk",
+      "images": ["goneat-tools"]
+    },
+    {
+      "name": "ripgrep",
+      "version": "15.1.0-r0",
+      "source": "apk",
+      "images": ["goneat-tools"]
+    },
+    {
+      "name": "taplo",
+      "version": "0.10.0-r0",
+      "source": "apk",
+      "images": ["goneat-tools"],
+      "notes": "TOML formatter/linter"
+    },
+    {
+      "name": "bash",
+      "version": "5.3.3-r1",
+      "source": "apk",
+      "images": ["goneat-tools"]
+    },
+    {
+      "name": "git",
+      "version": "2.52.0-r0",
+      "source": "apk",
+      "images": ["goneat-tools"]
+    },
+    {
+      "name": "node-base",
+      "version": "node:22-alpine@sha256:9632533eda8061fc1e9960cfb3f8762781c07a00ee7317f5dc0e13c05e15166f",
+      "source": "other",
+      "images": ["goneat-tools"],
+      "notes": "Pinned base image digest for multi-arch."
+    },
+    {
+      "name": "golang-builder",
+      "version": "golang:1.23-alpine@sha256:383395b794dffa5b53012a212365d40c8e37109a626ca30d6151c8348d380b5f",
+      "source": "other",
+      "images": ["goneat-tools"],
+      "notes": "Pinned builder image digest for yamlfmt."
+    }
+  ]
+}

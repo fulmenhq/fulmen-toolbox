@@ -1,0 +1,11 @@
+**/.git
+**/.gitignore
+**/README.md
+**/.plans/
+**/Makefile
+**/.github/
+**/images/sbom-tools/
+**/.DS_Store
+**/node_modules/
+**/.env
+**/*.log

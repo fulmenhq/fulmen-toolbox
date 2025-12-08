@@ -1,0 +1,25 @@
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Dependencies / builds
+node_modules/
+dist/
+bin/
+coverage/
+.cache/
+
+# Env / logs
+.env
+*.log
+
+# Local plans (never committed)
+.plans/
+
+# Python / venvs (if added later)
+.venv/
+venv/
+
+# Docker artifacts
+goneat-tools-sbom.json
