@@ -2,7 +2,8 @@
 	build-goneat-tools build-goneat-tools-multi test-goneat-tools \
 	build-sbom-tools build-sbom-tools-multi test-sbom-tools \
 	clean help bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap \
-	validate-manifest lint-workflows lint-dockerfiles quality precommit prepush check-clean
+	validate-manifest lint-workflows lint-dockerfiles quality precommit prepush check-clean \
+	release-download release-upload verify-release-key release-digests
 
 # Fulmen Toolbox - Local Development Makefile
 # Supports building/testing goneat-tools and sbom-tools
@@ -16,7 +17,7 @@ BUMP_SCRIPT := scripts/bump-version.sh
 
 SHELLCHECK ?= shellcheck
 SHFMT ?= shfmt
-PREREQ_CMDS ?= docker cosign gpg minisign syft yamlfmt
+PREREQ_CMDS ?= docker cosign gpg minisign syft trivy yamlfmt
 OPTIONAL_CMDS ?= shellcheck shfmt
 VALIDATE_MANIFEST ?= scripts/validate-manifest.sh
 YAMLFMT ?= yamlfmt
@@ -87,6 +88,7 @@ test-sbom-tools:
 	docker run --rm $(SBOM_TAG_LOCAL) -c "\
 		syft version && \
 		grype version && \
+		trivy version && \
 		echo 'All SBOM tools OK!'"
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -134,18 +136,18 @@ lint-workflows:
 		echo "yamllint not found (skip)"; \
 	fi
 
-## Validate Dockerfiles syntax (docker build --check, requires Docker 25+/BuildKit)
-## TODO: Add trivy config scanning for best practices in future release
+## Validate Dockerfiles with trivy config scanning (best practices + misconfigs)
 lint-dockerfiles:
-	@if docker build --help 2>&1 | grep -q '\-\-check'; then \
-		echo "Validating Dockerfile syntax (docker build --check)..."; \
+	@if command -v trivy >/dev/null 2>&1; then \
+		echo "Validating Dockerfiles with trivy config scan..."; \
 		for df in images/*/Dockerfile; do \
-			echo "  checking $$df"; \
-			DOCKER_BUILDKIT=1 docker build --check -f "$$df" "$$(dirname $$df)" > /dev/null || exit 1; \
+			echo "  scanning $$df"; \
+			trivy config --severity HIGH,CRITICAL --exit-code 1 "$$df" || exit 1; \
 		done; \
-		echo "All Dockerfiles valid."; \
+		echo "All Dockerfiles passed trivy scan."; \
 	else \
-		echo "docker build --check not available (requires Docker 25+/BuildKit). Skipping Dockerfile lint."; \
+		echo "trivy not found. Install: brew install trivy"; \
+		echo "Skipping Dockerfile lint."; \
 	fi
 
 ## Quality bundle: manifest validation + workflow lint + dockerfile lint
@@ -176,6 +178,72 @@ prepush:
 release-plan:
 	@scripts/release.sh
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Manual signing workflow targets
+# ─────────────────────────────────────────────────────────────────────────────
+RELEASE_TAG ?= $(shell cat VERSION 2>/dev/null || echo "v0.0.0")
+DIST_RELEASE ?= dist/release
+GPG_KEY_FILE ?= $(DIST_RELEASE)/fulmen-toolbox-release-signing-key.asc
+MINISIGN_PUB ?= $(DIST_RELEASE)/fulmenhq-release-signing.pub
+
+## Download release artifacts for manual signing (RELEASE_TAG=vX.Y.Z)
+release-download:
+	@scripts/release-download.sh $(RELEASE_TAG) $(DIST_RELEASE)
+
+## Get image digests for manual cosign signing (RELEASE_TAG=vX.Y.Z)
+release-digests:
+	@echo "Image digests for $(RELEASE_TAG):"
+	@echo ""
+	@echo "goneat-tools:"
+	@crane digest ghcr.io/fulmenhq/goneat-tools:$(RELEASE_TAG) 2>/dev/null || echo "  (use: docker manifest inspect ghcr.io/fulmenhq/goneat-tools:$(RELEASE_TAG))"
+	@echo ""
+	@echo "sbom-tools:"
+	@crane digest ghcr.io/fulmenhq/sbom-tools:$(RELEASE_TAG) 2>/dev/null || echo "  (use: docker manifest inspect ghcr.io/fulmenhq/sbom-tools:$(RELEASE_TAG))"
+	@echo ""
+	@echo "For cosign signing, use:"
+	@echo "  cosign sign ghcr.io/fulmenhq/<image>@sha256:<digest>"
+
+## Verify GPG public key is safe to upload (no private key material)
+verify-release-key:
+	@scripts/verify-public-key.sh $(GPG_KEY_FILE)
+
+## Upload signed artifacts to GitHub Release (RELEASE_TAG=vX.Y.Z)
+release-upload: verify-release-key
+	@scripts/release-upload.sh $(RELEASE_TAG) $(DIST_RELEASE)
+
+## Show manual signing workflow steps
+release-signing-help:
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "Manual Signing Workflow for fulmen-toolbox"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "1. AUTOMATED (run via make):"
+	@echo "   RELEASE_TAG=v0.1.2 make release-download"
+	@echo "   RELEASE_TAG=v0.1.2 make release-digests"
+	@echo ""
+	@echo "2. INTERACTIVE (run in separate shell - requires passphrase/browser):"
+	@echo "   # Cosign (keyless OIDC - opens browser)"
+	@echo "   cosign sign ghcr.io/fulmenhq/goneat-tools@sha256:<digest>"
+	@echo "   cosign sign ghcr.io/fulmenhq/sbom-tools@sha256:<digest>"
+	@echo "   cosign attest --predicate sbom-*.json --type spdxjson ghcr.io/fulmenhq/<image>@sha256:<digest>"
+	@echo ""
+	@echo "   # GPG (requires passphrase)"
+	@echo "   gpg --armor --detach-sign -o SHA256SUMS-goneat-tools.asc SHA256SUMS-goneat-tools"
+	@echo "   gpg --armor --detach-sign -o SHA256SUMS-sbom-tools.asc SHA256SUMS-sbom-tools"
+	@echo ""
+	@echo "   # Minisign (requires passphrase)"
+	@echo "   minisign -Sm SHA256SUMS-goneat-tools -t 'fulmen-toolbox goneat-tools <version>'"
+	@echo "   minisign -Sm SHA256SUMS-sbom-tools -t 'fulmen-toolbox sbom-tools <version>'"
+	@echo ""
+	@echo "   # Export public keys"
+	@echo "   gpg --armor --export <KEY_ID>! > $(GPG_KEY_FILE)"
+	@echo "   cp /path/to/minisign.pub $(MINISIGN_PUB)"
+	@echo ""
+	@echo "3. AUTOMATED (run via make):"
+	@echo "   make verify-release-key"
+	@echo "   RELEASE_TAG=v0.1.2 make release-upload"
+	@echo ""
+
 ## Check required tooling is installed (non-fatal for optional tools)
 prereqs bootstrap:
 	@missing=0; \
@@ -185,6 +253,10 @@ prereqs bootstrap:
 		else \
 			if [ "$$cmd" = "yamlfmt" ]; then \
 				echo "$$cmd: MISSING (install via: go install github.com/google/yamlfmt/cmd/yamlfmt@$(YAMLFMT_PIN))"; \
+			elif [ "$$cmd" = "trivy" ]; then \
+				echo "$$cmd: MISSING (install via: brew install trivy)"; \
+			elif [ "$$cmd" = "cosign" ]; then \
+				echo "$$cmd: MISSING (install via: brew install cosign)"; \
 			else \
 				echo "$$cmd: MISSING"; \
 			fi; \

@@ -60,6 +60,13 @@
       "images": ["goneat-tools"]
     },
     {
+      "name": "curl",
+      "version": "8.17.0-r1",
+      "source": "apk",
+      "images": ["goneat-tools"],
+      "notes": "HTTP client for CI workflows (MIT-like license)"
+    },
+    {
       "name": "node-base",
       "version": "node:22-alpine@sha256:9632533eda8061fc1e9960cfb3f8762781c07a00ee7317f5dc0e13c05e15166f",
       "source": "other",
@@ -88,11 +95,25 @@
       "notes": "Vulnerability scanner from Anchore (GitHub release binary). Pulls DB on first run (~150MB)."
     },
     {
+      "name": "trivy",
+      "version": "v0.68.1",
+      "source": "binary",
+      "images": ["sbom-tools"],
+      "notes": "SBOM/vuln scanner from Aqua Security (GitHub release binary). Alternative to Syft/Grype workflow. Also provides Dockerfile config scanning."
+    },
+    {
       "name": "alpine-base",
       "version": "alpine:3.21@sha256:5405e8f36ce1878720f71217d664aa3dea32e5e5df11acbf07fc78ef5661465b",
       "source": "other",
       "images": ["sbom-tools"],
       "notes": "Pinned base image digest for sbom-tools."
+    },
+    {
+      "name": "curl",
+      "version": "8.14.1-r2",
+      "source": "apk",
+      "images": ["sbom-tools"],
+      "notes": "HTTP client for CI workflows (MIT-like license)"
     }
   ]
 }

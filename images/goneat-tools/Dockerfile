@@ -16,6 +16,7 @@ ARG RIPGREP_VERSION=15.1.0-r0
 ARG TAPLO_VERSION=0.10.0-r0
 ARG BASH_VERSION=5.3.3-r1
 ARG GIT_VERSION=2.52.0-r0
+ARG CURL_VERSION=8.17.0-r1
 
 # Stage 1: Build yamlfmt (Go binary)
 FROM ${GO_IMAGE} AS go-builder
@@ -32,15 +33,17 @@ ARG RIPGREP_VERSION
 ARG TAPLO_VERSION
 ARG BASH_VERSION
 ARG GIT_VERSION
+ARG CURL_VERSION
 
-# Install Alpine packages: jq, yq-go, ripgrep, taplo, bash, git
+# Install Alpine packages: jq, yq-go, ripgrep, taplo, bash, git, curl
 RUN apk add --no-cache \
     jq=${JQ_VERSION} \
     yq-go=${YQ_VERSION} \
     ripgrep=${RIPGREP_VERSION} \
     taplo=${TAPLO_VERSION} \
     bash=${BASH_VERSION} \
-    git=${GIT_VERSION}
+    git=${GIT_VERSION} \
+    curl=${CURL_VERSION}
 
 # Install Prettier globally
 RUN npm install -g prettier@${PRETTIER_VERSION} @biomejs/biome@${BIOME_VERSION} && \
@@ -49,8 +52,15 @@ RUN npm install -g prettier@${PRETTIER_VERSION} @biomejs/biome@${BIOME_VERSION} 
 # Copy yamlfmt from builder
 COPY --from=go-builder /go/bin/yamlfmt /usr/local/bin/yamlfmt
 
+# Create non-root user for security (node:alpine provides 'node' user)
+# /work owned by node user for volume mounts
+RUN mkdir -p /work && chown node:node /work
+
 # Set working directory
 WORKDIR /work
+
+# Run as non-root user (security best practice)
+USER node
 
 # Default entrypoint: shell for flexible usage
 ENTRYPOINT ["/bin/sh"]
