@@ -2,7 +2,7 @@
 	build-goneat-tools build-goneat-tools-multi test-goneat-tools \
 	build-sbom-tools build-sbom-tools-multi test-sbom-tools \
 	clean help bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap \
-	validate-manifest lint-workflows quality precommit prepush check-clean
+	validate-manifest lint-workflows lint-dockerfiles quality precommit prepush check-clean
 
 # Fulmen Toolbox - Local Development Makefile
 # Supports building/testing goneat-tools and sbom-tools
@@ -134,8 +134,22 @@ lint-workflows:
 		echo "yamllint not found (skip)"; \
 	fi
 
-## Quality bundle: manifest validation + workflow lint
-quality: validate-manifest lint-workflows
+## Validate Dockerfiles syntax (docker build --check, requires Docker 25+/BuildKit)
+## TODO: Add trivy config scanning for best practices in future release
+lint-dockerfiles:
+	@if docker build --help 2>&1 | grep -q '\-\-check'; then \
+		echo "Validating Dockerfile syntax (docker build --check)..."; \
+		for df in images/*/Dockerfile; do \
+			echo "  checking $$df"; \
+			DOCKER_BUILDKIT=1 docker build --check -f "$$df" "$$(dirname $$df)" > /dev/null || exit 1; \
+		done; \
+		echo "All Dockerfiles valid."; \
+	else \
+		echo "docker build --check not available (requires Docker 25+/BuildKit). Skipping Dockerfile lint."; \
+	fi
+
+## Quality bundle: manifest validation + workflow lint + dockerfile lint
+quality: validate-manifest lint-workflows lint-dockerfiles
 
 ## Precommit bundle: quality checks
 precommit:

@@ -6,19 +6,12 @@ on:
   workflow_dispatch:
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: goneat-tools
-  YAMLFMT_VERSION: v0.20.0
-  PRETTIER_VERSION: 3.7.4
-  BIOME_VERSION: 2.3.8
-  JQ_VERSION: 1.8.1-r0
-  YQ_VERSION: 4.49.2-r1
-  RIPGREP_VERSION: 15.1.0-r0
-  TAPLO_VERSION: 0.10.0-r0
-  BASH_VERSION: 5.3.3-r1
-  GIT_VERSION: 2.52.0-r0
 jobs:
   release:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: [goneat-tools, sbom-tools]
     permissions:
       contents: write
       packages: write
@@ -50,32 +43,24 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: images/${{ env.IMAGE_NAME }}/Dockerfile
+          file: images/${{ matrix.image }}/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:v${{ steps.meta.outputs.major }}
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:v${{ steps.meta.outputs.version }}
-          build-args: |
-            YAMLFMT_VERSION=${{ env.YAMLFMT_VERSION }}
-            PRETTIER_VERSION=${{ env.PRETTIER_VERSION }}
-            BIOME_VERSION=${{ env.BIOME_VERSION }}
-            JQ_VERSION=${{ env.JQ_VERSION }}
-            YQ_VERSION=${{ env.YQ_VERSION }}
-            RIPGREP_VERSION=${{ env.RIPGREP_VERSION }}
-            TAPLO_VERSION=${{ env.TAPLO_VERSION }}
-            BASH_VERSION=${{ env.BASH_VERSION }}
-            GIT_VERSION=${{ env.GIT_VERSION }}
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}:v${{ steps.meta.outputs.major }}
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}:v${{ steps.meta.outputs.version }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
       - name: Capture digest
         id: digest
         run: echo "DIGEST=${{ steps.build.outputs.digest }}" >> $GITHUB_ENV
       - name: Generate SBOM (syft)
         uses: anchore/sbom-action@v0
         with:
-          image: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ env.DIGEST }}
+          image: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}@${{ env.DIGEST }}
           format: spdx-json
-          output-file: sbom-${{ steps.meta.outputs.version }}.json
+          output-file: sbom-${{ matrix.image }}-${{ steps.meta.outputs.version }}.json
       # Check which signing secrets are available
       - name: Check signing secrets
         id: secrets
@@ -97,7 +82,7 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
         run: |
           cosign sign --key env://COSIGN_PRIVATE_KEY \
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ env.DIGEST }}
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}@${{ env.DIGEST }}
       - name: Cosign attest (SBOM)
         if: steps.secrets.outputs.has_cosign == 'true'
         env:
@@ -105,28 +90,30 @@ jobs:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
         run: |
-          cosign attest --predicate sbom-${{ steps.meta.outputs.version }}.json \
+          cosign attest --predicate sbom-${{ matrix.image }}-${{ steps.meta.outputs.version }}.json \
             --type spdxjson \
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ env.DIGEST }}
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}@${{ env.DIGEST }}
       - name: Generate SHA256SUMS
         env:
           OWNER: ${{ github.repository_owner }}
         run: |
           {
-            echo "$DIGEST  $REGISTRY/$OWNER/$IMAGE_NAME:v${{ steps.meta.outputs.version }}";
-            echo "$DIGEST  $REGISTRY/$OWNER/$IMAGE_NAME:v${{ steps.meta.outputs.major }}";
-            echo "$DIGEST  $REGISTRY/$OWNER/$IMAGE_NAME:latest";
-          } > SHA256SUMS
+            echo "$DIGEST  $REGISTRY/$OWNER/${{ matrix.image }}:v${{ steps.meta.outputs.version }}";
+            echo "$DIGEST  $REGISTRY/$OWNER/${{ matrix.image }}:v${{ steps.meta.outputs.major }}";
+            echo "$DIGEST  $REGISTRY/$OWNER/${{ matrix.image }}:latest";
+          } > SHA256SUMS-${{ matrix.image }}
       - name: GPG sign SHA256SUMS
         if: steps.secrets.outputs.has_gpg == 'true'
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --yes --import
-          gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" --armor --detach-sign --output SHA256SUMS.asc SHA256SUMS
+          gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
+            --armor --detach-sign --output SHA256SUMS-${{ matrix.image }}.asc SHA256SUMS-${{ matrix.image }}
       - name: Minisign sign SHA256SUMS
         if: steps.secrets.outputs.has_minisign == 'true'
         run: |
           printf "%s" "${{ secrets.MINISIGN_KEY }}" > minisign.key
-          minisign -Sm SHA256SUMS -s minisign.key -p /dev/null -x SHA256SUMS.minisig -t "fulmen-toolbox ${{ steps.meta.outputs.version }}"
+          minisign -Sm SHA256SUMS-${{ matrix.image }} -s minisign.key -p /dev/null \
+            -x SHA256SUMS-${{ matrix.image }}.minisig -t "fulmen-toolbox ${{ matrix.image }} ${{ steps.meta.outputs.version }}"
         env:
           MINISIGN_KEY: ${{ secrets.MINISIGN_KEY }}
           MINISIGN_PASS: ${{ secrets.MINISIGN_PASS }}
@@ -134,10 +121,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            sbom-${{ steps.meta.outputs.version }}.json
-            SHA256SUMS
-            SHA256SUMS.asc
-            SHA256SUMS.minisig
+            sbom-${{ matrix.image }}-${{ steps.meta.outputs.version }}.json
+            SHA256SUMS-${{ matrix.image }}
+            SHA256SUMS-${{ matrix.image }}.asc
+            SHA256SUMS-${{ matrix.image }}.minisig
           tag_name: v${{ steps.meta.outputs.version }}
           name: v${{ steps.meta.outputs.version }}
         env:
