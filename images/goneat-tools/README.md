@@ -24,7 +24,7 @@ See `docs/images/goneat-tools.md` and `manifests/tools.json` for pinning details
 
 **Image Tags:**
 - `ghcr.io/fulmenhq/goneat-tools:latest`
-- `ghcr.io/fulmenhq/goneat-tools:v0.1.0` (semver tags)
+- `ghcr.io/fulmenhq/goneat-tools:v0.1.1` (semver tags)
 
 ## Usage
 

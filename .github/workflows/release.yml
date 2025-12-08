@@ -1,0 +1,137 @@
+name: Release (build, sign, attest)
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: goneat-tools
+  YAMLFMT_VERSION: v0.20.0
+  PRETTIER_VERSION: 3.7.4
+  BIOME_VERSION: 2.3.8
+  JQ_VERSION: 1.8.1-r0
+  YQ_VERSION: 4.49.2-r1
+  RIPGREP_VERSION: 15.1.0-r0
+  TAPLO_VERSION: 0.10.0-r0
+  BASH_VERSION: 5.3.3-r1
+  GIT_VERSION: 2.52.0-r0
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write # for keyless cosign if used
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set version env
+        id: meta
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          MAJOR="${VERSION%%.*}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "MAJOR=$MAJOR" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "major=$MAJOR" >> $GITHUB_OUTPUT
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push multi-arch image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: images/${{ env.IMAGE_NAME }}/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:v${{ steps.meta.outputs.major }}
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:v${{ steps.meta.outputs.version }}
+          build-args: |
+            YAMLFMT_VERSION=${{ env.YAMLFMT_VERSION }}
+            PRETTIER_VERSION=${{ env.PRETTIER_VERSION }}
+            BIOME_VERSION=${{ env.BIOME_VERSION }}
+            JQ_VERSION=${{ env.JQ_VERSION }}
+            YQ_VERSION=${{ env.YQ_VERSION }}
+            RIPGREP_VERSION=${{ env.RIPGREP_VERSION }}
+            TAPLO_VERSION=${{ env.TAPLO_VERSION }}
+            BASH_VERSION=${{ env.BASH_VERSION }}
+            GIT_VERSION=${{ env.GIT_VERSION }}
+      - name: Capture digest
+        id: digest
+        run: echo "DIGEST=${{ steps.build.outputs.digest }}" >> $GITHUB_ENV
+      - name: Generate SBOM (syft)
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ env.DIGEST }}
+          format: spdx-json
+          output-file: sbom-${{ steps.meta.outputs.version }}.json
+      # Cosign signing/attestation (optional; skip if secrets not set)
+      - name: Cosign sign image
+        if: env.DIGEST != '' && secrets.COSIGN_PRIVATE_KEY != ''
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: "v2.4.0"
+      - name: Run cosign sign
+        if: env.DIGEST != '' && secrets.COSIGN_PRIVATE_KEY != ''
+        env:
+          COSIGN_YES: "true"
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        run: |
+          cosign sign --key env://COSIGN_PRIVATE_KEY \
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ env.DIGEST }}
+      - name: Cosign attest (SBOM)
+        if: env.DIGEST != '' && secrets.COSIGN_PRIVATE_KEY != ''
+        env:
+          COSIGN_YES: "true"
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        run: |
+          cosign attest --predicate sbom-${{ steps.meta.outputs.version }}.json \
+            --type spdxjson \
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ env.DIGEST }}
+      - name: Generate SHA256SUMS
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          {
+            echo "$DIGEST  $REGISTRY/$OWNER/$IMAGE_NAME:v${{ steps.meta.outputs.version }}";
+            echo "$DIGEST  $REGISTRY/$OWNER/$IMAGE_NAME:v${{ steps.meta.outputs.major }}";
+            echo "$DIGEST  $REGISTRY/$OWNER/$IMAGE_NAME:latest";
+          } > SHA256SUMS
+      - name: GPG sign SHA256SUMS
+        if: secrets.GPG_PRIVATE_KEY && secrets.GPG_PASSPHRASE
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --yes --import
+          gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" --armor --detach-sign --output SHA256SUMS.asc SHA256SUMS
+      - name: Minisign sign SHA256SUMS
+        if: secrets.MINISIGN_KEY && secrets.MINISIGN_PASS
+        run: |
+          printf "%s" "${{ secrets.MINISIGN_KEY }}" > minisign.key
+          minisign -Sm SHA256SUMS -s minisign.key -p /dev/null -x SHA256SUMS.minisig -t "fulmen-toolbox ${{ steps.meta.outputs.version }}"
+        env:
+          MINISIGN_KEY: ${{ secrets.MINISIGN_KEY }}
+          MINISIGN_PASS: ${{ secrets.MINISIGN_PASS }}
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            sbom-${{ steps.meta.outputs.version }}.json
+            SHA256SUMS
+            SHA256SUMS.asc
+            SHA256SUMS.minisig
+          tag_name: v${{ steps.meta.outputs.version }}
+          name: v${{ steps.meta.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

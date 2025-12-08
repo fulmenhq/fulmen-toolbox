@@ -1,5 +1,9 @@
 # Release Notes
 
+## v0.1.1 (2025-12-07)
+- Release workflow added (tag-driven build/push, SBOM generation, optional signing/attestations guarded by secrets).
+- Docs updated for CI strategy; version bump script fixed.
+
 ## v0.1.0 (2025-12-07)
 - Initial repo scaffold and `goneat-tools` image draft.
 - Added versioning helpers (`VERSION`, bump script, Make targets).

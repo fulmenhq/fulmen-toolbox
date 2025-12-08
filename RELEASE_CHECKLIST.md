@@ -11,7 +11,7 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
 - Validate docs reflect current tooling (inventory, architecture, ADRs).
 
 ## Build & Verify
-- Build multi-arch image: `make build-goneat-tools-multi` (or CI workflow).
+- Build multi-arch image: `make build-goneat-tools-multi` (or tag-driven CI release workflow).
 - Smoke test image: `make test-goneat-tools`.
 - Capture image digest(s) from the build output (needed for SHA256SUMS and signing).
 - Generate SBOM (syft) for the digest.
@@ -21,11 +21,13 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
 - Attach attestations: provenance (SLSA) + SBOM.
 - Produce `SHA256SUMS` with digests for all pushed tags.
 - Sign `SHA256SUMS` with Fulmen GPG key AND minisign.
+- Store SBOM + signatures as release assets; publish digest in release notes.
+ - If secrets are not configured, perform signing manually after release artifacts are produced.
 
 ## Publish
-- Push image tags (`:latest`, `:v<major>`, and semver tag).
+- Push image tags (`:latest`, `:v<major>`, and semver tag). CI release workflow handles tagged pushes.
 - Tag repo: `git tag v$(cat VERSION)`; `git push origin --tags`.
-- Upload SBOM, `SHA256SUMS`, `.asc`, and `.minisig` to the GitHub Release.
+- Upload SBOM, `SHA256SUMS`, `.asc`, and `.minisig` to the GitHub Release (CI does this).
 - Document verification commands in `RELEASE_NOTES.md`.
 
 ## Post-release

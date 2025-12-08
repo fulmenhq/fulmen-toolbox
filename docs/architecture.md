@@ -1,8 +1,8 @@
 # fulmen-toolbox Architecture
 
 ## Repository Layout
-- `images/` – one folder per image (currently `goneat-tools`; `sbom-tools` placeholder).
-- `Makefile` – local build/test helpers.
+- `images/` – one folder per image (`goneat-tools`, `sbom-tools`).
+- `Makefile` – local build/test helpers for all images.
 - `scripts/` – repo-level utilities (version bumping, release plan).
 - `VERSION` – single source of truth for semver.
 - `.plans/` – vision/bootstrap docs (internal).
@@ -28,13 +28,14 @@
 - `VERSION` file is the SSOT; Docker tags derive from it.
 - Tool manifest: `manifests/tools.json` validated by JSON Schema (`schemas/tool-manifest.schema.json`).
 - Schema IDs target `https://schema.fulmenhq.dev/...` and can be upstreamed to Crucible when ready.
-- Current baseline: v0.1.0 (pre-release; signing/attestations pending).
+- Current baseline: v0.1.1 (pre-release; signing/attestations pending).
 
 ## Signing & Attestation Strategy
 - Cosign signatures on image digests (keyless preferred; FulmenHQ key fallback).
 - Cosign attestations: SLSA provenance + SBOM.
 - Out-of-band verification: `SHA256SUMS` signed with GPG + minisign.
 - Verification guidance lives in `RELEASE_NOTES.md`.
+- Release workflow: tag-driven (`v*.*.*`) job builds multi-arch, signs image with cosign, attaches SBOM attestation, signs `SHA256SUMS` (GPG + minisign), and uploads artifacts to the GitHub Release.
 
 ## Tooling Expectations
 - Minimal host deps: docker + buildx, cosign, gpg, minisign, syft.

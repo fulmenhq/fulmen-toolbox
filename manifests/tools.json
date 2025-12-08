@@ -72,6 +72,27 @@
       "source": "other",
       "images": ["goneat-tools"],
       "notes": "Pinned builder image digest for yamlfmt."
+    },
+    {
+      "name": "syft",
+      "version": "v1.18.1",
+      "source": "binary",
+      "images": ["sbom-tools"],
+      "notes": "SBOM generator from Anchore (GitHub release binary). Supports CycloneDX + SPDX output formats."
+    },
+    {
+      "name": "grype",
+      "version": "v0.86.1",
+      "source": "binary",
+      "images": ["sbom-tools"],
+      "notes": "Vulnerability scanner from Anchore (GitHub release binary). Pulls DB on first run (~150MB)."
+    },
+    {
+      "name": "alpine-base",
+      "version": "alpine:3.21@sha256:5405e8f36ce1878720f71217d664aa3dea32e5e5df11acbf07fc78ef5661465b",
+      "source": "other",
+      "images": ["sbom-tools"],
+      "notes": "Pinned base image digest for sbom-tools."
     }
   ]
 }

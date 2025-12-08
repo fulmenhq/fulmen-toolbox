@@ -5,7 +5,7 @@
 
 **Fulmen Toolbox** is the official monorepo for FulmenHQ's family of focused, multi-architecture Docker images providing shared, reproducible tooling across our ecosystem (goneat, fulward, pathfinder, etc.).
 
-**Status:** 🚀 Phase 1 – `goneat-tools` ready for testing (v0.1.0).
+**Status:** 🚀 Phase 1 – `goneat-tools` ready for testing (v0.1.1).
 
 ## Why Toolbox?
 
@@ -19,13 +19,14 @@
 | Image              | Purpose                          | Tags                  | Size   |
 |--------------------|----------------------------------|-----------------------|--------|
 | [goneat-tools](images/goneat-tools/) | Code quality/format (Prettier, yamlfmt, jq, yq-go, rg) | `:latest`, `:v0`     | ~150MB |
-| sbom-tools         | (Phase 2: Coming soon)           |                       |        |
+| [sbom-tools](images/sbom-tools/) | SBOM generation & vuln scanning (syft, grype) | `:latest`, `:v0` | ~80-120MB |
 | security-tools     | (Phase 3: Coming soon)           |                       |        |
 
-Pinned versions (goneat-tools):
-- Base: `node:22-alpine@sha256:9632533...`; builder: `golang:1.23-alpine@sha256:383395...`
-- Prettier `3.7.4`, Biome `2.3.8`, yamlfmt `v0.20.0`, jq `1.8.1-r0`, yq-go `4.49.2-r1`, ripgrep `15.1.0-r0`, taplo `0.10.0-r0`, bash `5.3.3-r1`, git `2.52.0-r0`
-- SSOT: `manifests/tools.json` (validated via `make validate-manifest`)
+Pinned versions: see `manifests/tools.json` (validated via `make validate-manifest`).
+
+**goneat-tools**: Prettier `3.7.4`, Biome `2.3.8`, yamlfmt `v0.20.0`, jq, yq-go, ripgrep, taplo, bash, git (all pinned).
+
+**sbom-tools**: syft `v1.18.1`, grype `v0.86.1`. Base: `alpine:3.21`.
 
 **Image Registry:** `ghcr.io/fulmenhq/{image}:{tag}`
 
@@ -71,7 +72,7 @@ make bootstrap             # Check required tooling (docker, cosign, gpg, minisi
 
 Requires a local Docker daemon for builds/tests and manifest validation (uses Dockerized ajv). GitHub Actions runners are the primary CI path; local builds are optional but recommended for quick checks.
 
-**CI/CD:** CI verifies on PR/main; publish happens on semver tags (`v*.*.*`). Tag builds push `:latest`, `:v<major>`, and the semver tag once release signing is wired. Current baseline: v0.1.0.
+**CI/CD:** CI verifies on PR/main; publish happens on semver tags (`v*.*.*`). Tag builds push `:latest`, `:v<major>`, and the semver tag once release signing is wired. Current baseline: v0.1.1.
 
 ## Proposing New Images
 

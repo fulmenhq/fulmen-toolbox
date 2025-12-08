@@ -37,10 +37,10 @@ VERSION_FILE=${VERSION_FILE:-VERSION}
 CURRENT=$(tr -d ' \t\n\r' < "$VERSION_FILE")
 printf '%s\n' "$CURRENT" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || fail "VERSION must be semver (e.g., 1.2.3), got '$CURRENT'"
 
-IFS=. set -- $CURRENT
-MAJOR=$1
-MINOR=$2
-PATCH=$3
+# Split current version safely
+IFS=. read -r MAJOR MINOR PATCH <<EOF
+$CURRENT
+EOF
 
 case "$PART" in
   major)

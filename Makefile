@@ -1,10 +1,11 @@
-.PHONY: all build-goneat-tools build-goneat-tools-multi test-goneat-tools clean help \
-	bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap \
-	validate-manifest lint-workflows quality precommit prepuh prepush
+.PHONY: all build-all test-all \
+	build-goneat-tools build-goneat-tools-multi test-goneat-tools \
+	build-sbom-tools build-sbom-tools-multi test-sbom-tools \
+	clean help bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap \
+	validate-manifest lint-workflows quality precommit prepush check-clean
 
 # Fulmen Toolbox - Local Development Makefile
-# Supports building/testing goneat-tools (Phase 1)
-# Extend for future images as needed
+# Supports building/testing goneat-tools and sbom-tools
 
 REGISTRY := ghcr.io/fulmenhq
 IMAGE_NAME := goneat-tools
@@ -23,7 +24,18 @@ YAMLFMT_PIN ?= v0.20.0
 MISSING_ACTION ?= "missing required tooling; install before proceeding"
 YAMLLINT ?= yamllint
 
-all: build-goneat-tools test-goneat-tools
+## Build and test all images
+all: build-all test-all
+
+## Build all images (single-arch)
+build-all: build-goneat-tools build-sbom-tools
+
+## Test all images
+test-all: test-goneat-tools test-sbom-tools
+
+# ─────────────────────────────────────────────────────────────────────────────
+# goneat-tools targets
+# ─────────────────────────────────────────────────────────────────────────────
 
 ## Build single-arch (fast local testing)
 build-goneat-tools:
@@ -49,13 +61,43 @@ test-goneat-tools:
 		rg --version && \
 		echo 'All tools OK!'"
 
+# ─────────────────────────────────────────────────────────────────────────────
+# sbom-tools targets
+# ─────────────────────────────────────────────────────────────────────────────
+SBOM_IMAGE_NAME := sbom-tools
+SBOM_TAG_LOCAL := $(REGISTRY)/$(SBOM_IMAGE_NAME):local
+SBOM_TAG_LATEST := $(REGISTRY)/$(SBOM_IMAGE_NAME):latest
+
+## Build sbom-tools single-arch (fast local testing)
+build-sbom-tools:
+	docker build -t $(SBOM_TAG_LOCAL) images/$(SBOM_IMAGE_NAME)
+
+## Build sbom-tools multi-arch (linux/amd64 + linux/arm64)
+build-sbom-tools-multi:
+	docker buildx create --use || true
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		-t $(SBOM_TAG_LOCAL) \
+		-t $(SBOM_TAG_LATEST) \
+		--push=false \
+		images/$(SBOM_IMAGE_NAME)
+
+## Test sbom-tools (run tools, check versions)
+test-sbom-tools:
+	docker run --rm $(SBOM_TAG_LOCAL) -c "\
+		syft version && \
+		grype version && \
+		echo 'All SBOM tools OK!'"
+
+# ─────────────────────────────────────────────────────────────────────────────
+
 ## Clean up local images
 clean:
-	docker rmi $(TAG_LOCAL) $(TAG_LATEST) || true
+	docker rmi $(TAG_LOCAL) $(TAG_LATEST) $(SBOM_TAG_LOCAL) $(SBOM_TAG_LATEST) || true
 
 ## Show Docker image sizes
 size:
-	docker images $(REGISTRY)/$(IMAGE_NAME)*
+	@docker images --format "table {{.Repository}}:{{.Tag}}\t{{.Size}}" | grep -E "(fulmenhq|REPOSITORY)" || true
 
 ## Bump version (semver)
 bump-major:
@@ -99,11 +141,22 @@ quality: validate-manifest lint-workflows
 precommit:
 	@$(MAKE) quality
 
-## Prepush bundle: quality + build + test (requires docker daemon)
-prepush prepuh:
+## Check for uncommitted/unstaged changes (fails if dirty)
+check-clean:
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		echo "ERROR: Working tree is dirty. Commit or stash changes before prepush."; \
+		git status --short; \
+		exit 1; \
+	fi
+	@echo "Working tree is clean."
+
+## Prepush bundle: check clean + quality + build + test ALL images (requires docker daemon)
+prepush:
+	@$(MAKE) check-clean
 	@$(MAKE) quality
-	@$(MAKE) build-goneat-tools
-	@$(MAKE) test-goneat-tools
+	@$(MAKE) build-all
+	@$(MAKE) test-all
+	@echo "Prepush checks passed. Safe to push."
 
 ## Release plan helper (prints steps, does not push)
 release-plan:

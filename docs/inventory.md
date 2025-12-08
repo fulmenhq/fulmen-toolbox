@@ -8,7 +8,13 @@
 - Signing: cosign signatures + attestations (planned), GPG/minisign for `SHA256SUMS`.
 - Manifest: see `manifests/tools.json` (validated against `schemas/tool-manifest.schema.json` via `make validate-manifest`).
 
-## sbom-tools (planned)
-- Purpose: SBOM and vulnerability scanning (e.g., syft, grype).
-- Status: placeholder directory only.
-- Version policy/signing: same as above once implemented.
+## sbom-tools
+- Purpose: SBOM generation and vulnerability scanning for CI and local use.
+- Current tools: syft (v1.18.1), grype (v0.86.1).
+- Base: `alpine:3.21@sha256:5405e8f3...`.
+- Size target: ~80-120MB.
+- Output formats: CycloneDX JSON (default), SPDX JSON.
+- Note: Grype pulls vulnerability DB on first run (~150MB); recommend caching for CI.
+- Version policy: pin all tool versions; curate bumps; expose `:v<major>`, `:latest`, and semver tags.
+- Signing: same as goneat-tools (cosign + GPG/minisign).
+- Manifest: see `manifests/tools.json`.
