@@ -40,46 +40,76 @@ make release-digests RELEASE_TAG=$RELEASE_TAG
 
 ### Phase 2: Interactive Signing (Human in separate shell)
 
+**Set signing key identifiers:**
+
+```bash
+# GPG key ID (use ! suffix to force specific subkey)
+export PGP_KEY_ID="448A539320A397AF!"
+
+# Minisign secret key path
+export MINISIGN_KEY="$HOME/.minisign/minisign.key"
+
+# Get digests from Phase 1 output or:
+GONEAT_DIGEST=$(docker manifest inspect ghcr.io/fulmenhq/goneat-tools:$RELEASE_TAG -v 2>/dev/null | \
+  jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end')
+SBOM_DIGEST=$(docker manifest inspect ghcr.io/fulmenhq/sbom-tools:$RELEASE_TAG -v 2>/dev/null | \
+  jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end')
+```
+
 **Cosign (keyless OIDC - opens browser for each operation):**
 
 ```bash
-cd dist/release
-
 # Sign image digests (2 browser prompts)
-COSIGN_YES=true cosign sign ghcr.io/fulmenhq/goneat-tools@sha256:<digest>
-COSIGN_YES=true cosign sign ghcr.io/fulmenhq/sbom-tools@sha256:<digest>
+cosign sign \
+  ghcr.io/fulmenhq/goneat-tools@$GONEAT_DIGEST
+
+cosign sign \
+  ghcr.io/fulmenhq/sbom-tools@$SBOM_DIGEST
 
 # Attest SBOMs (2 browser prompts)
-COSIGN_YES=true cosign attest --predicate sbom-goneat-tools-*.json --type spdxjson \
-  ghcr.io/fulmenhq/goneat-tools@sha256:<digest>
-COSIGN_YES=true cosign attest --predicate sbom-sbom-tools-*.json --type spdxjson \
-  ghcr.io/fulmenhq/sbom-tools@sha256:<digest>
+cosign attest \
+  --predicate dist/release/sbom-goneat-tools-*.json \
+  --type spdxjson \
+  ghcr.io/fulmenhq/goneat-tools@$GONEAT_DIGEST
+
+cosign attest \
+  --predicate dist/release/sbom-sbom-tools-*.json \
+  --type spdxjson \
+  ghcr.io/fulmenhq/sbom-tools@$SBOM_DIGEST
 ```
 
 **GPG Signing (requires passphrase):**
 
 ```bash
-cd dist/release
+# Sign SHA256SUMS files
+gpg --local-user "$PGP_KEY_ID" \
+  --detach-sign --armor \
+  dist/release/SHA256SUMS-goneat-tools
 
-# Sign SHA256SUMS files (use ! suffix if multiple signing subkeys)
-gpg --armor --detach-sign --local-user <KEY_ID>! -o SHA256SUMS-goneat-tools.asc SHA256SUMS-goneat-tools
-gpg --armor --detach-sign --local-user <KEY_ID>! -o SHA256SUMS-sbom-tools.asc SHA256SUMS-sbom-tools
+gpg --local-user "$PGP_KEY_ID" \
+  --detach-sign --armor \
+  dist/release/SHA256SUMS-sbom-tools
 
-# Export public key for release
-gpg --armor --export <KEY_ID>! > fulmen-toolbox-release-signing-key.asc
+# Export public key for release (first time only)
+gpg --armor --export "$PGP_KEY_ID" > \
+  dist/release/fulmen-toolbox-release-signing-key.asc
 ```
 
 **Minisign Signing (requires passphrase):**
 
 ```bash
-cd dist/release
-
 # Sign SHA256SUMS files
-minisign -Sm SHA256SUMS-goneat-tools -s /path/to/minisign.key -t "fulmen-toolbox goneat-tools $RELEASE_TAG"
-minisign -Sm SHA256SUMS-sbom-tools -s /path/to/minisign.key -t "fulmen-toolbox sbom-tools $RELEASE_TAG"
+minisign -S \
+  -s "$MINISIGN_KEY" \
+  -m dist/release/SHA256SUMS-goneat-tools
 
-# Copy public key for release
-cp /path/to/minisign.pub fulmenhq-release-signing.pub
+minisign -S \
+  -s "$MINISIGN_KEY" \
+  -m dist/release/SHA256SUMS-sbom-tools
+
+# Copy public key for release (first time only)
+cp "${MINISIGN_KEY%.key}.pub" \
+  dist/release/fulmenhq-release-signing.pub
 ```
 
 ### Phase 3: Automated Upload (AI/CLI friendly)

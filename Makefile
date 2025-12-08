@@ -194,14 +194,23 @@ release-download:
 release-digests:
 	@echo "Image digests for $(RELEASE_TAG):"
 	@echo ""
-	@echo "goneat-tools:"
-	@crane digest ghcr.io/fulmenhq/goneat-tools:$(RELEASE_TAG) 2>/dev/null || echo "  (use: docker manifest inspect ghcr.io/fulmenhq/goneat-tools:$(RELEASE_TAG))"
+	@GONEAT=$$(docker manifest inspect ghcr.io/fulmenhq/goneat-tools:$(RELEASE_TAG) -v 2>/dev/null | \
+	  jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end' 2>/dev/null) && \
+	  if [ -n "$$GONEAT" ] && [ "$$GONEAT" != "null" ]; then \
+	    echo "goneat-tools: $$GONEAT"; \
+	    echo "  cosign sign ghcr.io/fulmenhq/goneat-tools@$$GONEAT"; \
+	  else \
+	    echo "goneat-tools: (waiting for image push or auth required)"; \
+	  fi
 	@echo ""
-	@echo "sbom-tools:"
-	@crane digest ghcr.io/fulmenhq/sbom-tools:$(RELEASE_TAG) 2>/dev/null || echo "  (use: docker manifest inspect ghcr.io/fulmenhq/sbom-tools:$(RELEASE_TAG))"
-	@echo ""
-	@echo "For cosign signing, use:"
-	@echo "  cosign sign ghcr.io/fulmenhq/<image>@sha256:<digest>"
+	@SBOM=$$(docker manifest inspect ghcr.io/fulmenhq/sbom-tools:$(RELEASE_TAG) -v 2>/dev/null | \
+	  jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end' 2>/dev/null) && \
+	  if [ -n "$$SBOM" ] && [ "$$SBOM" != "null" ]; then \
+	    echo "sbom-tools: $$SBOM"; \
+	    echo "  cosign sign ghcr.io/fulmenhq/sbom-tools@$$SBOM"; \
+	  else \
+	    echo "sbom-tools: (waiting for image push or auth required)"; \
+	  fi
 
 ## Verify GPG public key is safe to upload (no private key material)
 verify-release-key:
