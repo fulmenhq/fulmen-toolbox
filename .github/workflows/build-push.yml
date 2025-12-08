@@ -50,16 +50,16 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          build-args:
-            YAMLFMT_VERSION: "${{ env.YAMLFMT_VERSION }}"
-            PRETTIER_VERSION: "${{ env.PRETTIER_VERSION }}"
-            BIOME_VERSION: "${{ env.BIOME_VERSION }}"
-            JQ_VERSION: "${{ env.JQ_VERSION }}"
-            YQ_VERSION: "${{ env.YQ_VERSION }}"
-            RIPGREP_VERSION: "${{ env.RIPGREP_VERSION }}"
-            TAPLO_VERSION: "${{ env.TAPLO_VERSION }}"
-            BASH_VERSION: "${{ env.BASH_VERSION }}"
-            GIT_VERSION: "${{ env.GIT_VERSION }}"
+          build-args: |
+            YAMLFMT_VERSION=${{ env.YAMLFMT_VERSION }}
+            PRETTIER_VERSION=${{ env.PRETTIER_VERSION }}
+            BIOME_VERSION=${{ env.BIOME_VERSION }}
+            JQ_VERSION=${{ env.JQ_VERSION }}
+            YQ_VERSION=${{ env.YQ_VERSION }}
+            RIPGREP_VERSION=${{ env.RIPGREP_VERSION }}
+            TAPLO_VERSION=${{ env.TAPLO_VERSION }}
+            BASH_VERSION=${{ env.BASH_VERSION }}
+            GIT_VERSION=${{ env.GIT_VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Verify image pushed (on push/PR success)
