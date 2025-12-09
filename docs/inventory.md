@@ -10,7 +10,7 @@
 
 ## sbom-tools
 - Purpose: SBOM generation and vulnerability scanning for CI and local use.
-- Current tools: syft (v1.18.1), grype (v0.86.1).
+- Current tools: syft (v1.18.1), grype (v0.86.1), trivy (v0.68.1); jq (1.8.1-r0), yq-go (4.49.2-r1), git (2.52.0-r0) for shaping outputs and CI checkouts.
 - Base: `alpine:3.21@sha256:5405e8f3...`.
 - Size target: ~80-120MB.
 - Output formats: CycloneDX JSON (default), SPDX JSON.

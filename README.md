@@ -26,7 +26,7 @@ Pinned versions: see `manifests/tools.json` (validated via `make validate-manife
 
 **goneat-tools**: Prettier `3.7.4`, Biome `2.3.8`, yamlfmt `v0.20.0`, jq, yq-go, ripgrep, taplo, bash, git (all pinned).
 
-**sbom-tools**: syft `v1.18.1`, grype `v0.86.1`. Base: `alpine:3.21`.
+**sbom-tools**: syft `v1.18.1`, grype `v0.86.1`, trivy `v0.68.1`, jq `1.8.1-r0`, yq-go `4.49.2-r1`, git `2.52.0-r0`. Base: `alpine:3.21`.
 
 **Image Registry:** `ghcr.io/fulmenhq/{image}:{tag}`
 

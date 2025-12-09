@@ -11,6 +11,10 @@ Focused Docker image providing SBOM generation and vulnerability scanning tools 
 |----------|----------------------------------|------------|
 | syft (v1.18.1) | SBOM generation (CycloneDX, SPDX) | GitHub release |
 | grype (v0.86.1) | Vulnerability scanning | GitHub release |
+| trivy (v0.68.1) | SBOM + vuln + config scanning | GitHub release |
+| jq (1.8.1-r0) | JSON shaping for SBOM outputs | apk |
+| yq-go (4.49.2-r1) | YAML/JSON filtering | apk |
+| git (2.52.0-r0) | Repo checkout inside containerized CI | apk |
 
 **Base Image:** `alpine:3.21@sha256:5405e8f3...` (multi-arch digest pinned)
 

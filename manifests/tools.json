@@ -26,13 +26,29 @@
       "name": "jq",
       "version": "1.8.1-r0",
       "source": "apk",
-      "images": ["goneat-tools"]
+      "images": ["goneat-tools"],
+      "notes": "Alpine 3.23 version (node:22-alpine base)"
+    },
+    {
+      "name": "jq",
+      "version": "1.7.1-r0",
+      "source": "apk",
+      "images": ["sbom-tools"],
+      "notes": "Alpine 3.21 version"
     },
     {
       "name": "yq-go",
       "version": "4.49.2-r1",
       "source": "apk",
-      "images": ["goneat-tools"]
+      "images": ["goneat-tools"],
+      "notes": "Alpine 3.23 version (node:22-alpine base)"
+    },
+    {
+      "name": "yq-go",
+      "version": "4.44.5-r5",
+      "source": "apk",
+      "images": ["sbom-tools"],
+      "notes": "Alpine 3.21 version"
     },
     {
       "name": "ripgrep",
@@ -57,7 +73,15 @@
       "name": "git",
       "version": "2.52.0-r0",
       "source": "apk",
-      "images": ["goneat-tools"]
+      "images": ["goneat-tools"],
+      "notes": "Alpine 3.23 version (node:22-alpine base)"
+    },
+    {
+      "name": "git",
+      "version": "2.47.3-r0",
+      "source": "apk",
+      "images": ["sbom-tools"],
+      "notes": "Alpine 3.21 version"
     },
     {
       "name": "curl",

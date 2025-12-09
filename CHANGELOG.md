@@ -6,6 +6,12 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 - Planned: CI-automated signing once secrets are configured.
 
+## [0.1.4] - 2025-12-09
+
+- Added jq, yq-go, and git to sbom-tools image for CI workflow support.
+- Improved release-digests target to auto-fetch and display digests.
+- Updated RELEASE_CHECKLIST.md with env vars (PGP_KEY_ID, MINISIGN_KEY) for easier copy-paste.
+
 ## [0.1.3] - 2025-12-08
 
 - Added trivy v0.68.1 to sbom-tools image (SBOM + vuln + config scanning).
@@ -36,7 +42,8 @@ Adheres to Keep a Changelog format. Versions follow semver.
 - `goneat-tools` image drafted (Prettier, Biome, yamlfmt, jq, yq-go, rg, taplo).
 - Added release docs, version bump helpers, and ADR scaffolding.
 
-[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.1.4
 [0.1.3]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.1.3
 [0.1.2]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.1.2
 [0.1.1]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.1.1

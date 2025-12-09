@@ -18,8 +18,8 @@ ARG SYFT_VERSION
 ARG GRYPE_VERSION
 ARG TRIVY_VERSION
 
-# Install minimal runtime deps (ca-certificates for HTTPS, bash for scripting, curl for CI)
-RUN apk add --no-cache ca-certificates bash curl=8.14.1-r2
+# Install runtime deps (ca-certificates for HTTPS, bash for scripting, CLI tools for CI workflows)
+RUN apk add --no-cache ca-certificates bash curl=8.14.1-r2 jq=1.7.1-r0 yq-go=4.44.5-r5 git=2.47.3-r0
 
 # Install syft (detect arch via uname for legacy builder compatibility)
 RUN set -eux; \

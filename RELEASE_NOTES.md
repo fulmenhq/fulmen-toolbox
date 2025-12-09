@@ -1,5 +1,24 @@
 # Release Notes
 
+## v0.1.4 (2025-12-09)
+
+**sbom-tools CI Workflow Support**
+
+- Added jq 1.7.1, yq-go 4.44.5, git 2.47.3 to sbom-tools image
+- Enables JSON/YAML processing and repo cloning in CI jobs
+- Supports both "CI container" and "local tool substitute" use cases
+
+**DX Improvements**
+
+- `release-digests` now auto-fetches and displays image digests with ready-to-copy cosign commands
+- RELEASE_CHECKLIST.md updated with `PGP_KEY_ID` and `MINISIGN_KEY` env vars
+- Backslash line continuations for easier copy-paste
+
+**Image Updates**
+
+- sbom-tools: added jq, yq-go, git (~345MB)
+- goneat-tools: unchanged
+
 ## v0.1.3 (2025-12-08)
 
 **Trivy Integration**
