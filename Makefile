@@ -186,6 +186,13 @@ DIST_RELEASE ?= dist/release
 GPG_KEY_FILE ?= $(DIST_RELEASE)/fulmen-toolbox-release-signing-key.asc
 MINISIGN_PUB ?= $(DIST_RELEASE)/fulmenhq-release-signing.pub
 
+## Clean release artifacts directory (run before release-download)
+release-clean:
+	@echo "🧹 Cleaning $(DIST_RELEASE)..."
+	@rm -rf $(DIST_RELEASE)
+	@mkdir -p $(DIST_RELEASE)
+	@echo "✅ $(DIST_RELEASE) is clean"
+
 ## Download release artifacts for manual signing (RELEASE_TAG=vX.Y.Z)
 release-download:
 	@scripts/release-download.sh $(RELEASE_TAG) $(DIST_RELEASE)
@@ -212,12 +219,44 @@ release-digests:
 	    echo "sbom-tools: (waiting for image push or auth required)"; \
 	  fi
 
+## Export GPG public key for release (requires PGP_KEY_ID env var)
+release-export-gpg-key:
+	@if [ -z "$$PGP_KEY_ID" ]; then \
+	  echo "❌ PGP_KEY_ID env var not set"; \
+	  echo "   Set with: export PGP_KEY_ID='<your-key-id>!'"; \
+	  exit 1; \
+	fi
+	@mkdir -p $(DIST_RELEASE)
+	@echo "🔑 Exporting GPG public key ($$PGP_KEY_ID) to $(GPG_KEY_FILE)..."
+	@gpg --armor --export "$$PGP_KEY_ID" > $(GPG_KEY_FILE)
+	@echo "✅ GPG public key exported"
+
+## Export minisign public key for release (requires MINISIGN_KEY env var)
+release-export-minisign-key:
+	@if [ -z "$$MINISIGN_KEY" ]; then \
+	  echo "❌ MINISIGN_KEY env var not set"; \
+	  echo "   Set with: export MINISIGN_KEY=\"\$$HOME/.minisign/minisign.key\""; \
+	  exit 1; \
+	fi
+	@MINISIGN_PUB_SRC="$${MINISIGN_KEY%.key}.pub"; \
+	if [ ! -f "$$MINISIGN_PUB_SRC" ]; then \
+	  echo "❌ Minisign public key not found: $$MINISIGN_PUB_SRC"; \
+	  exit 1; \
+	fi; \
+	mkdir -p $(DIST_RELEASE); \
+	echo "🔑 Copying minisign public key to $(MINISIGN_PUB)..."; \
+	cp "$$MINISIGN_PUB_SRC" $(MINISIGN_PUB); \
+	echo "✅ Minisign public key copied"
+
+## Export both public keys for release
+release-export-keys: release-export-gpg-key release-export-minisign-key
+
 ## Verify GPG public key is safe to upload (no private key material)
-verify-release-key:
+verify-release-key: release-export-gpg-key
 	@scripts/verify-public-key.sh $(GPG_KEY_FILE)
 
 ## Upload signed artifacts to GitHub Release (RELEASE_TAG=vX.Y.Z)
-release-upload: verify-release-key
+release-upload: verify-release-key release-export-minisign-key
 	@scripts/release-upload.sh $(RELEASE_TAG) $(DIST_RELEASE)
 
 ## Show manual signing workflow steps

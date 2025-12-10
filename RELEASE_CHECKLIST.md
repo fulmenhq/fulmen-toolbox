@@ -29,7 +29,10 @@ CI generates artifacts but signing requires interactive authentication. Use this
 
 ```bash
 # Set the release tag
-export RELEASE_TAG=v0.1.2
+export RELEASE_TAG=v0.1.4
+
+# Clean previous release artifacts (avoids stale file accumulation)
+make release-clean
 
 # Download release artifacts
 make release-download RELEASE_TAG=$RELEASE_TAG
@@ -43,8 +46,8 @@ make release-digests RELEASE_TAG=$RELEASE_TAG
 **Set signing key identifiers:**
 
 ```bash
-# GPG key ID (use ! suffix to force specific subkey)
-export PGP_KEY_ID="448A539320A397AF!"
+# GPG key ID (use ! suffix to force specific subkey; single quotes to avoid ! expansion)
+export PGP_KEY_ID='448A539320A397AF!'
 
 # Minisign secret key path
 export MINISIGN_KEY="$HOME/.minisign/minisign.key"
@@ -89,10 +92,6 @@ gpg --local-user "$PGP_KEY_ID" \
 gpg --local-user "$PGP_KEY_ID" \
   --detach-sign --armor \
   dist/release/SHA256SUMS-sbom-tools
-
-# Export public key for release (first time only)
-gpg --armor --export "$PGP_KEY_ID" > \
-  dist/release/fulmen-toolbox-release-signing-key.asc
 ```
 
 **Minisign Signing (requires passphrase):**
@@ -106,19 +105,16 @@ minisign -S \
 minisign -S \
   -s "$MINISIGN_KEY" \
   -m dist/release/SHA256SUMS-sbom-tools
-
-# Copy public key for release (first time only)
-cp "${MINISIGN_KEY%.key}.pub" \
-  dist/release/fulmenhq-release-signing.pub
 ```
 
 ### Phase 3: Automated Upload (AI/CLI friendly)
 
-```bash
-# Verify GPG public key is safe (no private key material)
-make verify-release-key
+Requires `PGP_KEY_ID` and `MINISIGN_KEY` env vars from Phase 2.
+Public keys are automatically exported via Make target dependencies.
 
+```bash
 # Upload signatures and keys to GitHub Release
+# (automatically exports public keys and verifies GPG key is safe)
 make release-upload RELEASE_TAG=$RELEASE_TAG
 ```
 
