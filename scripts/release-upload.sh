@@ -23,14 +23,39 @@ fi
 
 # Collect files to upload
 shopt -s nullglob
-SIGNATURES=("$DIR"/*.asc "$DIR"/*.minisig)
+# Actual signatures (not public keys)
+GPG_SIGS=("$DIR"/SHA256SUMS-*.asc)
+MINISIG_SIGS=("$DIR"/SHA256SUMS-*.minisig)
 PUBKEYS=("$DIR"/*-signing-key.asc "$DIR"/*-signing.pub)
+RELEASE_NOTES=("$DIR"/release-notes-"$TAG".md)
 shopt -u nullglob
 
-if [ ${#SIGNATURES[@]} -eq 0 ]; then
-  echo "❌ No signature files (.asc, .minisig) found in $DIR" >&2
+# Validate that actual signatures exist (not just public keys)
+missing=0
+if [ ${#GPG_SIGS[@]} -eq 0 ]; then
+  echo "❌ No GPG signatures (SHA256SUMS-*.asc) found in $DIR" >&2
+  echo "   Run GPG signing first:" >&2
+  echo "   gpg --local-user \"\$PGP_KEY_ID\" --detach-sign --armor dist/release/SHA256SUMS-goneat-tools" >&2
+  echo "   gpg --local-user \"\$PGP_KEY_ID\" --detach-sign --armor dist/release/SHA256SUMS-sbom-tools" >&2
+  missing=1
+fi
+
+if [ ${#MINISIG_SIGS[@]} -eq 0 ]; then
+  echo "❌ No minisign signatures (SHA256SUMS-*.minisig) found in $DIR" >&2
+  echo "   Run minisign signing first:" >&2
+  echo "   minisign -S -s \"\$MINISIGN_KEY\" -m dist/release/SHA256SUMS-goneat-tools" >&2
+  echo "   minisign -S -s \"\$MINISIGN_KEY\" -m dist/release/SHA256SUMS-sbom-tools" >&2
+  missing=1
+fi
+
+if [ $missing -ne 0 ]; then
+  echo "" >&2
+  echo "⚠️  Upload blocked: signatures required before upload" >&2
+  echo "   See RELEASE_CHECKLIST.md Phase 2 for signing steps" >&2
   exit 1
 fi
+
+SIGNATURES=("${GPG_SIGS[@]}" "${MINISIG_SIGS[@]}")
 
 echo "📤 Uploading signatures for ${TAG}..."
 echo "   Files: ${SIGNATURES[*]}"
@@ -44,6 +69,27 @@ if [ ${#PUBKEYS[@]} -gt 0 ]; then
 else
   echo ""
   echo "⚠️  No public key files found (skipping)"
+fi
+
+# Optional: release notes as an uploaded asset
+NOTES_REQUIRED=${RELEASE_NOTES_REQUIRED:-0}
+if [ ${#RELEASE_NOTES[@]} -gt 0 ]; then
+  echo ""
+  echo "📤 Uploading release notes asset..."
+  echo "   Files: ${RELEASE_NOTES[*]}"
+  gh release upload "$TAG" "${RELEASE_NOTES[@]}" --clobber
+else
+  if [ "$NOTES_REQUIRED" = "1" ]; then
+    echo "" >&2
+    echo "❌ Release notes required but not found" >&2
+    echo "   Expected: $DIR/release-notes-$TAG.md" >&2
+    echo "   Create: docs/releases/$TAG.md" >&2
+    echo "   Stage: make release-notes RELEASE_TAG=$TAG" >&2
+    exit 1
+  fi
+  echo ""
+  echo "⚠️  No release notes asset found (skip)"
+  echo "   To stage: make release-notes RELEASE_TAG=$TAG"
 fi
 
 echo ""

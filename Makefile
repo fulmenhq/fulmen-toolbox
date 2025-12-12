@@ -3,7 +3,7 @@
 	build-sbom-tools build-sbom-tools-multi test-sbom-tools \
 	clean help bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap \
 	validate-manifest lint-workflows lint-dockerfiles quality precommit prepush check-clean check-quick \
-	release-download release-upload verify-release-key release-digests
+	release-download release-notes release-sign release-upload verify-release-key release-digests
 
 # Fulmen Toolbox - Local Development Makefile
 # Supports building/testing goneat-tools and sbom-tools
@@ -233,6 +233,22 @@ release-clean:
 release-download:
 	@scripts/release-download.sh $(RELEASE_TAG) $(DIST_RELEASE)
 
+## Stage release notes into dist/ for upload (RELEASE_TAG=vX.Y.Z)
+release-notes:
+	@SRC="docs/releases/$(RELEASE_TAG).md"; \
+	DEST="$(DIST_RELEASE)/release-notes-$(RELEASE_TAG).md"; \
+	if [ ! -f "$$SRC" ]; then \
+	  echo "⚠️  Release notes not found: $$SRC"; \
+	  echo "   Skip ok for now; create it for next release."; \
+	  echo "   To require notes: RELEASE_NOTES_REQUIRED=1 make release-notes RELEASE_TAG=$(RELEASE_TAG)"; \
+	  if [ "$$RELEASE_NOTES_REQUIRED" = "1" ]; then exit 1; fi; \
+	  exit 0; \
+	fi; \
+	mkdir -p "$(DIST_RELEASE)"; \
+	cp "$$SRC" "$$DEST"; \
+	chmod 0644 "$$DEST"; \
+	echo "✅ Staged release notes: $$DEST"
+
 ## Get image digests for manual cosign signing (RELEASE_TAG=vX.Y.Z)
 release-digests:
 	@echo "Image digests for $(RELEASE_TAG):"
@@ -255,6 +271,10 @@ release-digests:
 	    echo "sbom-tools: (waiting for image push or auth required)"; \
 	  fi
 
+## Perform interactive signing for downloaded release (RELEASE_TAG=vX.Y.Z)
+release-sign:
+	@scripts/release-sign.sh $(RELEASE_TAG) $(DIST_RELEASE)
+
 ## Export GPG public key for release (requires PGP_KEY_ID env var)
 release-export-gpg-key:
 	@if [ -z "$$PGP_KEY_ID" ]; then \
@@ -264,7 +284,11 @@ release-export-gpg-key:
 	fi
 	@mkdir -p $(DIST_RELEASE)
 	@echo "🔑 Exporting GPG public key ($$PGP_KEY_ID) to $(GPG_KEY_FILE)..."
-	@gpg --armor --export "$$PGP_KEY_ID" > $(GPG_KEY_FILE)
+	@if [ -n "$$GPG_HOMEDIR" ]; then \
+	  env GNUPGHOME="$$GPG_HOMEDIR" gpg --armor --export "$$PGP_KEY_ID" > $(GPG_KEY_FILE); \
+	else \
+	  gpg --armor --export "$$PGP_KEY_ID" > $(GPG_KEY_FILE); \
+	fi
 	@echo "✅ GPG public key exported"
 
 ## Export minisign public key for release (requires MINISIGN_KEY env var)
@@ -306,23 +330,17 @@ release-signing-help:
 	@echo "   RELEASE_TAG=v0.1.2 make release-download"
 	@echo "   RELEASE_TAG=v0.1.2 make release-digests"
 	@echo ""
-	@echo "2. INTERACTIVE (run in separate shell - requires passphrase/browser):"
-	@echo "   # Cosign (keyless OIDC - opens browser)"
-	@echo "   cosign sign ghcr.io/fulmenhq/goneat-tools@sha256:<digest>"
-	@echo "   cosign sign ghcr.io/fulmenhq/sbom-tools@sha256:<digest>"
-	@echo "   cosign attest --predicate sbom-*.json --type spdxjson ghcr.io/fulmenhq/<image>@sha256:<digest>"
+	@echo "2. INTERACTIVE (run via make - still requires passphrase/browser):"
+	@echo "   export PGP_KEY_ID='<your-key-id>!'"
+	@echo "   export GPG_HOMEDIR=\"\$$HOME/.gnupg\"  # optional (multiple keyrings)"
+	@echo "   export MINISIGN_KEY=\"\$$HOME/.minisign/minisign.key\""
+	@echo "   RELEASE_TAG=v0.1.2 make release-sign"
 	@echo ""
-	@echo "   # GPG (requires passphrase)"
-	@echo "   gpg --armor --detach-sign -o SHA256SUMS-goneat-tools.asc SHA256SUMS-goneat-tools"
-	@echo "   gpg --armor --detach-sign -o SHA256SUMS-sbom-tools.asc SHA256SUMS-sbom-tools"
-	@echo ""
-	@echo "   # Minisign (requires passphrase)"
-	@echo "   minisign -Sm SHA256SUMS-goneat-tools -t 'fulmen-toolbox goneat-tools <version>'"
-	@echo "   minisign -Sm SHA256SUMS-sbom-tools -t 'fulmen-toolbox sbom-tools <version>'"
-	@echo ""
-	@echo "   # Export public keys"
-	@echo "   gpg --armor --export <KEY_ID>! > $(GPG_KEY_FILE)"
-	@echo "   cp /path/to/minisign.pub $(MINISIGN_PUB)"
+	@echo "   # Optional skips (debugging / partial runs):"
+	@echo "   COSIGN=0 RELEASE_TAG=v0.1.2 make release-sign"
+	@echo "   GPG=0 RELEASE_TAG=v0.1.2 make release-sign"
+	@echo "   MINISIGN=0 RELEASE_TAG=v0.1.2 make release-sign"
+	@echo "   # (equivalents: SKIP_COSIGN=1, SKIP_GPG=1, SKIP_MINISIGN=1)"
 	@echo ""
 	@echo "3. AUTOMATED (run via make):"
 	@echo "   make verify-release-key"

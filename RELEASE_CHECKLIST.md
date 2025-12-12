@@ -25,86 +25,90 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
 
 CI generates artifacts but signing requires interactive authentication. Use this workflow:
 
+### Manual Signing Env Vars (set once)
+
+```bash
+# Release tag
+export RELEASE_TAG=v0.1.4
+
+# GPG key ID (use ! suffix to force specific subkey; single quotes to avoid ! expansion)
+export PGP_KEY_ID='448A539320A397AF!'
+
+# OPTIONAL: choose which local GPG homedir to use (script sets GNUPGHOME internally)
+# Useful if you keep multiple keyrings.
+export GPG_HOMEDIR="$HOME/.gnupg"
+
+# Minisign secret key path
+export MINISIGN_KEY="$HOME/.minisign/minisign.key"
+
+# OPTIONAL: disable cosign if needed
+# export COSIGN=0
+```
+
 ### Phase 1: Automated Setup (AI/CLI friendly)
 
 ```bash
-# Set the release tag
-export RELEASE_TAG=v0.1.4
-
 # Clean previous release artifacts (avoids stale file accumulation)
 make release-clean
 
 # Download release artifacts
 make release-download RELEASE_TAG=$RELEASE_TAG
 
-# Get image digests for signing
+# OPTIONAL: stage release notes from docs/releases/
+# (warns if missing; can enforce with RELEASE_NOTES_REQUIRED=1)
+make release-notes RELEASE_TAG=$RELEASE_TAG
+
+# (optional) Get image digests for signing
 make release-digests RELEASE_TAG=$RELEASE_TAG
 ```
 
-### Phase 2: Interactive Signing (Human in separate shell)
+### Phase 2: Interactive Signing (Human - REQUIRED before upload)
 
-**Set signing key identifiers:**
+> **Note:** `make release-upload` will **block** if signatures are missing. Complete all steps below first.
+
+#### Step 2.1: Confirm env vars are set
+
+Required:
+
+- `RELEASE_TAG`
+- `PGP_KEY_ID`
+- `MINISIGN_KEY`
+
+Optional:
+
+- `GPG_HOMEDIR` (recommended if you use multiple keyrings)
+- `COSIGN=0` (disable cosign)
+
+#### Step 2.2: Run signing helper (cosign + checksums)
 
 ```bash
-# GPG key ID (use ! suffix to force specific subkey; single quotes to avoid ! expansion)
-export PGP_KEY_ID='448A539320A397AF!'
-
-# Minisign secret key path
-export MINISIGN_KEY="$HOME/.minisign/minisign.key"
-
-# Get digests from Phase 1 output or:
-GONEAT_DIGEST=$(docker manifest inspect ghcr.io/fulmenhq/goneat-tools:$RELEASE_TAG -v 2>/dev/null | \
-  jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end')
-SBOM_DIGEST=$(docker manifest inspect ghcr.io/fulmenhq/sbom-tools:$RELEASE_TAG -v 2>/dev/null | \
-  jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end')
+make release-sign RELEASE_TAG=$RELEASE_TAG
 ```
 
-**Cosign (keyless OIDC - opens browser for each operation):**
+This wraps the interactive signing steps:
+
+- Resolves image digests from GHCR (requires registry auth)
+- `cosign sign` + `cosign attest` for each image (browser prompts for OIDC)
+- GPG signs `dist/release/SHA256SUMS-*` (passphrase prompts)
+- Minisign signs `dist/release/SHA256SUMS-*` (passphrase prompts)
+
+Optional skips (debugging/partial runs):
 
 ```bash
-# Sign image digests (2 browser prompts)
-cosign sign \
-  ghcr.io/fulmenhq/goneat-tools@$GONEAT_DIGEST
+COSIGN=0 make release-sign RELEASE_TAG=$RELEASE_TAG
+GPG=0 make release-sign RELEASE_TAG=$RELEASE_TAG
+MINISIGN=0 make release-sign RELEASE_TAG=$RELEASE_TAG
 
-cosign sign \
-  ghcr.io/fulmenhq/sbom-tools@$SBOM_DIGEST
-
-# Attest SBOMs (2 browser prompts)
-cosign attest \
-  --predicate dist/release/sbom-goneat-tools-*.json \
-  --type spdxjson \
-  ghcr.io/fulmenhq/goneat-tools@$GONEAT_DIGEST
-
-cosign attest \
-  --predicate dist/release/sbom-sbom-tools-*.json \
-  --type spdxjson \
-  ghcr.io/fulmenhq/sbom-tools@$SBOM_DIGEST
+# (equivalents)
+SKIP_COSIGN=1 make release-sign RELEASE_TAG=$RELEASE_TAG
+SKIP_GPG=1 make release-sign RELEASE_TAG=$RELEASE_TAG
+SKIP_MINISIGN=1 make release-sign RELEASE_TAG=$RELEASE_TAG
 ```
 
-**GPG Signing (requires passphrase):**
+Verify signatures created:
 
 ```bash
-# Sign SHA256SUMS files
-gpg --local-user "$PGP_KEY_ID" \
-  --detach-sign --armor \
-  dist/release/SHA256SUMS-goneat-tools
-
-gpg --local-user "$PGP_KEY_ID" \
-  --detach-sign --armor \
-  dist/release/SHA256SUMS-sbom-tools
-```
-
-**Minisign Signing (requires passphrase):**
-
-```bash
-# Sign SHA256SUMS files
-minisign -S \
-  -s "$MINISIGN_KEY" \
-  -m dist/release/SHA256SUMS-goneat-tools
-
-minisign -S \
-  -s "$MINISIGN_KEY" \
-  -m dist/release/SHA256SUMS-sbom-tools
+ls dist/release/*.asc dist/release/*.minisig
 ```
 
 ### Phase 3: Automated Upload (AI/CLI friendly)
