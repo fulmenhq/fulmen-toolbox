@@ -99,10 +99,31 @@
     },
     {
       "name": "golang-builder",
-      "version": "golang:1.23-alpine@sha256:383395b794dffa5b53012a212365d40c8e37109a626ca30d6151c8348d380b5f",
+      "version": "golang:1.24-alpine@sha256:06545cc1ff10ddf04aebe20db1352ec7c96d1e43135767931c473557d0378202",
       "source": "other",
       "images": ["goneat-tools"],
-      "notes": "Pinned builder image digest for yamlfmt."
+      "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint)."
+    },
+    {
+      "name": "shfmt",
+      "version": "v3.12.0",
+      "source": "go",
+      "images": ["goneat-tools"],
+      "notes": "Shell formatter (BSD-3 license). Go install from mvdan.cc/sh/v3/cmd/shfmt."
+    },
+    {
+      "name": "checkmake",
+      "version": "0.2.2",
+      "source": "go",
+      "images": ["goneat-tools"],
+      "notes": "Makefile linter (MIT license). Go install from github.com/mrtazz/checkmake/cmd/checkmake."
+    },
+    {
+      "name": "actionlint",
+      "version": "v1.7.9",
+      "source": "go",
+      "images": ["goneat-tools"],
+      "notes": "GitHub Actions workflow linter (MIT license). Go install from github.com/rhysd/actionlint/cmd/actionlint."
     },
     {
       "name": "syft",

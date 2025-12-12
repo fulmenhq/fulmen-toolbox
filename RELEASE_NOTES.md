@@ -1,5 +1,14 @@
 # Release Notes
 
+## v0.1.5 (2025-12-10)
+
+**Pin Transparency and Smarter Tests**
+
+- Added `scripts/validate-pins.sh` and `make validate-pins`; `make quality` now fails if Dockerfiles drift from `manifests/tools.json`.
+- `test-sbom-tools` now exercises jq/yq/git presence and runs syft→grype→trivy against a fixture to catch runtime regressions early.
+- minisign public key export now sets 0644 perms in `release-export-minisign-key`.
+- `bootstrap`/`prereqs` now require jq (needed for pin validation).
+
 ## v0.1.4 (2025-12-09)
 
 **sbom-tools CI Workflow Support**

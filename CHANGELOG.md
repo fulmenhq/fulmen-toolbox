@@ -5,6 +5,9 @@ Adheres to Keep a Changelog format. Versions follow semver.
 ## [Unreleased]
 
 - Planned: CI-automated signing once secrets are configured.
+- Added pin validation script to ensure Dockerfiles match manifests/tools.json and wired into `quality`.
+- Expanded sbom-tools smoke test to cover jq/yq/git presence plus syft/grype/trivy fixture scans.
+- Fixed minisign public key export to use 0644 perms; bootstrap now requires jq for validation tooling.
 
 ## [0.1.4] - 2025-12-09
 

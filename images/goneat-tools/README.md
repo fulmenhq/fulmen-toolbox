@@ -12,11 +12,14 @@ Focused Docker image providing code quality and formatting tools for the FulmenH
 | Prettier (3.7.4) | JSON, Markdown, YAML formatting | npm        |
 | Biome (2.3.8) | JS/TS/JSON lint/format | npm |
 | yamlfmt (v0.20.0) | Dedicated YAML formatting/linting | Go binary |
+| shfmt (v3.12.0) | Shell script formatting | Go binary |
+| checkmake (0.2.2) | Makefile linting | Go binary |
+| actionlint (v1.7.9) | GitHub Actions workflow linting | Go binary |
 | jq (1.8.1-r0)      | JSON processing/filtering       | Alpine pkg |
 | yq-go (4.49.2-r1)  | YAML processing/filtering       | Alpine pkg |
 | ripgrep (15.1.0-r0) | Fast text search/search & replace | Alpine pkg |
 | taplo (0.10.0-r0) | TOML formatting/linting         | Alpine pkg |
-| bash (5.3.3-r1), git (2.52.0-r0) | Shell & Git utilities | Alpine pkg |
+| bash (5.3.3-r1), git (2.52.0-r0), curl | Shell & Git utilities | Alpine pkg |
 
 **Base Image:** `node:22-alpine@sha256:9632533...` (multi-arch digest pinned)
 
@@ -36,13 +39,39 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/fulmenhq/goneat-tools:latest
+      options: --user 1001  # Match GHA runner mount ownership
     steps:
       - uses: actions/checkout@v4
       - run: prettier --check "**/*.{md,json,yml,yaml}"
       - run: biome check .
       - run: yamlfmt -lint .
       - run: taplo fmt --check
-      - run: rg --type md "TODO"  # Example ripgrep usage
+      - run: shfmt -d scripts/    # Check shell formatting
+      - run: actionlint           # Lint workflows
+      - run: checkmake Makefile   # Lint Makefile
+```
+
+#### Container Permissions (Important)
+
+This image runs as a non-root user by default. GitHub Actions mounts workspace directories (`/__w`) owned by UID 1001. To avoid permission errors:
+
+```yaml
+container:
+  image: ghcr.io/fulmenhq/goneat-tools:latest
+  options: --user 1001  # Required for GHA runner mounts
+```
+
+**Symptoms without `--user 1001`:**
+```
+EACCES: permission denied, open '/__w/_temp/_runner_file_commands/save_state_...'
+```
+
+**Diagnostics step** (optional, for debugging):
+```yaml
+- name: Check container permissions
+  run: |
+    id
+    ls -ld /__w /__w/_temp /__w/_temp/_runner_file_commands || true
 ```
 
 ### Local Docker Run

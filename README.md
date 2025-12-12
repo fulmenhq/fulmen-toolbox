@@ -18,13 +18,13 @@
 
 | Image              | Purpose                          | Tags                  | Size   |
 |--------------------|----------------------------------|-----------------------|--------|
-| [goneat-tools](images/goneat-tools/) | Code quality/format (Prettier, yamlfmt, jq, yq-go, rg) | `:latest`, `:v0`     | ~150MB |
+| [goneat-tools](images/goneat-tools/) | Code quality/format/lint (Prettier, Biome, yamlfmt, shfmt, checkmake, actionlint, jq, yq, rg, taplo) | `:latest`, `:v0`     | ~150MB |
 | [sbom-tools](images/sbom-tools/) | SBOM generation & vuln scanning (syft, grype) | `:latest`, `:v0` | ~80-120MB |
 | security-tools     | (Phase 3: Coming soon)           |                       |        |
 
 Pinned versions: see `manifests/tools.json` (validated via `make validate-manifest`).
 
-**goneat-tools**: Prettier `3.7.4`, Biome `2.3.8`, yamlfmt `v0.20.0`, jq, yq-go, ripgrep, taplo, bash, git (all pinned).
+**goneat-tools**: Prettier `3.7.4`, Biome `2.3.8`, yamlfmt `v0.20.0`, shfmt `v3.12.0`, checkmake `0.2.2`, actionlint `v1.7.9`, jq, yq-go, ripgrep, taplo, bash, git, curl (all pinned).
 
 **sbom-tools**: syft `v1.18.1`, grype `v0.86.1`, trivy `v0.68.1`, jq `1.8.1-r0`, yq-go `4.49.2-r1`, git `2.52.0-r0`. Base: `alpine:3.21`.
 
@@ -38,7 +38,9 @@ Pinned versions: see `manifests/tools.json` (validated via `make validate-manife
 jobs:
   quality:
     runs-on: ubuntu-latest
-    container: ghcr.io/fulmenhq/goneat-tools:latest
+    container:
+      image: ghcr.io/fulmenhq/goneat-tools:latest
+      options: --user 1001  # Match GHA runner mount ownership
     steps:
       - uses: actions/checkout@v4
       - run: prettier --check "**/*.{md,json,yml,yaml}"
@@ -46,6 +48,8 @@ jobs:
       - run: yamlfmt -lint .
       - run: taplo fmt --check
 ```
+
+> **Note:** The `--user 1001` option ensures the container user matches GitHub Actions runner mount ownership. Without this, non-root containers may fail with `EACCES` errors on `/__w/_temp/_runner_file_commands/`.
 
 ### Local
 
@@ -57,6 +61,8 @@ docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools:latest 
 ```
 
 ## Local Development
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full setup guide, Docker runtime options, and troubleshooting.
 
 From repo root:
 ```bash

@@ -2,7 +2,7 @@
 	build-goneat-tools build-goneat-tools-multi test-goneat-tools \
 	build-sbom-tools build-sbom-tools-multi test-sbom-tools \
 	clean help bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap \
-	validate-manifest lint-workflows lint-dockerfiles quality precommit prepush check-clean \
+	validate-manifest lint-workflows lint-dockerfiles quality precommit prepush check-clean check-quick \
 	release-download release-upload verify-release-key release-digests
 
 # Fulmen Toolbox - Local Development Makefile
@@ -17,9 +17,13 @@ BUMP_SCRIPT := scripts/bump-version.sh
 
 SHELLCHECK ?= shellcheck
 SHFMT ?= shfmt
-PREREQ_CMDS ?= docker cosign gpg minisign syft trivy yamlfmt
+# Core tools for day-to-day development
+PREREQ_CORE ?= docker jq yamlfmt trivy
+# Release-only tools (signing workflow)
+PREREQ_RELEASE ?= cosign gpg minisign syft
 OPTIONAL_CMDS ?= shellcheck shfmt
 VALIDATE_MANIFEST ?= scripts/validate-manifest.sh
+VALIDATE_PINS ?= scripts/validate-pins.sh
 YAMLFMT ?= yamlfmt
 YAMLFMT_PIN ?= v0.20.0
 MISSING_ACTION ?= "missing required tooling; install before proceeding"
@@ -56,10 +60,15 @@ build-goneat-tools-multi:
 test-goneat-tools:
 	docker run --rm $(TAG_LOCAL) -c "\
 		prettier --version && \
+		biome --version && \
 		yamlfmt --version && \
+		shfmt --version && \
+		checkmake --version && \
+		actionlint --version && \
 		jq --version && \
 		yq --version && \
 		rg --version && \
+		taplo --version && \
 		echo 'All tools OK!'"
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -85,10 +94,20 @@ build-sbom-tools-multi:
 
 ## Test sbom-tools (run tools, check versions)
 test-sbom-tools:
-	docker run --rm $(SBOM_TAG_LOCAL) -c "\
+	docker run --rm \
+		-v $(CURDIR)/tests/fixtures/sbom:/fixture:ro \
+		$(SBOM_TAG_LOCAL) -c "\
 		syft version && \
 		grype version && \
 		trivy version && \
+		jq --version && \
+		yq --version && \
+		git --version && \
+		syft /fixture -o cyclonedx-json > /tmp/sbom.json && \
+		[ -s /tmp/sbom.json ] && \
+		grype sbom:/tmp/sbom.json --fail-on critical && \
+		trivy fs --exit-code 0 --severity HIGH,CRITICAL /fixture > /tmp/trivy.txt && \
+		[ -s /tmp/trivy.txt ] && \
 		echo 'All SBOM tools OK!'"
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -124,6 +143,10 @@ fmt-sh:
 validate-manifest:
 	@$(VALIDATE_MANIFEST)
 
+## Validate pinned versions in Dockerfiles against manifests/tools.json
+validate-pins:
+	@$(VALIDATE_PINS)
+
 ## Lint GitHub workflows with yamlfmt
 lint-workflows:
 	@test -d .github/workflows || { echo ".github/workflows not found"; exit 0; }
@@ -151,11 +174,24 @@ lint-dockerfiles:
 	fi
 
 ## Quality bundle: manifest validation + workflow lint + dockerfile lint
-quality: validate-manifest lint-workflows lint-dockerfiles
+quality: validate-manifest validate-pins lint-workflows lint-dockerfiles
 
 ## Precommit bundle: quality checks
 precommit:
 	@$(MAKE) quality
+
+## Quick validation (no Docker required)
+check-quick:
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "Quick validation (no Docker required)..."
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@$(MAKE) validate-pins
+	@$(MAKE) lint-workflows
+	@$(MAKE) lint-dockerfiles
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "✅ Quick validation passed."
+	@echo "   For full checks (requires Docker): make prepush"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 ## Check for uncommitted/unstaged changes (fails if dirty)
 check-clean:
@@ -246,6 +282,7 @@ release-export-minisign-key:
 	mkdir -p $(DIST_RELEASE); \
 	echo "🔑 Copying minisign public key to $(MINISIGN_PUB)..."; \
 	cp "$$MINISIGN_PUB_SRC" $(MINISIGN_PUB); \
+	chmod 0644 $(MINISIGN_PUB); \
 	echo "✅ Minisign public key copied"
 
 ## Export both public keys for release
@@ -292,41 +329,122 @@ release-signing-help:
 	@echo "   RELEASE_TAG=v0.1.2 make release-upload"
 	@echo ""
 
-## Check required tooling is installed (non-fatal for optional tools)
+## Check required tooling is installed (tiered: core vs release)
 prereqs bootstrap:
-	@missing=0; \
-	for cmd in $(PREREQ_CMDS); do \
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "Checking tooling (see CONTRIBUTING.md for full setup)"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@core_missing=0; \
+	echo ""; \
+	echo "Core tools (day-to-day development):"; \
+	for cmd in $(PREREQ_CORE); do \
 		if command -v $$cmd >/dev/null 2>&1; then \
-			echo "$$cmd: ok"; \
+			echo "✅ $$cmd: ok"; \
 		else \
-			if [ "$$cmd" = "yamlfmt" ]; then \
-				echo "$$cmd: MISSING (install via: go install github.com/google/yamlfmt/cmd/yamlfmt@$(YAMLFMT_PIN))"; \
+			if [ "$$cmd" = "docker" ]; then \
+				echo "❌ $$cmd: MISSING"; \
+				echo "   Install via: brew install colima docker && colima start"; \
+			elif [ "$$cmd" = "yamlfmt" ]; then \
+				echo "❌ $$cmd: MISSING"; \
+				echo "   Install via: go install github.com/google/yamlfmt/cmd/yamlfmt@$(YAMLFMT_PIN)"; \
 			elif [ "$$cmd" = "trivy" ]; then \
-				echo "$$cmd: MISSING (install via: brew install trivy)"; \
-			elif [ "$$cmd" = "cosign" ]; then \
-				echo "$$cmd: MISSING (install via: brew install cosign)"; \
+				echo "❌ $$cmd: MISSING"; \
+				echo "   Install via: brew install trivy"; \
+			elif [ "$$cmd" = "jq" ]; then \
+				echo "❌ $$cmd: MISSING"; \
+				echo "   Install via: brew install jq"; \
 			else \
-				echo "$$cmd: MISSING"; \
+				echo "❌ $$cmd: MISSING"; \
 			fi; \
-			missing=1; \
+			core_missing=1; \
 		fi; \
 	done; \
-	if docker buildx version >/dev/null 2>&1; then \
-		echo "docker buildx: ok"; \
-	else \
-		echo "docker buildx: MISSING (install docker buildx)"; missing=1; \
+	echo ""; \
+	echo "Docker daemon status:"; \
+	docker_running=0; \
+	if command -v docker >/dev/null 2>&1; then \
+		if docker info >/dev/null 2>&1; then \
+			echo "✅ docker daemon: running"; \
+			docker_running=1; \
+		else \
+			echo "⚠️  docker daemon: NOT RUNNING"; \
+			echo "   If using Colima: colima start (or: brew services start colima)"; \
+			echo "   If using Docker Desktop: open the Docker Desktop app"; \
+			echo "   Required for: make build-*, test-*, quality, prepush"; \
+			echo "   Not required for: make check-quick, validate-pins, lint-*"; \
+		fi; \
 	fi; \
+	if [ $$docker_running -eq 1 ]; then \
+		if docker buildx version >/dev/null 2>&1; then \
+			echo "✅ docker buildx: ok"; \
+		else \
+			echo "❌ docker buildx: MISSING"; \
+			echo "   Install via: brew install docker-buildx"; \
+			core_missing=1; \
+		fi; \
+	else \
+		echo "⬚  docker buildx: skipped (requires running daemon)"; \
+	fi; \
+	echo ""; \
+	echo "Release tools (signing workflow only):"; \
+	release_missing=0; \
+	for cmd in $(PREREQ_RELEASE); do \
+		if command -v $$cmd >/dev/null 2>&1; then \
+			echo "✅ $$cmd: ok"; \
+		else \
+			if [ "$$cmd" = "cosign" ]; then \
+				echo "⬚  $$cmd: not installed"; \
+				echo "   Install via: brew install cosign"; \
+			elif [ "$$cmd" = "gpg" ]; then \
+				echo "⬚  $$cmd: not installed"; \
+				echo "   Install via: brew install gnupg"; \
+			elif [ "$$cmd" = "minisign" ]; then \
+				echo "⬚  $$cmd: not installed"; \
+				echo "   Install via: brew install minisign"; \
+			elif [ "$$cmd" = "syft" ]; then \
+				echo "⬚  $$cmd: not installed"; \
+				echo "   Install via: brew install syft"; \
+			else \
+				echo "⬚  $$cmd: not installed"; \
+			fi; \
+			release_missing=1; \
+		fi; \
+	done; \
+	echo ""; \
+	echo "Optional tools:"; \
 	for cmd in $(OPTIONAL_CMDS); do \
 		if command -v $$cmd >/dev/null 2>&1; then \
-			echo "$$cmd: ok (optional)"; \
+			echo "✅ $$cmd: ok"; \
 		else \
-			echo "$$cmd: missing (optional)"; \
+			if [ "$$cmd" = "shellcheck" ]; then \
+				echo "⬚  $$cmd: not installed (GPL - sidecar pattern)"; \
+			elif [ "$$cmd" = "shfmt" ]; then \
+				echo "⬚  $$cmd: not installed"; \
+				echo "   Install via: go install mvdan.cc/sh/v3/cmd/shfmt@latest"; \
+			else \
+				echo "⬚  $$cmd: not installed"; \
+			fi; \
 		fi; \
 	done; \
-	if [ $$missing -ne 0 ]; then \
-		echo $(MISSING_ACTION); \
+	echo ""; \
+	echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+	if [ $$core_missing -ne 0 ]; then \
+		echo "❌ Core tools missing. Install above to proceed."; \
+		echo "   Quick start: brew install colima docker docker-buildx jq trivy"; \
+		echo "   Then: go install github.com/google/yamlfmt/cmd/yamlfmt@$(YAMLFMT_PIN)"; \
+	elif [ $$docker_running -eq 0 ]; then \
+		echo "⚠️  Core tools OK, but Docker daemon not running."; \
+		echo "   Start now: colima start"; \
+		echo "   Auto-start: brew services start colima"; \
+		echo "   Without Docker: make check-quick (limited checks)"; \
+	elif [ $$release_missing -ne 0 ]; then \
+		echo "✅ Ready for development! (release tools not installed)"; \
+		echo "   For releases: brew install cosign gnupg minisign syft"; \
+	else \
+		echo "✅ All tools installed. Ready for development and releases!"; \
 	fi; \
-	exit $$missing
+	echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+	exit $$core_missing
 
 ## Help
 help:
