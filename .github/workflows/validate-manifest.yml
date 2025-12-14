@@ -23,8 +23,11 @@ jobs:
         uses: actions/checkout@v4
       - name: Resolve lint tool versions (from manifests)
         run: |
-          echo "YAMLFMT_VERSION=$(jq -r '.tools[] | select(.name==\"yamlfmt\") | .version' manifests/tools.json)" >> "$GITHUB_ENV"
-          echo "ACTIONLINT_VERSION=$(jq -r '.tools[] | select(.name==\"actionlint\") | .version' manifests/tools.json)" >> "$GITHUB_ENV"
+          YAMLFMT_VERSION="$(jq -r '.tools[] | select(.name=="yamlfmt") | .version' manifests/tools.json)"
+          ACTIONLINT_VERSION="$(jq -r '.tools[] | select(.name=="actionlint") | .version' manifests/tools.json)"
+          test -n "$YAMLFMT_VERSION" && test -n "$ACTIONLINT_VERSION"
+          echo "YAMLFMT_VERSION=$YAMLFMT_VERSION" >> "$GITHUB_ENV"
+          echo "ACTIONLINT_VERSION=$ACTIONLINT_VERSION" >> "$GITHUB_ENV"
       - name: Install yamlfmt + actionlint
         run: |
           go install github.com/google/yamlfmt/cmd/yamlfmt@${{ env.YAMLFMT_VERSION }}
