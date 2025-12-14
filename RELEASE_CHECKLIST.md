@@ -41,6 +41,11 @@ export GPG_HOMEDIR="$HOME/.gnupg"
 # Minisign secret key path
 export MINISIGN_KEY="$HOME/.minisign/minisign.key"
 
+# Minisign expects the public key adjacent to the secret key:
+#   MINISIGN_KEY=/path/to/minisign.key
+#   public key=/path/to/minisign.pub
+[ -f "${MINISIGN_KEY%.key}.pub" ] || echo "⚠️ minisign pubkey missing: ${MINISIGN_KEY%.key}.pub"
+
 # OPTIONAL: disable cosign if needed
 # export COSIGN=0
 ```
@@ -117,10 +122,39 @@ ls dist/release/*.asc dist/release/*.minisig
 ### Phase 3: Automated Upload (AI/CLI friendly)
 
 Requires `PGP_KEY_ID` and `MINISIGN_KEY` env vars from Phase 2.
-Public keys are automatically exported via Make target dependencies.
+
+#### Step 3.1: Stage release notes (optional)
 
 ```bash
-# Upload signatures and keys to GitHub Release
+# Copies docs/releases/$RELEASE_TAG.md into dist/release/ as:
+#   dist/release/release-notes-$RELEASE_TAG.md
+#
+# Note: release-upload will upload it if present.
+make release-notes RELEASE_TAG=$RELEASE_TAG
+
+# To enforce (fail if missing):
+# RELEASE_NOTES_REQUIRED=1 make release-notes RELEASE_TAG=$RELEASE_TAG
+```
+
+#### Step 3.2: Export public keys (recommended)
+
+```bash
+# Exports:
+# - dist/release/fulmen-toolbox-release-signing-key.asc
+# - dist/release/fulmenhq-release-signing.pub
+#
+# NOTE: minisign expects the public key adjacent to the secret key:
+#   MINISIGN_KEY=/path/to/minisign.key
+#   public key=/path/to/minisign.pub
+make release-export-keys
+```
+
+(These exports are also run automatically by `make release-upload` via Makefile dependencies; this step is here to make the workflow explicit and easier to debug.)
+
+#### Step 3.3: Upload signatures + keys (+ optional release notes)
+
+```bash
+# Uploads signatures and keys to GitHub Release
 # (automatically exports public keys and verifies GPG key is safe)
 make release-upload RELEASE_TAG=$RELEASE_TAG
 ```

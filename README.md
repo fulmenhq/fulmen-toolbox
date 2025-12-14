@@ -1,11 +1,12 @@
 # Fulmen Toolbox 🧰
 
-[![Docker Image Size (goneat-tools)](https://img.shields.io/docker/image-size/ghcr.io/fulmenhq/goneat-tools/latest)](https://ghcr.io/fulmenhq/goneat-tools)
-[![Docker Pulls (goneat-tools)](https://img.shields.io/docker/pulls/ghcr.io/fulmenhq/goneat-tools)](https://ghcr.io/fulmenhq/goneat-tools)
+[![goneat-tools size](https://ghcr-badge.egpl.dev/fulmenhq/goneat-tools/size?label=goneat-tools)](https://github.com/fulmenhq/fulmen-toolbox/pkgs/container/goneat-tools)
+[![sbom-tools size](https://ghcr-badge.egpl.dev/fulmenhq/sbom-tools/size?label=sbom-tools)](https://github.com/fulmenhq/fulmen-toolbox/pkgs/container/sbom-tools)
+[![Latest Release](https://img.shields.io/github/v/release/fulmenhq/fulmen-toolbox?label=release)](https://github.com/fulmenhq/fulmen-toolbox/releases/latest)
 
 **Fulmen Toolbox** is the official monorepo for FulmenHQ's family of focused, multi-architecture Docker images providing shared, reproducible tooling across our ecosystem (goneat, fulward, pathfinder, etc.).
 
-**Status:** 🚀 Phase 1 – `goneat-tools` ready for testing (v0.1.1).
+**Status:** Production-ready. See [releases](https://github.com/fulmenhq/fulmen-toolbox/releases) for latest versions.
 
 ## Why Toolbox?
 
@@ -14,13 +15,33 @@
 - **Team-Stewarded**: FulmenHQ maintains consistency, security, minimal size.
 - **Easy Integration**: Drop-in GitHub Actions or local Docker runs.
 
+## Image Variants
+
+Each toolbox image comes in two variants to match your use case:
+
+| Variant | Use Case | Includes | Copyleft? |
+|---------|----------|----------|----------|
+| **`-runner`** | CI jobs, build tasks | Tools + runner baseline (bash, git, make, curl, coreutils) | Yes (by design) |
+| **`-slim`** | Tool replacement, local use | Tools only, smaller footprint | Best-effort minimized |
+
+**Which should I use?**
+- Use **`-runner`** if you're running CI jobs, need `make`, or want a full shell environment
+- Use **`-slim`** if you just want to run a tool without installing it locally (e.g., `docker run ... prettier --write .`)
+
+See [Container Usage Patterns](docs/user-guide/container-usage-patterns.md) for detailed examples.
+
 ## Available Images
 
-| Image              | Purpose                          | Tags                  | Size   |
-|--------------------|----------------------------------|-----------------------|--------|
-| [goneat-tools](images/goneat-tools/) | Code quality/format/lint (Prettier, Biome, yamlfmt, shfmt, checkmake, actionlint, jq, yq, rg, taplo) | `:latest`, `:v0`     | ~150MB |
-| [sbom-tools](images/sbom-tools/) | SBOM generation & vuln scanning (syft, grype) | `:latest`, `:v0` | ~80-120MB |
-| security-tools     | (Phase 3: Coming soon)           |                       |        |
+| Image | Variant | Purpose | Copyleft? |
+|-------|---------|---------|----------|
+| `goneat-tools-runner` | runner | Code quality + CI runner baseline | Yes (runner baseline) |
+| `goneat-tools-slim` | slim | Code quality tools only | Best-effort minimized |
+| `sbom-tools-runner` | runner | SBOM/vuln scanning + CI runner baseline | Yes (runner baseline) |
+| `sbom-tools-slim` | slim | SBOM/vuln scanning tools only | Best-effort minimized |
+
+> **Note:** `goneat-tools` and `sbom-tools` (without suffix) are aliases for `-runner` variants.
+>
+> **Note:** Slim variants aim to avoid adding the runner baseline; the base distro may still include copyleft components. Inspect `/licenses/` in the image for details.
 
 Pinned versions: see `manifests/tools.json` (validated via `make validate-manifest`).
 
@@ -56,7 +77,7 @@ jobs:
 **Note**: Uses your **local configs** (.prettierrc.json, .yamlfmt.yaml, etc.) via volume mount – image provides tools only.
 
 ```bash
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest \
   sh -c "prettier --write '**/*.{md,json,yml,yaml}' && yamlfmt -w ."
 ```
 
@@ -78,14 +99,14 @@ make bootstrap             # Check required tooling (docker, cosign, gpg, minisi
 
 Requires a local Docker daemon for builds/tests and manifest validation (uses Dockerized ajv). GitHub Actions runners are the primary CI path; local builds are optional but recommended for quick checks.
 
-**CI/CD:** CI verifies on PR/main; publish happens on semver tags (`v*.*.*`). Tag builds push `:latest`, `:v<major>`, and the semver tag once release signing is wired. Current baseline: v0.1.1.
+**CI/CD:** CI verifies on PR/main; publish happens on semver tags (`v*.*.*`). Tag builds push `:latest`, `:v<major>`, and the semver tag. Images are signed with cosign and include SBOM attestations.
 
 ## Proposing New Images
 
 1. Open an issue with tool needs, size estimate, Dockerfile sketch.
 2. FulmenHQ team reviews → approves → merges.
 
-See [.plans/fulmen-toolbox-vision.md](.plans/fulmen-toolbox-vision.md) (internal) & [.plans/fulmen-toolbox-bootstrap.md](.plans/fulmen-toolbox-bootstrap.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
