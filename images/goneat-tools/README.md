@@ -5,6 +5,10 @@
 
 Focused Docker image providing code quality and formatting tools for the FulmenHQ ecosystem.
 
+## Licenses and Notices
+
+This image bundles upstream license texts under `/licenses/` and upstream notice files (when present) under `/notices/` for transparency and compliance support.
+
 ## Included Tools
 
 | Tool     | Purpose                          | Source     |
@@ -20,6 +24,7 @@ Focused Docker image providing code quality and formatting tools for the FulmenH
 | ripgrep (15.1.0-r0) | Fast text search/search & replace | Alpine pkg |
 | taplo (0.10.0-r0) | TOML formatting/linting         | Alpine pkg |
 | bash (5.3.3-r1), git (2.52.0-r0), curl | Shell & Git utilities | Alpine pkg |
+| minisign (0.12-r0) | File signing/verification | Alpine pkg |
 
 **Base Image:** `node:22-alpine@sha256:9632533...` (multi-arch digest pinned)
 

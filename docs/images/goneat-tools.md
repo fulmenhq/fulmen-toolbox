@@ -18,6 +18,7 @@ Purpose: containerized code quality/formatting/linting toolkit for CI and local 
 - bash: `5.3.3-r1` (apk)
 - git: `2.52.0-r0` (apk)
 - curl: `8.17.0-r1` (apk)
+- minisign: `0.12-r0` (apk)
 
 See `manifests/tools.json` for SSOT and `make validate-manifest` for schema validation.
 

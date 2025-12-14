@@ -5,9 +5,22 @@ Adheres to Keep a Changelog format. Versions follow semver.
 ## [Unreleased]
 
 - Planned: CI-automated signing once secrets are configured.
-- Added pin validation script to ensure Dockerfiles match manifests/tools.json and wired into `quality`.
-- Expanded sbom-tools smoke test to cover jq/yq/git presence plus syft/grype/trivy fixture scans.
-- Fixed minisign public key export to use 0644 perms; bootstrap now requires jq for validation tooling.
+
+## [0.1.6] - 2025-12-13
+
+- Added `scripts/release-sign.sh` and `make release-sign` to consolidate manual signing.
+- Added `GPG_HOMEDIR` support and clearer preflight failures for multi-keyring setups.
+- Added `make release-notes` and updated `release-upload` to optionally include staged release notes.
+- Added OCI-attached SBOM publishing via `cosign attach sbom` in the manual signing flow.
+- Added `/licenses` and `/notices` conventions in images; seeded curated license texts and best-effort notices.
+- Added `minisign` to `goneat-tools` image.
+- Added ADR-0003 documenting the license/notice approach.
+
+## [0.1.5] - 2025-12-10
+
+- Added `scripts/validate-pins.sh` and `make validate-pins`; `make quality` now fails if Dockerfiles drift from `manifests/tools.json`.
+- Expanded `test-sbom-tools` to exercise jq/yq/git presence plus syft→grype→trivy fixture scans.
+- Fixed minisign public key export to use 0644 perms; `bootstrap` now requires jq for validation tooling.
 
 ## [0.1.4] - 2025-12-09
 
@@ -45,7 +58,9 @@ Adheres to Keep a Changelog format. Versions follow semver.
 - `goneat-tools` image drafted (Prettier, Biome, yamlfmt, jq, yq-go, rg, taplo).
 - Added release docs, version bump helpers, and ADR scaffolding.
 
-[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.1.6
+[0.1.5]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.1.5
 [0.1.4]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.1.4
 [0.1.3]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.1.3
 [0.1.2]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.1.2

@@ -5,6 +5,10 @@
 
 Focused Docker image providing SBOM generation and vulnerability scanning tools for the FulmenHQ ecosystem.
 
+## Licenses and Notices
+
+This image bundles upstream license texts under `/licenses/` and upstream notice files (when present) under `/notices/` for transparency and compliance support.
+
 ## Included Tools
 
 | Tool     | Purpose                          | Source     |

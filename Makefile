@@ -69,6 +69,9 @@ test-goneat-tools:
 		yq --version && \
 		rg --version && \
 		taplo --version && \
+		minisign -v >/dev/null 2>&1 && \
+		[ -d /licenses ] && [ -d /licenses/alpine ] && [ -d /notices ] && \
+		[ -f /licenses/github/jedisct1/minisign/LICENSE ] && \
 		echo 'All tools OK!'"
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -108,6 +111,10 @@ test-sbom-tools:
 		grype sbom:/tmp/sbom.json --fail-on critical && \
 		trivy fs --exit-code 0 --severity HIGH,CRITICAL /fixture > /tmp/trivy.txt && \
 		[ -s /tmp/trivy.txt ] && \
+		[ -d /licenses ] && [ -d /licenses/alpine ] && [ -d /notices ] && \
+		[ -f /licenses/github/anchore/syft/LICENSE ] && \
+		[ -f /licenses/github/anchore/grype/LICENSE ] && \
+		[ -f /licenses/github/aquasecurity/trivy/LICENSE ] && \
 		echo 'All SBOM tools OK!'"
 
 # ─────────────────────────────────────────────────────────────────────────────

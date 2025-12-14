@@ -77,7 +77,8 @@ Required:
 Optional:
 
 - `GPG_HOMEDIR` (recommended if you use multiple keyrings)
-- `COSIGN=0` (disable cosign)
+- `COSIGN=0` (disable all cosign operations)
+- `ATTACH_SBOM=0` (skip OCI SBOM attachment)
 
 #### Step 2.2: Run signing helper (cosign + checksums)
 
@@ -89,6 +90,7 @@ This wraps the interactive signing steps:
 
 - Resolves image digests from GHCR (requires registry auth)
 - `cosign sign` + `cosign attest` for each image (browser prompts for OIDC)
+- `cosign attach sbom` to publish SBOM as OCI artifact (registry write; no OIDC)
 - GPG signs `dist/release/SHA256SUMS-*` (passphrase prompts)
 - Minisign signs `dist/release/SHA256SUMS-*` (passphrase prompts)
 
@@ -96,6 +98,7 @@ Optional skips (debugging/partial runs):
 
 ```bash
 COSIGN=0 make release-sign RELEASE_TAG=$RELEASE_TAG
+ATTACH_SBOM=0 make release-sign RELEASE_TAG=$RELEASE_TAG
 GPG=0 make release-sign RELEASE_TAG=$RELEASE_TAG
 MINISIGN=0 make release-sign RELEASE_TAG=$RELEASE_TAG
 
@@ -140,6 +143,16 @@ cosign verify \
   --certificate-oidc-issuer https://accounts.google.com \
   --certificate-identity-regexp ".*@.*" \
   ghcr.io/fulmenhq/goneat-tools@sha256:<digest>
+```
+
+### Cosign SBOM (OCI-attached)
+
+```bash
+# Discover SBOM attached to the image in GHCR
+cosign download sbom ghcr.io/fulmenhq/goneat-tools@sha256:<digest>
+
+# (or by tag if you prefer)
+cosign download sbom ghcr.io/fulmenhq/goneat-tools:$RELEASE_TAG
 ```
 
 ### GPG

@@ -20,7 +20,8 @@
 #   PGP_KEY_ID    - GPG key ID for signing SHA256SUMS-*
 #   GPG_HOMEDIR   - Optional GPG home directory (script sets GNUPGHOME internally)
 #   MINISIGN_KEY  - Path to minisign secret key for signing SHA256SUMS-*
-#   COSIGN        - Set to 0 to disable cosign signing/attest
+#   COSIGN        - Set to 0 to disable all cosign operations
+#   ATTACH_SBOM   - Set to 0 to skip OCI SBOM attach
 #   GPG           - Set to 0 to disable GPG signing
 #   MINISIGN      - Set to 0 to disable minisign signing
 #   SKIP_COSIGN   - Set to 1 to skip cosign sign/attest
@@ -45,6 +46,8 @@ PGP_KEY_ID=${PGP_KEY_ID:-}
 GPG_HOMEDIR=${GPG_HOMEDIR:-}
 MINISIGN_KEY=${MINISIGN_KEY:-}
 
+ATTACH_SBOM=${ATTACH_SBOM:-1}
+
 SKIP_COSIGN=${SKIP_COSIGN:-0}
 SKIP_GPG=${SKIP_GPG:-0}
 SKIP_MINISIGN=${SKIP_MINISIGN:-0}
@@ -52,6 +55,7 @@ SKIP_MINISIGN=${SKIP_MINISIGN:-0}
 # Allow COSIGN=0 / GPG=0 / MINISIGN=0 toggles for quick opt-out.
 if [ "${COSIGN:-1}" = "0" ]; then
 	SKIP_COSIGN=1
+	ATTACH_SBOM=0
 fi
 if [ "${GPG:-1}" = "0" ]; then
 	SKIP_GPG=1
@@ -124,6 +128,16 @@ resolve_sbom_file() {
 	fail "Multiple SBOMs found for $image in $DIR: ${matches[*]}"
 }
 
+attach_sbom() {
+	local image="$1" digest="$2" sbom_file="$3"
+	local ref="$REGISTRY/$OWNER/$image@$digest"
+
+	echo "📎 cosign attach sbom: $ref"
+	# NOTE: cosign upstream marks attach-sbom as deprecated.
+	# We still use it for registry-native SBOM discovery convenience.
+	cosign attach sbom --sbom "$sbom_file" --type spdx --input-format json "$ref"
+}
+
 sign_cosign() {
 	local image="$1" digest="$2" sbom_file="$3"
 	local ref="$REGISTRY/$OWNER/$image@$digest"
@@ -135,6 +149,10 @@ sign_cosign() {
 
 	cosign sign "$ref"
 	cosign attest --predicate "$sbom_file" --type spdxjson "$ref"
+
+	if [ "$ATTACH_SBOM" != "0" ]; then
+		attach_sbom "$image" "$digest" "$sbom_file"
+	fi
 }
 
 sign_gpg() {
@@ -162,7 +180,7 @@ sign_minisign() {
 need_cmd jq
 need_cmd docker
 
-if [ "$SKIP_COSIGN" != "1" ]; then
+if [ "$SKIP_COSIGN" != "1" ] || [ "$ATTACH_SBOM" != "0" ]; then
 	need_cmd cosign
 fi
 
@@ -181,7 +199,7 @@ for image in $IMAGES; do
 		echo "❌ Missing checksum file: $DIR/SHA256SUMS-$image" >&2
 		missing=1
 	fi
-	if [ "$SKIP_COSIGN" != "1" ]; then
+	if [ "$SKIP_COSIGN" != "1" ] || [ "$ATTACH_SBOM" != "0" ]; then
 		if ! resolve_sbom_file "$image" >/dev/null; then
 			missing=1
 		fi
@@ -233,9 +251,14 @@ echo "Images:   $IMAGES"
 echo ""
 echo "Signing modes:"
 if [ "$SKIP_COSIGN" != "1" ]; then
-	echo "  - cosign: enabled (keyless; may open browser)"
+	echo "  - cosign: enabled (keyless sign+attest; may open browser)"
 else
 	echo "  - cosign: skipped (SKIP_COSIGN=1)"
+fi
+if [ "$ATTACH_SBOM" != "0" ]; then
+	echo "  - sbom attach: enabled (registry write; no OIDC)"
+else
+	echo "  - sbom attach: skipped (ATTACH_SBOM=0)"
 fi
 if [ "$SKIP_GPG" != "1" ]; then
 	if [ -n "$GPG_HOMEDIR" ]; then
@@ -258,7 +281,7 @@ for image in $IMAGES; do
 	checksum_file="$DIR/SHA256SUMS-$image"
 	echo "  - $image:"
 	echo "    - checksum: $checksum_file"
-	if [ "$SKIP_COSIGN" != "1" ]; then
+	if [ "$SKIP_COSIGN" != "1" ] || [ "$ATTACH_SBOM" != "0" ]; then
 		digest=$(resolve_digest "$image")
 		if [ -z "$digest" ] || [ "$digest" = "null" ]; then
 			fail "Unable to resolve digest for $image (need registry auth? waiting for push?)"

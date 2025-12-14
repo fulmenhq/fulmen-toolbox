@@ -78,8 +78,9 @@ goneat_taplo=$(get_version "taplo" "goneat-tools")
 goneat_bash=$(get_version "bash" "goneat-tools")
 goneat_git=$(get_version "git" "goneat-tools")
 goneat_curl=$(get_version "curl" "goneat-tools")
+goneat_minisign=$(get_version "minisign" "goneat-tools")
 
-for name in goneat_node goneat_go goneat_prettier goneat_biome goneat_yamlfmt goneat_shfmt goneat_checkmake goneat_actionlint goneat_jq goneat_yq goneat_ripgrep goneat_taplo goneat_bash goneat_git goneat_curl; do
+for name in goneat_node goneat_go goneat_prettier goneat_biome goneat_yamlfmt goneat_shfmt goneat_checkmake goneat_actionlint goneat_jq goneat_yq goneat_ripgrep goneat_taplo goneat_bash goneat_git goneat_curl goneat_minisign; do
   if [ -z "${!name:-}" ]; then
     echo "❌ Missing manifest entry for ${name#goneat_}"
     fail=1
@@ -101,6 +102,7 @@ check_pin "$goneat_df" "goneat-tools taplo" "ARG TAPLO_VERSION=${goneat_taplo}" 
 check_pin "$goneat_df" "goneat-tools bash" "ARG BASH_VERSION=${goneat_bash}" || fail=1
 check_pin "$goneat_df" "goneat-tools git" "ARG GIT_VERSION=${goneat_git}" || fail=1
 check_pin "$goneat_df" "goneat-tools curl" "ARG CURL_VERSION=${goneat_curl}" || fail=1
+check_pin "$goneat_df" "goneat-tools minisign" "ARG MINISIGN_VERSION=${goneat_minisign}" || fail=1
 
 if [ "$fail" -ne 0 ]; then
   echo "Pin validation failed."

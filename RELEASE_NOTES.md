@@ -1,5 +1,19 @@
 # Release Notes
 
+## v0.1.6 (2025-12-13)
+
+**Minisign in goneat-tools + License Transparency**
+
+- goneat-tools: added `minisign` (requested by users) and pinned it in `manifests/tools.json`.
+- Both images now expose `/licenses/` and `/notices/` with curated license texts for bundled tools (plus best-effort package-manager license copying).
+- Added ADR-0003 and SOP documentation for how licenses/notices are collected and where they live.
+
+**Release Process DX**
+
+- `make release-sign` now covers cosign sign + SBOM attest + OCI-attached SBOM publish (`cosign attach sbom`), plus GPG/minisign checksum signatures.
+- Added `GPG_HOMEDIR` support for maintainers with multiple GPG keyrings.
+- Added optional `make release-notes` staging and updated `release-upload` to upload notes when present.
+
 ## v0.1.5 (2025-12-10)
 
 **Pin Transparency and Smarter Tests**

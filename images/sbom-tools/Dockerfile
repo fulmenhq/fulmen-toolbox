@@ -21,6 +21,37 @@ ARG TRIVY_VERSION
 # Install runtime deps (ca-certificates for HTTPS, bash for scripting, CLI tools for CI workflows)
 RUN apk add --no-cache ca-certificates bash curl=8.14.1-r2 jq=1.7.1-r0 yq-go=4.44.5-r5 git=2.47.3-r0
 
+# Standard location for license texts and notices (transparency / compliance support)
+RUN set -eux; \
+    mkdir -p \
+      /licenses/github /licenses/alpine \
+      /notices/github /notices/alpine; \
+    if [ -d /usr/share/licenses ]; then \
+      cp -a /usr/share/licenses/. /licenses/alpine/; \
+    fi; \
+    # Curated upstream license texts for GitHub release binaries
+    mkdir -p \
+      /licenses/github/anchore/syft \
+      /licenses/github/anchore/grype \
+      /licenses/github/aquasecurity/trivy \
+      /notices/github/anchore/syft \
+      /notices/github/anchore/grype \
+      /notices/github/aquasecurity/trivy; \
+    curl -fsSL "https://raw.githubusercontent.com/anchore/syft/${SYFT_VERSION}/LICENSE" \
+      -o /licenses/github/anchore/syft/LICENSE; \
+    curl -fsSL "https://raw.githubusercontent.com/anchore/grype/${GRYPE_VERSION}/LICENSE" \
+      -o /licenses/github/anchore/grype/LICENSE; \
+    curl -fsSL "https://raw.githubusercontent.com/aquasecurity/trivy/${TRIVY_VERSION}/LICENSE" \
+      -o /licenses/github/aquasecurity/trivy/LICENSE; \
+    # NOTICE files are best-effort (some projects do not publish them)
+    curl -fsSL "https://raw.githubusercontent.com/anchore/syft/${SYFT_VERSION}/NOTICE" \
+      -o /notices/github/anchore/syft/NOTICE || true; \
+    curl -fsSL "https://raw.githubusercontent.com/anchore/grype/${GRYPE_VERSION}/NOTICE" \
+      -o /notices/github/anchore/grype/NOTICE || true; \
+    curl -fsSL "https://raw.githubusercontent.com/aquasecurity/trivy/${TRIVY_VERSION}/NOTICE" \
+      -o /notices/github/aquasecurity/trivy/NOTICE || true; \
+    chmod -R a+rX /licenses /notices
+
 # Install syft (detect arch via uname for legacy builder compatibility)
 RUN set -eux; \
     UNAME_ARCH="$(uname -m)"; \
