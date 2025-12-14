@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.fulmenhq.dev/fulmen-toolbox/profile-manifest.schema.json",
+  "title": "Fulmen Toolbox Profile Manifest",
+  "type": "object",
+  "required": ["profiles"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["description", "package_manager", "packages"],
+        "properties": {
+          "description": { "type": "string", "minLength": 1 },
+          "package_manager": { "type": "string", "enum": ["apk"] },
+          "packages": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

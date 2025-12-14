@@ -23,7 +23,22 @@
             "items": { "type": "string", "minLength": 1 },
             "minItems": 1
           },
-          "notes": { "type": "string" }
+          "notes": { "type": "string" },
+          "license_spdx": { "type": "string", "minLength": 1 },
+          "license_source": {
+            "type": "string",
+            "enum": ["apk", "gomodcache", "npm", "upstream-url", "manual"]
+          },
+          "license_path": { "type": "string", "minLength": 1 },
+          "license_paths": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "notice_required": { "type": "boolean" },
+          "notice_path": { "type": "string", "minLength": 1 },
+          "copyleft": { "type": "boolean" }
         },
         "additionalProperties": false
       }

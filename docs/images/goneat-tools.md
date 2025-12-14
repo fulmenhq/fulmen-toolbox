@@ -4,21 +4,25 @@ Purpose: containerized code quality/formatting/linting toolkit for CI and local 
 
 ## Versions (Pinned)
 - Base: `node:22-alpine@sha256:9632533eda8061fc1e9960cfb3f8762781c07a00ee7317f5dc0e13c05e15166f`
-- Builder: `golang:1.24-alpine@sha256:06545cc1ff10ddf04aebe20db1352ec7c96d1e43135767931c473557d0378202`
+- Builder: `golang:1.25-alpine@sha256:26111811bc967321e7b6f852e914d14bede324cd1accb7f81811929a6a57fea9`
 - Prettier: `3.7.4` (npm global)
 - Biome: `2.3.8` (npm global)
 - yamlfmt: `v0.20.0` (Go install)
 - shfmt: `v3.12.0` (Go install) - shell formatter (BSD-3)
 - checkmake: `0.2.2` (Go install) - Makefile linter (MIT)
 - actionlint: `v1.7.9` (Go install) - GitHub Actions linter (MIT)
+- goneat: `v0.3.20` (Go install) - FulmenHQ DX CLI
+- sfetch: `v0.2.7` (Go install) - trust-anchor downloader
 - jq: `1.8.1-r0` (apk)
 - yq-go: `4.49.2-r1` (apk)
 - ripgrep: `15.1.0-r0` (apk)
 - taplo: `0.10.0-r0` (apk)
+- minisign: `0.12-r0` (apk)
+
+Runner baseline (runner variant only; see `manifests/profiles.json`):
 - bash: `5.3.3-r1` (apk)
 - git: `2.52.0-r0` (apk)
 - curl: `8.17.0-r1` (apk)
-- minisign: `0.12-r0` (apk)
 
 See `manifests/tools.json` for SSOT and `make validate-manifest` for schema validation.
 
@@ -32,8 +36,8 @@ See `manifests/tools.json` for SSOT and `make validate-manifest` for schema vali
 - yamlfmt required locally for workflow linting (`make lint-workflows` / `make quality`).
 - Docker daemon required for builds/tests and manifest validation (uses Dockerized ajv).
 
-## Excluded Tools (GPL)
-The following tools are intentionally excluded due to GPL licensing:
+## Excluded Tools (Copyleft)
+The following tools are intentionally excluded from the `-slim` variant to minimize copyleft surface area:
 - **shellcheck** (GPL-3): Use sidecar pattern or install separately in CI
 - **yamllint** (GPL): Use sidecar pattern or install separately in CI
 
@@ -58,7 +62,7 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/fulmenhq/goneat-tools:latest
+      image: ghcr.io/fulmenhq/goneat-tools-runner:latest
       options: --user 1001  # Match GHA runner mount ownership
     steps:
       - uses: actions/checkout@v4
@@ -77,7 +81,7 @@ If UID 1001 doesn't work (e.g., self-hosted runners with different ownership):
 
 ```yaml
 container:
-  image: ghcr.io/fulmenhq/goneat-tools:latest
+  image: ghcr.io/fulmenhq/goneat-tools-runner:latest
   options: --user root  # Works but loses non-root security
 ```
 

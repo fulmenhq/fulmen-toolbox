@@ -20,6 +20,7 @@ Purpose: keep third-party license texts and attribution notices discoverable ins
 ## When adding a tool
 
 1. Add the tool pin to `manifests/tools.json`.
+   - For curated top-level tools, also add `license_spdx` and `license_path` (or `license_paths`) so CI can validate in-image content (ADR-0005).
 2. Add the tool to the relevant Dockerfile.
 3. Ensure the tool’s license text ends up in the image:
    - If installed via `apk`, confirm it appears under `/licenses/alpine/`.
@@ -27,7 +28,7 @@ Purpose: keep third-party license texts and attribution notices discoverable ins
    - If installed via npm global, copy package LICENSE into `/licenses/npm/...`.
    - If installed from a GitHub release binary, fetch LICENSE from the upstream repo at the pinned tag/version.
 4. If the upstream requires an attribution NOTICE, copy it into `/notices/...`.
-5. Run `make validate-pins` and image smoke tests (`make test-goneat-tools`, `make test-sbom-tools`).
+5. Run `make validate-pins`, `make validate-profiles`, `make validate-licenses`, and image smoke tests (`make test-goneat-tools-runner`, `make test-goneat-tools-slim`, `make test-sbom-tools-runner`, `make test-sbom-tools-slim`).
 
 ## Review / audit checklist
 

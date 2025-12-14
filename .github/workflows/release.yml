@@ -10,8 +10,25 @@ jobs:
   release:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        image: [goneat-tools, sbom-tools]
+        include:
+          - family: goneat-tools
+            image: goneat-tools-runner
+            target: runner
+            alias: goneat-tools
+          - family: goneat-tools
+            image: goneat-tools-slim
+            target: slim
+            alias: ""
+          - family: sbom-tools
+            image: sbom-tools-runner
+            target: runner
+            alias: sbom-tools
+          - family: sbom-tools
+            image: sbom-tools-slim
+            target: slim
+            alias: ""
     permissions:
       contents: write
       packages: write
@@ -24,10 +41,45 @@ jobs:
         run: |
           VERSION="${GITHUB_REF#refs/tags/v}"
           MAJOR="${VERSION%%.*}"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "MAJOR=$MAJOR" >> $GITHUB_ENV
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "major=$MAJOR" >> $GITHUB_OUTPUT
+          {
+            echo "VERSION=$VERSION"
+            echo "MAJOR=$MAJOR"
+          } >> "$GITHUB_ENV"
+          {
+            echo "version=$VERSION"
+            echo "major=$MAJOR"
+          } >> "$GITHUB_OUTPUT"
+      - name: Compute tags
+        id: tags
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ matrix.image }}
+          ALIAS: ${{ matrix.alias }}
+        run: |
+          set -eu
+          CANON_TAGS=$(cat <<EOF
+          $REGISTRY/$OWNER/$IMAGE:latest
+          $REGISTRY/$OWNER/$IMAGE:v$MAJOR
+          $REGISTRY/$OWNER/$IMAGE:v$VERSION
+          EOF
+          )
+          if [ -n "${ALIAS}" ]; then
+            ALIAS_TAGS=$(cat <<EOF
+          $REGISTRY/$OWNER/$ALIAS:latest
+          $REGISTRY/$OWNER/$ALIAS:v$MAJOR
+          $REGISTRY/$OWNER/$ALIAS:v$VERSION
+          EOF
+            )
+            TAGS="$CANON_TAGS
+          $ALIAS_TAGS"
+          else
+            TAGS="$CANON_TAGS"
+          fi
+          {
+            echo "tags<<EOF"
+            echo "$TAGS"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -43,18 +95,16 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: images/${{ matrix.image }}/Dockerfile
+          file: images/${{ matrix.family }}/Dockerfile
+          target: ${{ matrix.target }}
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: |
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}:latest
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}:v${{ steps.meta.outputs.major }}
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}:v${{ steps.meta.outputs.version }}
+          tags: ${{ steps.tags.outputs.tags }}
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
       - name: Capture digest
         id: digest
-        run: echo "DIGEST=${{ steps.build.outputs.digest }}" >> $GITHUB_ENV
+        run: echo "DIGEST=${{ steps.build.outputs.digest }}" >> "$GITHUB_ENV"
       - name: Generate SBOM (syft)
         uses: anchore/sbom-action@v0
         with:
@@ -65,9 +115,11 @@ jobs:
       - name: Check signing secrets
         id: secrets
         run: |
-          echo "has_cosign=${{ secrets.COSIGN_PRIVATE_KEY != '' }}" >> $GITHUB_OUTPUT
-          echo "has_gpg=${{ secrets.GPG_PRIVATE_KEY != '' && secrets.GPG_PASSPHRASE != '' }}" >> $GITHUB_OUTPUT
-          echo "has_minisign=${{ secrets.MINISIGN_KEY != '' && secrets.MINISIGN_PASS != '' }}" >> $GITHUB_OUTPUT
+          {
+            echo "has_cosign=${{ secrets.COSIGN_PRIVATE_KEY != '' }}"
+            echo "has_gpg=${{ secrets.GPG_PRIVATE_KEY != '' && secrets.GPG_PASSPHRASE != '' }}"
+            echo "has_minisign=${{ secrets.MINISIGN_KEY != '' && secrets.MINISIGN_PASS != '' }}"
+          } >> "$GITHUB_OUTPUT"
       # Cosign signing/attestation (optional; skip if secrets not set)
       - name: Install cosign
         if: steps.secrets.outputs.has_cosign == 'true'
@@ -97,17 +149,21 @@ jobs:
         env:
           OWNER: ${{ github.repository_owner }}
         run: |
-          {
-            echo "$DIGEST  $REGISTRY/$OWNER/${{ matrix.image }}:v${{ steps.meta.outputs.version }}";
-            echo "$DIGEST  $REGISTRY/$OWNER/${{ matrix.image }}:v${{ steps.meta.outputs.major }}";
-            echo "$DIGEST  $REGISTRY/$OWNER/${{ matrix.image }}:latest";
-          } > SHA256SUMS-${{ matrix.image }}
+          set -eu
+          printf "%s\n" "${{ steps.tags.outputs.tags }}" | sed '/^\s*$/d' | while IFS= read -r ref; do
+            echo "$DIGEST  $ref"
+          done > SHA256SUMS-${{ matrix.image }}
       - name: GPG sign SHA256SUMS
         if: steps.secrets.outputs.has_gpg == 'true'
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --yes --import
           gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
             --armor --detach-sign --output SHA256SUMS-${{ matrix.image }}.asc SHA256SUMS-${{ matrix.image }}
+      - name: Install minisign
+        if: steps.secrets.outputs.has_minisign == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y minisign
       - name: Minisign sign SHA256SUMS
         if: steps.secrets.outputs.has_minisign == 'true'
         run: |

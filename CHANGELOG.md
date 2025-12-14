@@ -4,7 +4,14 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 ## [Unreleased]
 
-- Planned: CI-automated signing once secrets are configured.
+## [0.2.0] - 2025-12-14
+
+- Split toolbox images into explicit `-slim` and `-runner` variants; bare tags remain as runner aliases.
+- Added schema-driven baseline profiles (`manifests/profiles.json`) and CI enforcement to prevent runner-baseline leakage into `-slim`.
+- Added license/notice metadata to `manifests/tools.json` plus automated in-image validation (`make validate-licenses`) (ADR-0005).
+- Added `goneat` (v0.3.20) and `sfetch` (v0.2.7) to `goneat-tools` as DX payload tools.
+- Enforced required NOTICE handling where declared (e.g., Trivy NOTICE; FulmenHQ goneat NOTICE).
+- Updated documentation for usage modes, image classes/profiles, and routine maintenance workflows.
 
 ## [0.1.6] - 2025-12-13
 
@@ -58,7 +65,8 @@ Adheres to Keep a Changelog format. Versions follow semver.
 - `goneat-tools` image drafted (Prettier, Biome, yamlfmt, jq, yq-go, rg, taplo).
 - Added release docs, version bump helpers, and ADR scaffolding.
 
-[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.0
 [0.1.6]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.1.6
 [0.1.5]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.1.5
 [0.1.4]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.1.4

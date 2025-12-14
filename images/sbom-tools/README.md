@@ -22,7 +22,7 @@ This image bundles upstream license texts under `/licenses/` and upstream notice
 
 **Base Image:** `alpine:3.21@sha256:5405e8f3...` (multi-arch digest pinned)
 
-See `docs/images/sbom-tools.md` and `manifests/tools.json` for pinning details.
+See `manifests/tools.json` for pinning details and `docs/user-guide/container-usage-patterns.md` for usage patterns.
 
 **Image Tags:**
 - `ghcr.io/fulmenhq/sbom-tools:latest`

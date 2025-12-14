@@ -1,6 +1,10 @@
 .PHONY: all build-all test-all \
-	build-goneat-tools build-goneat-tools-multi test-goneat-tools \
-	build-sbom-tools build-sbom-tools-multi test-sbom-tools \
+	build-goneat-tools build-goneat-tools-runner build-goneat-tools-slim \
+	build-goneat-tools-multi build-goneat-tools-runner-multi build-goneat-tools-slim-multi \
+	test-goneat-tools test-goneat-tools-runner test-goneat-tools-slim \
+	build-sbom-tools build-sbom-tools-runner build-sbom-tools-slim \
+	build-sbom-tools-multi build-sbom-tools-runner-multi build-sbom-tools-slim-multi \
+	test-sbom-tools test-sbom-tools-runner test-sbom-tools-slim \
 	clean help bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap \
 	validate-manifest lint-workflows lint-dockerfiles quality precommit prepush check-clean check-quick \
 	release-download release-notes release-sign release-upload verify-release-key release-digests
@@ -9,9 +13,23 @@
 # Supports building/testing goneat-tools and sbom-tools
 
 REGISTRY := ghcr.io/fulmenhq
-IMAGE_NAME := goneat-tools
-TAG_LOCAL := $(REGISTRY)/$(IMAGE_NAME):local
-TAG_LATEST := $(REGISTRY)/$(IMAGE_NAME):latest
+
+# Image families and variants
+GONEAT_FAMILY := goneat-tools
+GONEAT_RUNNER_IMAGE := $(GONEAT_FAMILY)-runner
+GONEAT_SLIM_IMAGE := $(GONEAT_FAMILY)-slim
+GONEAT_RUNNER_TAG_LOCAL := $(REGISTRY)/$(GONEAT_RUNNER_IMAGE):local
+GONEAT_RUNNER_TAG_LATEST := $(REGISTRY)/$(GONEAT_RUNNER_IMAGE):latest
+GONEAT_SLIM_TAG_LOCAL := $(REGISTRY)/$(GONEAT_SLIM_IMAGE):local
+GONEAT_SLIM_TAG_LATEST := $(REGISTRY)/$(GONEAT_SLIM_IMAGE):latest
+
+SBOM_FAMILY := sbom-tools
+SBOM_RUNNER_IMAGE := $(SBOM_FAMILY)-runner
+SBOM_SLIM_IMAGE := $(SBOM_FAMILY)-slim
+SBOM_RUNNER_TAG_LOCAL := $(REGISTRY)/$(SBOM_RUNNER_IMAGE):local
+SBOM_RUNNER_TAG_LATEST := $(REGISTRY)/$(SBOM_RUNNER_IMAGE):latest
+SBOM_SLIM_TAG_LOCAL := $(REGISTRY)/$(SBOM_SLIM_IMAGE):local
+SBOM_SLIM_TAG_LATEST := $(REGISTRY)/$(SBOM_SLIM_IMAGE):latest
 VERSION_FILE := VERSION
 BUMP_SCRIPT := scripts/bump-version.sh
 
@@ -24,6 +42,8 @@ PREREQ_RELEASE ?= cosign gpg minisign syft
 OPTIONAL_CMDS ?= shellcheck shfmt
 VALIDATE_MANIFEST ?= scripts/validate-manifest.sh
 VALIDATE_PINS ?= scripts/validate-pins.sh
+VALIDATE_PROFILES ?= scripts/validate-profiles.sh
+VALIDATE_LICENSES ?= scripts/validate-licenses.sh
 YAMLFMT ?= yamlfmt
 YAMLFMT_PIN ?= v0.20.0
 MISSING_ACTION ?= "missing required tooling; install before proceeding"
@@ -33,32 +53,55 @@ YAMLLINT ?= yamllint
 all: build-all test-all
 
 ## Build all images (single-arch)
-build-all: build-goneat-tools build-sbom-tools
+build-all: build-goneat-tools-runner build-goneat-tools-slim build-sbom-tools-runner build-sbom-tools-slim
 
 ## Test all images
-test-all: test-goneat-tools test-sbom-tools
+test-all: test-goneat-tools-runner test-goneat-tools-slim test-sbom-tools-runner test-sbom-tools-slim
 
 # ─────────────────────────────────────────────────────────────────────────────
 # goneat-tools targets
 # ─────────────────────────────────────────────────────────────────────────────
 
-## Build single-arch (fast local testing)
-build-goneat-tools:
-	docker build -t $(TAG_LOCAL) images/$(IMAGE_NAME)
+## Build goneat-tools runner (single-arch)
+build-goneat-tools-runner:
+	docker build --target runner -t $(GONEAT_RUNNER_TAG_LOCAL) images/$(GONEAT_FAMILY)
 
-## Build multi-arch (linux/amd64 + linux/arm64)
-build-goneat-tools-multi:
+## Build goneat-tools slim (single-arch)
+build-goneat-tools-slim:
+	docker build --target slim -t $(GONEAT_SLIM_TAG_LOCAL) images/$(GONEAT_FAMILY)
+
+## Back-compat alias target (runner)
+build-goneat-tools: build-goneat-tools-runner
+
+## Build goneat-tools runner multi-arch (linux/amd64 + linux/arm64)
+build-goneat-tools-runner-multi:
 	docker buildx create --use || true
 	docker buildx build \
 		--platform linux/amd64,linux/arm64 \
-		-t $(TAG_LOCAL) \
-		-t $(TAG_LATEST) \
+		--target runner \
+		-t $(GONEAT_RUNNER_TAG_LOCAL) \
+		-t $(GONEAT_RUNNER_TAG_LATEST) \
 		--push=false \
-		images/$(IMAGE_NAME)
+		images/$(GONEAT_FAMILY)
 
-## Test the image (run tools, check versions)
-test-goneat-tools:
-	docker run --rm $(TAG_LOCAL) -c "\
+## Build goneat-tools slim multi-arch (linux/amd64 + linux/arm64)
+build-goneat-tools-slim-multi:
+	docker buildx create --use || true
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--target slim \
+		-t $(GONEAT_SLIM_TAG_LOCAL) \
+		-t $(GONEAT_SLIM_TAG_LATEST) \
+		--push=false \
+		images/$(GONEAT_FAMILY)
+
+## Back-compat alias target (runner)
+build-goneat-tools-multi: build-goneat-tools-runner-multi
+
+## Test goneat-tools runner
+# NOTE: validates runner baseline presence implicitly via common utilities.
+test-goneat-tools-runner:
+	docker run --rm $(GONEAT_RUNNER_TAG_LOCAL) -c "\
 		prettier --version && \
 		biome --version && \
 		yamlfmt --version && \
@@ -70,36 +113,90 @@ test-goneat-tools:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
+		goneat version >/dev/null 2>&1 && \
+		sfetch --help >/dev/null 2>&1 && \
+		bash --version >/dev/null 2>&1 && \
+		git --version >/dev/null 2>&1 && \
+		curl --version >/dev/null 2>&1 && \
 		[ -d /licenses ] && [ -d /licenses/alpine ] && [ -d /notices ] && \
 		[ -f /licenses/github/jedisct1/minisign/LICENSE ] && \
-		echo 'All tools OK!'"
+		echo 'goneat-tools-runner OK!'"
+
+## Test goneat-tools slim
+# Ensures tool payload works and runner baseline packages are absent.
+test-goneat-tools-slim:
+	docker run --rm $(GONEAT_SLIM_TAG_LOCAL) -c "\
+		prettier --version && \
+		biome --version && \
+		yamlfmt --version && \
+		shfmt --version && \
+		checkmake --version && \
+		actionlint --version && \
+		jq --version && \
+		yq --version && \
+		rg --version && \
+		taplo --version && \
+		minisign -v >/dev/null 2>&1 && \
+		goneat version >/dev/null 2>&1 && \
+		sfetch --help >/dev/null 2>&1 && \
+		! command -v bash >/dev/null 2>&1 && \
+		! command -v git >/dev/null 2>&1 && \
+		! command -v curl >/dev/null 2>&1 && \
+		echo 'goneat-tools-slim OK!'"
+
+## Back-compat alias target (runner)
+test-goneat-tools: test-goneat-tools-runner
 
 # ─────────────────────────────────────────────────────────────────────────────
 # sbom-tools targets
 # ─────────────────────────────────────────────────────────────────────────────
-SBOM_IMAGE_NAME := sbom-tools
-SBOM_TAG_LOCAL := $(REGISTRY)/$(SBOM_IMAGE_NAME):local
-SBOM_TAG_LATEST := $(REGISTRY)/$(SBOM_IMAGE_NAME):latest
 
-## Build sbom-tools single-arch (fast local testing)
-build-sbom-tools:
-	docker build -t $(SBOM_TAG_LOCAL) images/$(SBOM_IMAGE_NAME)
+## Build sbom-tools runner single-arch
+build-sbom-tools-runner:
+	docker build --target runner -t $(SBOM_RUNNER_TAG_LOCAL) images/$(SBOM_FAMILY)
 
-## Build sbom-tools multi-arch (linux/amd64 + linux/arm64)
-build-sbom-tools-multi:
+## Build sbom-tools slim single-arch
+build-sbom-tools-slim:
+	docker build --target slim -t $(SBOM_SLIM_TAG_LOCAL) images/$(SBOM_FAMILY)
+
+## Back-compat alias target (runner)
+build-sbom-tools: build-sbom-tools-runner
+
+## Build sbom-tools runner multi-arch (linux/amd64 + linux/arm64)
+build-sbom-tools-runner-multi:
 	docker buildx create --use || true
 	docker buildx build \
 		--platform linux/amd64,linux/arm64 \
-		-t $(SBOM_TAG_LOCAL) \
-		-t $(SBOM_TAG_LATEST) \
+		--target runner \
+		-t $(SBOM_RUNNER_TAG_LOCAL) \
+		-t $(SBOM_RUNNER_TAG_LATEST) \
 		--push=false \
-		images/$(SBOM_IMAGE_NAME)
+		images/$(SBOM_FAMILY)
 
-## Test sbom-tools (run tools, check versions)
-test-sbom-tools:
+## Build sbom-tools slim multi-arch (linux/amd64 + linux/arm64)
+build-sbom-tools-slim-multi:
+	docker buildx create --use || true
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--target slim \
+		-t $(SBOM_SLIM_TAG_LOCAL) \
+		-t $(SBOM_SLIM_TAG_LATEST) \
+		--push=false \
+		images/$(SBOM_FAMILY)
+
+## Back-compat alias target (runner)
+build-sbom-tools-multi: build-sbom-tools-runner-multi
+
+## Test sbom-tools runner
+# NOTE:
+# - These tests assume network access.
+# - grype and trivy may download databases on first run (can take ~1-2 minutes).
+# - trivy also enables secret scanning by default; if CI time becomes an issue, consider
+#   using `trivy fs --scanners vuln` (keep as a deliberate policy choice).
+test-sbom-tools-runner:
 	docker run --rm \
 		-v $(CURDIR)/tests/fixtures/sbom:/fixture:ro \
-		$(SBOM_TAG_LOCAL) -c "\
+		$(SBOM_RUNNER_TAG_LOCAL) -c "\
 		syft version && \
 		grype version && \
 		trivy version && \
@@ -115,13 +212,46 @@ test-sbom-tools:
 		[ -f /licenses/github/anchore/syft/LICENSE ] && \
 		[ -f /licenses/github/anchore/grype/LICENSE ] && \
 		[ -f /licenses/github/aquasecurity/trivy/LICENSE ] && \
-		echo 'All SBOM tools OK!'"
+		echo 'sbom-tools-runner OK!'"
+
+## Test sbom-tools slim
+# NOTE:
+# - These tests assume network access (trivy DB downloads on first run).
+# Ensures tool payload works and runner baseline packages are absent.
+test-sbom-tools-slim:
+	docker run --rm \
+		-v $(CURDIR)/tests/fixtures/sbom:/fixture:ro \
+		$(SBOM_SLIM_TAG_LOCAL) -c "\
+		syft version && \
+		grype version && \
+		trivy version && \
+		jq --version && \
+		yq --version && \
+		! command -v git >/dev/null 2>&1 && \
+		! command -v curl >/dev/null 2>&1 && \
+		syft /fixture -o cyclonedx-json > /tmp/sbom.json && \
+		[ -s /tmp/sbom.json ] && \
+		grype sbom:/tmp/sbom.json --fail-on critical && \
+		trivy fs --exit-code 0 --severity HIGH,CRITICAL /fixture > /tmp/trivy.txt && \
+		[ -s /tmp/trivy.txt ] && \
+		[ -d /licenses ] && [ -d /licenses/alpine ] && [ -d /notices ] && \
+		[ -f /licenses/github/anchore/syft/LICENSE ] && \
+		[ -f /licenses/github/anchore/grype/LICENSE ] && \
+		[ -f /licenses/github/aquasecurity/trivy/LICENSE ] && \
+		echo 'sbom-tools-slim OK!'"
+
+## Back-compat alias target (runner)
+test-sbom-tools: test-sbom-tools-runner
 
 # ─────────────────────────────────────────────────────────────────────────────
 
 ## Clean up local images
 clean:
-	docker rmi $(TAG_LOCAL) $(TAG_LATEST) $(SBOM_TAG_LOCAL) $(SBOM_TAG_LATEST) || true
+	docker rmi \
+		$(GONEAT_RUNNER_TAG_LOCAL) $(GONEAT_RUNNER_TAG_LATEST) \
+		$(GONEAT_SLIM_TAG_LOCAL) $(GONEAT_SLIM_TAG_LATEST) \
+		$(SBOM_RUNNER_TAG_LOCAL) $(SBOM_RUNNER_TAG_LATEST) \
+		$(SBOM_SLIM_TAG_LOCAL) $(SBOM_SLIM_TAG_LATEST) || true
 
 ## Show Docker image sizes
 size:
@@ -154,6 +284,14 @@ validate-manifest:
 validate-pins:
 	@$(VALIDATE_PINS)
 
+## Validate Dockerfiles conform to baseline profiles
+validate-profiles:
+	@$(VALIDATE_PROFILES)
+
+## Validate curated licenses/notices exist in built images
+validate-licenses:
+	@$(VALIDATE_LICENSES)
+
 ## Lint GitHub workflows with yamlfmt
 lint-workflows:
 	@test -d .github/workflows || { echo ".github/workflows not found"; exit 0; }
@@ -164,6 +302,12 @@ lint-workflows:
 		$(YAMLLINT) .github/workflows; \
 	else \
 		echo "yamllint not found (skip)"; \
+	fi
+	@if command -v actionlint >/dev/null 2>&1; then \
+		echo "actionlint: running"; \
+		actionlint; \
+	else \
+		echo "actionlint not found (skip)"; \
 	fi
 
 ## Validate Dockerfiles with trivy config scanning (best practices + misconfigs)
@@ -180,8 +324,8 @@ lint-dockerfiles:
 		echo "Skipping Dockerfile lint."; \
 	fi
 
-## Quality bundle: manifest validation + workflow lint + dockerfile lint
-quality: validate-manifest validate-pins lint-workflows lint-dockerfiles
+## Quality bundle: manifest validation + profile validation + workflow lint + dockerfile lint
+quality: validate-manifest validate-pins validate-profiles lint-workflows lint-dockerfiles
 
 ## Precommit bundle: quality checks
 precommit:

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schema.fulmenhq.dev/fulmen-toolbox/profile-manifest.schema.json",
+  "profiles": {
+    "runner_baseline": {
+      "description": "CI runner baseline userland (apk packages)",
+      "package_manager": "apk",
+      "packages": [
+        "bash",
+        "ca-certificates",
+        "coreutils",
+        "curl",
+        "diffutils",
+        "findutils",
+        "git",
+        "gzip",
+        "make",
+        "openssh-client",
+        "tar",
+        "unzip",
+        "xz"
+      ]
+    }
+  }
+}

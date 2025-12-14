@@ -4,12 +4,29 @@ rules:
   indentation:
     spaces: 2
     indent-sequences: true
+    check-multi-line-strings: false
+
+  # GitHub Actions YAML doesn't need explicit document markers.
   document-start: disable
+  document-end: disable
+
   comments:
     min-spaces-from-content: 1
+
+  # Prefer <= 160 chars for this repo (we may tighten later).
   line-length:
     max: 160
     allow-non-breakable-words: true
     allow-non-breakable-inline-mappings: true
+
+  # Enforce consistent newline style.
+  new-lines:
+    type: unix
+
+  # Catch trailing whitespace, but don't fail CI.
+  trailing-spaces:
+    level: warning
+
+  # GitHub Actions uses the key `on:`.
   truthy:
     check-keys: false

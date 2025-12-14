@@ -1,35 +1,42 @@
-name: Build and Push Docker Images
+name: Build and Push Docker Images (manual)
 on:
-  push:
-    tags:
-      - 'v*.*.*'
   workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: goneat-tools # First image; extend with matrix later
-  YAMLFMT_VERSION: v0.20.0
-  PRETTIER_VERSION: 3.7.4
-  BIOME_VERSION: 2.3.8
-  JQ_VERSION: 1.8.1-r0
-  YQ_VERSION: 4.49.2-r1
-  RIPGREP_VERSION: 15.1.0-r0
-  TAPLO_VERSION: 0.10.0-r0
-  BASH_VERSION: 5.3.3-r1
-  GIT_VERSION: 2.52.0-r0
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - family: goneat-tools
+            image: goneat-tools-runner
+            target: runner
+            alias: goneat-tools
+          - family: goneat-tools
+            image: goneat-tools-slim
+            target: slim
+            alias: ""
+          - family: sbom-tools
+            image: sbom-tools-runner
+            target: runner
+            alias: sbom-tools
+          - family: sbom-tools
+            image: sbom-tools-slim
+            target: slim
+            alias: ""
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # For tags/sha
+          fetch-depth: 0
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -40,30 +47,43 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Compute tags
+        id: tags
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ matrix.image }}
+          ALIAS: ${{ matrix.alias }}
+        run: |
+          set -eu
+          CANON_TAGS=$(cat <<EOF
+          $REGISTRY/$OWNER/$IMAGE:manual
+          $REGISTRY/$OWNER/$IMAGE:${GITHUB_SHA}
+          EOF
+          )
+          if [ -n "${ALIAS}" ]; then
+            ALIAS_TAGS=$(cat <<EOF
+          $REGISTRY/$OWNER/$ALIAS:manual
+          $REGISTRY/$OWNER/$ALIAS:${GITHUB_SHA}
+          EOF
+            )
+            TAGS="$CANON_TAGS
+          $ALIAS_TAGS"
+          else
+            TAGS="$CANON_TAGS"
+          fi
+          {
+            echo "tags<<EOF"
+            echo "$TAGS"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
       - name: Build and push multi-arch image
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: images/${{ env.IMAGE_NAME }}/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
+          file: images/${{ matrix.family }}/Dockerfile
+          target: ${{ matrix.target }}
+          push: true
           platforms: linux/amd64,linux/arm64
-          tags: |
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          build-args: |
-            YAMLFMT_VERSION=${{ env.YAMLFMT_VERSION }}
-            PRETTIER_VERSION=${{ env.PRETTIER_VERSION }}
-            BIOME_VERSION=${{ env.BIOME_VERSION }}
-            JQ_VERSION=${{ env.JQ_VERSION }}
-            YQ_VERSION=${{ env.YQ_VERSION }}
-            RIPGREP_VERSION=${{ env.RIPGREP_VERSION }}
-            TAPLO_VERSION=${{ env.TAPLO_VERSION }}
-            BASH_VERSION=${{ env.BASH_VERSION }}
-            GIT_VERSION=${{ env.GIT_VERSION }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      - name: Verify image pushed (on push/PR success)
-        if: success() && github.event_name != 'pull_request'
-        run: |
-          echo "Image ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest pushed successfully"
-          docker run --rm ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest --version || true
+          tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}

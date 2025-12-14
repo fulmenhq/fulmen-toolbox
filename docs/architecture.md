@@ -5,7 +5,7 @@
 - `Makefile` – local build/test helpers for all images.
 - `scripts/` – repo-level utilities (version bumping, release plan).
 - `VERSION` – single source of truth for semver.
-- `.plans/` – vision/bootstrap docs (internal).
+- `.plans/` – vision/bootstrap docs (internal; do not commit).
 
 ## Build & Release Flow (desired state)
 1. Bump `VERSION` (`make bump-*`).
@@ -27,6 +27,7 @@
 - Optional alias: calver tag for freshness (does not replace semver).
 - `VERSION` file is the SSOT; Docker tags derive from it.
 - Tool manifest: `manifests/tools.json` validated by JSON Schema (`schemas/tool-manifest.schema.json`).
+- Profile manifest: `manifests/profiles.json` validated by JSON Schema (`schemas/profile-manifest.schema.json`).
 - Schema IDs target `https://schema.fulmenhq.dev/...` and can be upstreamed to Crucible when ready.
 - Current baseline: v0.1.1 (pre-release; signing/attestations pending).
 

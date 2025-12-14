@@ -5,166 +5,225 @@
       "name": "prettier",
       "version": "3.7.4",
       "source": "npm",
-      "images": ["goneat-tools"],
-      "notes": "Pinned npm global install for formatting."
+      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "notes": "Pinned npm global install for formatting.",
+      "license_spdx": "MIT",
+      "license_source": "npm",
+      "license_path": "/licenses/npm/prettier/LICENSE"
     },
     {
       "name": "biome",
       "version": "2.3.8",
       "source": "npm",
-      "images": ["goneat-tools"],
-      "notes": "Pinned npm global install; complements Prettier (JS/TS/JSON lint/format)."
+      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "notes": "Pinned npm global install; complements Prettier (JS/TS/JSON lint/format).",
+      "license_spdx": "Apache-2.0 OR MIT",
+      "license_source": "npm",
+      "license_paths": [
+        "/licenses/npm/biome/LICENSE-APACHE",
+        "/licenses/npm/biome/LICENSE-MIT"
+      ]
     },
     {
       "name": "yamlfmt",
       "version": "v0.20.0",
       "source": "go",
-      "images": ["goneat-tools"],
-      "notes": "Go install from github.com/google/yamlfmt/cmd/yamlfmt."
+      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "notes": "Go install from github.com/google/yamlfmt/cmd/yamlfmt.",
+      "license_spdx": "Apache-2.0",
+      "license_source": "gomodcache",
+      "license_path": "/licenses/github/google/yamlfmt/LICENSE"
     },
     {
       "name": "jq",
       "version": "1.8.1-r0",
       "source": "apk",
-      "images": ["goneat-tools"],
+      "images": ["goneat-tools-slim", "goneat-tools-runner"],
       "notes": "Alpine 3.23 version (node:22-alpine base)"
     },
     {
       "name": "jq",
       "version": "1.7.1-r0",
       "source": "apk",
-      "images": ["sbom-tools"],
+      "images": ["sbom-tools-slim", "sbom-tools-runner"],
       "notes": "Alpine 3.21 version"
     },
     {
       "name": "yq-go",
       "version": "4.49.2-r1",
       "source": "apk",
-      "images": ["goneat-tools"],
+      "images": ["goneat-tools-slim", "goneat-tools-runner"],
       "notes": "Alpine 3.23 version (node:22-alpine base)"
     },
     {
       "name": "yq-go",
       "version": "4.44.5-r5",
       "source": "apk",
-      "images": ["sbom-tools"],
+      "images": ["sbom-tools-slim", "sbom-tools-runner"],
       "notes": "Alpine 3.21 version"
     },
     {
       "name": "ripgrep",
       "version": "15.1.0-r0",
       "source": "apk",
-      "images": ["goneat-tools"]
+      "images": ["goneat-tools-slim", "goneat-tools-runner"]
     },
     {
       "name": "taplo",
       "version": "0.10.0-r0",
       "source": "apk",
-      "images": ["goneat-tools"],
+      "images": ["goneat-tools-slim", "goneat-tools-runner"],
       "notes": "TOML formatter/linter"
     },
     {
       "name": "bash",
       "version": "5.3.3-r1",
       "source": "apk",
-      "images": ["goneat-tools"]
+      "images": ["goneat-tools-runner"]
     },
     {
       "name": "git",
       "version": "2.52.0-r0",
       "source": "apk",
-      "images": ["goneat-tools"],
+      "images": ["goneat-tools-runner"],
       "notes": "Alpine 3.23 version (node:22-alpine base)"
     },
     {
       "name": "git",
       "version": "2.47.3-r0",
       "source": "apk",
-      "images": ["sbom-tools"],
+      "images": ["sbom-tools-runner"],
       "notes": "Alpine 3.21 version"
     },
     {
       "name": "curl",
       "version": "8.17.0-r1",
       "source": "apk",
-      "images": ["goneat-tools"],
+      "images": ["goneat-tools-runner"],
       "notes": "HTTP client for CI workflows (MIT-like license)"
     },
     {
       "name": "minisign",
       "version": "0.12-r0",
       "source": "apk",
-      "images": ["goneat-tools"],
-      "notes": "File signing/verification tool (ISC license)."
+      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "notes": "File signing/verification tool (ISC license).",
+      "license_spdx": "ISC",
+      "license_source": "upstream-url",
+      "license_path": "/licenses/github/jedisct1/minisign/LICENSE"
     },
     {
       "name": "node-base",
       "version": "node:22-alpine@sha256:9632533eda8061fc1e9960cfb3f8762781c07a00ee7317f5dc0e13c05e15166f",
       "source": "other",
-      "images": ["goneat-tools"],
+      "images": ["goneat-tools-slim", "goneat-tools-runner"],
       "notes": "Pinned base image digest for multi-arch."
     },
     {
       "name": "golang-builder",
-      "version": "golang:1.24-alpine@sha256:06545cc1ff10ddf04aebe20db1352ec7c96d1e43135767931c473557d0378202",
+      "version": "golang:1.25-alpine@sha256:26111811bc967321e7b6f852e914d14bede324cd1accb7f81811929a6a57fea9",
       "source": "other",
-      "images": ["goneat-tools"],
+      "images": ["goneat-tools-slim", "goneat-tools-runner"],
       "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint)."
     },
     {
       "name": "shfmt",
       "version": "v3.12.0",
       "source": "go",
-      "images": ["goneat-tools"],
-      "notes": "Shell formatter (BSD-3 license). Go install from mvdan.cc/sh/v3/cmd/shfmt."
+      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "notes": "Shell formatter (BSD-3 license). Go install from mvdan.cc/sh/v3/cmd/shfmt.",
+      "license_spdx": "BSD-3-Clause",
+      "license_source": "gomodcache",
+      "license_path": "/licenses/github/mvdan/sh/LICENSE"
     },
     {
       "name": "checkmake",
       "version": "0.2.2",
       "source": "go",
-      "images": ["goneat-tools"],
-      "notes": "Makefile linter (MIT license). Go install from github.com/mrtazz/checkmake/cmd/checkmake."
+      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "notes": "Makefile linter (MIT license). Go install from github.com/mrtazz/checkmake/cmd/checkmake.",
+      "license_spdx": "MIT",
+      "license_source": "gomodcache",
+      "license_path": "/licenses/github/mrtazz/checkmake/LICENSE"
     },
     {
       "name": "actionlint",
       "version": "v1.7.9",
       "source": "go",
-      "images": ["goneat-tools"],
-      "notes": "GitHub Actions workflow linter (MIT license). Go install from github.com/rhysd/actionlint/cmd/actionlint."
+      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "notes": "GitHub Actions workflow linter (MIT license). Go install from github.com/rhysd/actionlint/cmd/actionlint.",
+      "license_spdx": "MIT",
+      "license_source": "gomodcache",
+      "license_path": "/licenses/github/rhysd/actionlint/LICENSE"
+    },
+    {
+      "name": "goneat",
+      "version": "v0.3.20",
+      "source": "go",
+      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "notes": "FulmenHQ DX CLI: wrap and orchestrate formatting/linting/assessment/hook workflows.",
+      "license_spdx": "Apache-2.0",
+      "license_source": "gomodcache",
+      "license_path": "/licenses/github/fulmenhq/goneat/LICENSE",
+      "notice_required": true,
+      "notice_path": "/notices/github/fulmenhq/goneat/NOTICE"
+    },
+    {
+      "name": "sfetch",
+      "version": "v0.2.7",
+      "source": "go",
+      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "notes": "Trust-anchor downloader: defaults to signature+checksum verification for GitHub release assets.",
+      "license_spdx": "MIT",
+      "license_source": "gomodcache",
+      "license_path": "/licenses/github/3leaps/sfetch/LICENSE"
     },
     {
       "name": "syft",
       "version": "v1.18.1",
       "source": "binary",
-      "images": ["sbom-tools"],
-      "notes": "SBOM generator from Anchore (GitHub release binary). Supports CycloneDX + SPDX output formats."
+      "images": ["sbom-tools-slim", "sbom-tools-runner"],
+      "notes": "SBOM generator from Anchore (GitHub release binary). Supports CycloneDX + SPDX output formats.",
+      "license_spdx": "Apache-2.0",
+      "license_source": "upstream-url",
+      "license_path": "/licenses/github/anchore/syft/LICENSE",
+      "notice_required": false
     },
     {
       "name": "grype",
       "version": "v0.86.1",
       "source": "binary",
-      "images": ["sbom-tools"],
-      "notes": "Vulnerability scanner from Anchore (GitHub release binary). Pulls DB on first run (~150MB)."
+      "images": ["sbom-tools-slim", "sbom-tools-runner"],
+      "notes": "Vulnerability scanner from Anchore (GitHub release binary). Pulls DB on first run (~150MB).",
+      "license_spdx": "Apache-2.0",
+      "license_source": "upstream-url",
+      "license_path": "/licenses/github/anchore/grype/LICENSE",
+      "notice_required": false
     },
     {
       "name": "trivy",
       "version": "v0.68.1",
       "source": "binary",
-      "images": ["sbom-tools"],
-      "notes": "SBOM/vuln scanner from Aqua Security (GitHub release binary). Alternative to Syft/Grype workflow. Also provides Dockerfile config scanning."
+      "images": ["sbom-tools-slim", "sbom-tools-runner"],
+      "notes": "SBOM/vuln scanner from Aqua Security (GitHub release binary). Alternative to Syft/Grype workflow. Also provides Dockerfile config scanning.",
+      "license_spdx": "Apache-2.0",
+      "license_source": "upstream-url",
+      "license_path": "/licenses/github/aquasecurity/trivy/LICENSE",
+      "notice_required": true,
+      "notice_path": "/notices/github/aquasecurity/trivy/NOTICE"
     },
     {
       "name": "alpine-base",
       "version": "alpine:3.21@sha256:5405e8f36ce1878720f71217d664aa3dea32e5e5df11acbf07fc78ef5661465b",
       "source": "other",
-      "images": ["sbom-tools"],
+      "images": ["sbom-tools-slim", "sbom-tools-runner"],
       "notes": "Pinned base image digest for sbom-tools."
     },
     {
       "name": "curl",
       "version": "8.14.1-r2",
       "source": "apk",
-      "images": ["sbom-tools"],
+      "images": ["sbom-tools-runner"],
       "notes": "HTTP client for CI workflows (MIT-like license)"
     }
   ]
