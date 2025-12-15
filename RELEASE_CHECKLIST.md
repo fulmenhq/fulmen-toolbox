@@ -6,9 +6,10 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
 
 - [ ] Confirm working tree clean and CI green
 - [ ] Ensure `VERSION` reflects the intended semver (`make bump-*` to adjust)
-- [ ] Ensure GitHub Packages access for verification (for `gh api`):
-  - Use a classic PAT with `read:packages` (and `repo` if `gh auth login` requires it)
-  - Some `gh` interactions also require org read access depending on visibility/policy
+- [ ] Ensure GitHub Packages access for verification (for local `gh api`):
+  - CI publishing should use `GITHUB_TOKEN` (short-lived) with workflow `permissions: packages: write`.
+  - For local `gh api` queries, use a classic PAT with `read:packages`.
+  - Avoid `repo` scope for GHCR-only usage; some `gh` interactions may still require additional org access depending on visibility/policy.
 - [ ] Update `CHANGELOG.md` and `RELEASE_NOTES.md` with the release entry
 - [ ] Sync pins: update `manifests/tools.json`, Dockerfile ARGs, and `docs/images/goneat-tools.md`
 - [ ] Run local checks: `make precommit` (manifest + workflows lint) and `make prepush` (quality + build + test)
@@ -255,6 +256,21 @@ minisign -Vm SHA256SUMS-goneat-tools-runner -p fulmenhq-release-signing.pub
 
 ## Notes
 
-- **GHCR Token Scope**: Manual cosign signing requires a classic PAT with `write:packages` scope. Fine-grained PATs don't support packages yet.
+- **GHCR Auth (CI)**: Prefer `GITHUB_TOKEN` with workflow `permissions: packages: write` (no long-lived secrets).
+  - If GHCR operations fail due to org policy, fix the org/repo Actions/Packages settings rather than introducing a classic PAT.
+  - Classic PATs are still useful for local troubleshooting and `gh api` queries; use `read:packages`/`write:packages` as needed and avoid `repo` scope for GHCR-only usage.
+  - Fine-grained PATs don't support packages yet.
+  - Classic PAT UI workaround (pre-fills scopes; keeps `repo` unchecked/editable):
+    - https://github.com/settings/tokens/new?scopes=write:packages
+    - https://github.com/settings/tokens/new?scopes=write:packages,read:packages
+    - https://github.com/settings/tokens/new?scopes=write:packages,read:packages,delete:packages
+  - If you use the plain `https://github.com/settings/tokens/new` flow, GitHub may auto-select `repo` depending on UI state/policy.
+  - Minimal local login (for troubleshooting):
+
+    ```bash
+    export FULMEN_TOOLBOX_GHCR_TOKEN=ghp_...
+    # Username must match the PAT owner
+    echo "$FULMEN_TOOLBOX_GHCR_TOKEN" | docker login ghcr.io -u <pat-owner-username> --password-stdin
+    ```
 - **Multiple Signing Subkeys**: Use `!` suffix on GPG key ID (e.g., `448A539320A397AF!`) to force specific subkey.
 - **4 Browser Prompts**: Keyless cosign requires separate OIDC auth for each sign/attest operation (2 images × 2 ops = 4 prompts).

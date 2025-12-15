@@ -85,7 +85,24 @@ Operational implication:
 
 ### Verify tags on packages (recommended)
 
-Requires a classic PAT with `read:packages` scope.
+CI publishing should use `GITHUB_TOKEN` (short-lived) with workflow `permissions: packages: write`.
+
+For **local** verification via `gh api` (outside CI), use a classic PAT with `read:packages` scope.
+
+- Classic PAT UI workaround (pre-fills scopes; keeps `repo` unchecked/editable):
+  - https://github.com/settings/tokens/new?scopes=write:packages
+  - https://github.com/settings/tokens/new?scopes=write:packages,read:packages
+  - https://github.com/settings/tokens/new?scopes=write:packages,read:packages,delete:packages
+- Prefer a packages-only token (no `repo` scope) for GHCR-only usage.
+- If you use the plain `https://github.com/settings/tokens/new` flow, GitHub may auto-select `repo` depending on UI state/policy.
+
+Minimal local login (for troubleshooting):
+
+```bash
+export FULMEN_TOOLBOX_GHCR_TOKEN=ghp_...
+# Username must match the PAT owner
+echo "$FULMEN_TOOLBOX_GHCR_TOKEN" | docker login ghcr.io -u <pat-owner-username> --password-stdin
+```
 
 ```bash
 gh api -H "Accept: application/vnd.github+json" \
