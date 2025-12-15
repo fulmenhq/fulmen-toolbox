@@ -7,6 +7,7 @@
 	test-sbom-tools test-sbom-tools-runner test-sbom-tools-slim \
 	clean help bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap \
 	validate-manifest lint-workflows lint-dockerfiles quality precommit prepush check-clean check-quick \
+	catalog \
 	release-download release-notes release-sign release-upload verify-release-key release-digests
 
 # Fulmen Toolbox - Local Development Makefile
@@ -291,6 +292,25 @@ validate-profiles:
 ## Validate curated licenses/notices exist in built images
 validate-licenses:
 	@$(VALIDATE_LICENSES)
+
+## Generate local image catalog from manifests (gitignored)
+# Usage:
+#   make catalog
+#   make catalog IMAGE=goneat-tools-runner
+catalog:
+	@mkdir -p dist/catalog
+	@set -eu; \
+	if [ -n "$(IMAGE)" ]; then \
+		out="dist/catalog/$(IMAGE).md"; \
+		scripts/catalog.sh --image "$(IMAGE)" > "$$out"; \
+		test -s "$$out"; \
+		echo "Wrote $$out"; \
+	else \
+		out="dist/catalog/catalog.md"; \
+		scripts/catalog.sh > "$$out"; \
+		test -s "$$out"; \
+		echo "Wrote $$out"; \
+	fi
 
 ## Lint GitHub workflows with yamlfmt
 lint-workflows:

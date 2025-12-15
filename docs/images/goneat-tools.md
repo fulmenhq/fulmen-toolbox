@@ -1,61 +1,63 @@
-# goneat-tools Image
+# goneat-tools Images
 
 Purpose: containerized code quality/formatting/linting toolkit for CI and local runs.
 
-## Versions (Pinned)
-- Base: `node:22-alpine@sha256:9632533eda8061fc1e9960cfb3f8762781c07a00ee7317f5dc0e13c05e15166f`
-- Builder: `golang:1.25-alpine@sha256:26111811bc967321e7b6f852e914d14bede324cd1accb7f81811929a6a57fea9`
-- Prettier: `3.7.4` (npm global)
-- Biome: `2.3.8` (npm global)
-- yamlfmt: `v0.20.0` (Go install)
-- shfmt: `v3.12.0` (Go install) - shell formatter (BSD-3)
-- checkmake: `0.2.2` (Go install) - Makefile linter (MIT)
-- actionlint: `v1.7.9` (Go install) - GitHub Actions linter (MIT)
-- goneat: `v0.3.20` (Go install) - FulmenHQ DX CLI
-- sfetch: `v0.2.7` (Go install) - trust-anchor downloader
-- jq: `1.8.1-r0` (apk)
-- yq-go: `4.49.2-r1` (apk)
-- ripgrep: `15.1.0-r0` (apk)
-- taplo: `0.10.0-r0` (apk)
-- minisign: `0.12-r0` (apk)
+This doc is intentionally conceptual. It does not enumerate pinned versions (to avoid drift). For the definitive inventory, use:
 
-Runner baseline (runner variant only; see `manifests/profiles.json`):
-- bash: `5.3.3-r1` (apk)
-- git: `2.52.0-r0` (apk)
-- curl: `8.17.0-r1` (apk)
+- `manifests/tools.json` at the release tag (SSOT for curated tools/pins)
+- the published SBOM assets for that release (artifact-level truth)
 
-See `manifests/tools.json` for SSOT and `make validate-manifest` for schema validation.
+## Variants
 
-## Pinning Strategy
-- All tool versions and base images pinned explicitly (Dockerfile ARGs).
-- Bumps are curated; bump manifest + Dockerfile together, update CHANGELOG/RELEASE_NOTES.
-- Tagging: semver from `VERSION`; `:latest` and `:v<major>` track the newest for that line.
+- `ghcr.io/fulmenhq/goneat-tools-slim` — tool payload only (no runner baseline)
+- `ghcr.io/fulmenhq/goneat-tools-runner` — tool payload + runner baseline utilities for CI
+- Compatibility alias: `ghcr.io/fulmenhq/goneat-tools:*` points to `goneat-tools-runner:*`
 
-## Usage Notes
-- CI can pull by digest for reproducibility.
-- yamlfmt required locally for workflow linting (`make lint-workflows` / `make quality`).
-- Docker daemon required for builds/tests and manifest validation (uses Dockerized ajv).
+## How to see what’s included (definitively)
 
-## Excluded Tools (Copyleft)
-The following tools are intentionally excluded from the `-slim` variant to minimize copyleft surface area:
-- **shellcheck** (GPL-3): Use sidecar pattern or install separately in CI
-- **yamllint** (GPL): Use sidecar pattern or install separately in CI
+### Option A: Use the release SBOM (recommended)
 
-These tools can be used alongside goneat-tools via sidecar containers or pre-installed in CI runners.
+Each release publishes SBOM assets. For example (v0.2.1):
 
-## GitHub Actions Runner Permissions
+- `sbom-goneat-tools-runner-0.2.1.json`
+- `sbom-goneat-tools-slim-0.2.1.json`
 
-### The Problem
+Download and inspect:
 
-This image runs as a non-root user for security. However, GitHub Actions mounts workspace directories (`/__w`) owned by UID 1001 on `ubuntu-latest` runners. This mismatch causes permission errors:
+```bash
+RELEASE_TAG=v0.2.1
+curl -LO "https://github.com/fulmenhq/fulmen-toolbox/releases/download/${RELEASE_TAG}/sbom-goneat-tools-runner-0.2.1.json"
 
-```
-EACCES: permission denied, open '/__w/_temp/_runner_file_commands/save_state_...'
+jq -r '.packages[]?.name' sbom-goneat-tools-runner-0.2.1.json | sort -u | head
 ```
 
-### Solution
+### Option B: Generate an SBOM from the image you pulled
 
-Always specify `--user 1001` when using this image in GitHub Actions:
+```bash
+syft ghcr.io/fulmenhq/goneat-tools-runner:v0.2.1 -o spdx-json > sbom.json
+```
+
+### Option C: Quick interactive spot-check
+
+```bash
+docker run --rm ghcr.io/fulmenhq/goneat-tools-runner:v0.2.1 -c "prettier --version && biome --version && yamlfmt --version"
+```
+
+## Maintainer tooling: local manifest-derived catalog
+
+For maintainers, `make catalog` generates a local markdown inventory from the manifest SSOT (written under `dist/`, which is gitignored):
+
+```bash
+make catalog
+make catalog IMAGE=goneat-tools-runner
+```
+
+## GitHub Actions runner permissions (container jobs)
+
+GitHub-hosted `ubuntu-latest` runners often mount the workspace under `__w` owned by UID 1001.
+If you run as a non-root user inside a job container, this can cause permission errors.
+
+Recommended pattern:
 
 ```yaml
 jobs:
@@ -63,37 +65,16 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/fulmenhq/goneat-tools-runner:latest
-      options: --user 1001  # Match GHA runner mount ownership
+      options: --user 1001
     steps:
       - uses: actions/checkout@v4
       - run: prettier --check "**/*.{md,json,yml,yaml}"
 ```
 
-### Why UID 1001?
-
-GitHub-hosted `ubuntu-latest` runners create workspace mounts owned by UID 1001. Using `--user 1001` ensures the container process can write to:
-- `/__w/_temp/_runner_file_commands/` (runner state)
-- `/__w/<repo>/` (checkout directory)
-
-### Fallback (root)
-
-If UID 1001 doesn't work (e.g., self-hosted runners with different ownership):
+Fallback (less secure):
 
 ```yaml
 container:
   image: ghcr.io/fulmenhq/goneat-tools-runner:latest
-  options: --user root  # Works but loses non-root security
-```
-
-### Diagnostics
-
-Add this step to debug permission issues:
-
-```yaml
-- name: Check container permissions
-  run: |
-    echo "=== Container identity ==="
-    id
-    echo "=== Runner-mounted directories ==="
-    ls -ld /__w /__w/_temp /__w/_temp/_runner_file_commands || true
+  options: --user root
 ```
