@@ -401,27 +401,45 @@ release-notes:
 	echo "✅ Staged release notes: $$DEST"
 
 ## Get image digests for manual cosign signing (RELEASE_TAG=vX.Y.Z)
+#
+# Images can be overridden via IMAGES env var (space-delimited). Defaults to v0.2.x variants.
 release-digests:
 	@echo "Image digests for $(RELEASE_TAG):"
 	@echo ""
-	@GONEAT=$$(docker manifest inspect ghcr.io/fulmenhq/goneat-tools:$(RELEASE_TAG) -v 2>/dev/null | \
-	  jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end' 2>/dev/null) && \
-	  if [ -n "$$GONEAT" ] && [ "$$GONEAT" != "null" ]; then \
-	    echo "goneat-tools: $$GONEAT"; \
-	    echo "  cosign sign ghcr.io/fulmenhq/goneat-tools@$$GONEAT"; \
+	@IMAGES="$${IMAGES:-goneat-tools-runner goneat-tools-slim sbom-tools-runner sbom-tools-slim}"; \
+	for image in $$IMAGES; do \
+	  DIGEST=$$(docker manifest inspect ghcr.io/fulmenhq/$$image:$(RELEASE_TAG) -v 2>/dev/null | \
+	    jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end' 2>/dev/null) || true; \
+	  if [ -n "$$DIGEST" ] && [ "$$DIGEST" != "null" ]; then \
+	    echo "$$image: $$DIGEST"; \
+	    echo "  cosign sign ghcr.io/fulmenhq/$$image@$$DIGEST"; \
 	  else \
-	    echo "goneat-tools: (waiting for image push or auth required)"; \
-	  fi
-	@echo ""
-	@SBOM=$$(docker manifest inspect ghcr.io/fulmenhq/sbom-tools:$(RELEASE_TAG) -v 2>/dev/null | \
-	  jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end' 2>/dev/null) && \
-	  if [ -n "$$SBOM" ] && [ "$$SBOM" != "null" ]; then \
-	    echo "sbom-tools: $$SBOM"; \
-	    echo "  cosign sign ghcr.io/fulmenhq/sbom-tools@$$SBOM"; \
-	  else \
-	    echo "sbom-tools: (waiting for image push or auth required)"; \
-	  fi
+	    echo "$$image: (waiting for image push or auth required)"; \
+	  fi; \
+	done
 
+## Verify all expected images exist for a release tag
+# Fails if any image digest cannot be resolved.
+verify-release-digests:
+	@IMAGES="$${IMAGES:-goneat-tools-runner goneat-tools-slim sbom-tools-runner sbom-tools-slim}"; \
+	missing=0; \
+	echo "Verifying image digests for $(RELEASE_TAG)..."; \
+	for image in $$IMAGES; do \
+	  DIGEST=$$(docker manifest inspect ghcr.io/fulmenhq/$$image:$(RELEASE_TAG) -v 2>/dev/null | \
+	    jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end' 2>/dev/null) || true; \
+	  if [ -n "$$DIGEST" ] && [ "$$DIGEST" != "null" ]; then \
+	    echo "✅ $$image: $$DIGEST"; \
+	  else \
+	    echo "❌ $$image: missing tag $(RELEASE_TAG) or auth required" >&2; \
+	    missing=1; \
+	  fi; \
+	done; \
+	if [ $$missing -ne 0 ]; then \
+	  echo "" >&2; \
+	  echo "Release digest verification failed." >&2; \
+	  exit 1; \
+	fi; \
+	echo "✅ All expected release image digests resolved."
 ## Perform interactive signing for downloaded release (RELEASE_TAG=vX.Y.Z)
 release-sign:
 	@scripts/release-sign.sh $(RELEASE_TAG) $(DIST_RELEASE)
@@ -467,8 +485,13 @@ release-export-keys: release-export-gpg-key release-export-minisign-key
 verify-release-key: release-export-gpg-key
 	@scripts/verify-public-key.sh $(GPG_KEY_FILE)
 
+## Verify minisign public key exists (exported/copied)
+verify-minisign-key: release-export-minisign-key
+	@test -f $(MINISIGN_PUB) || { echo "❌ minisign public key missing: $(MINISIGN_PUB)"; exit 1; }
+	@echo "✅ minisign public key present: $(MINISIGN_PUB)"
+
 ## Upload signed artifacts to GitHub Release (RELEASE_TAG=vX.Y.Z)
-release-upload: verify-release-key release-export-minisign-key
+release-upload: verify-release-key verify-minisign-key
 	@scripts/release-upload.sh $(RELEASE_TAG) $(DIST_RELEASE)
 
 ## Show manual signing workflow steps

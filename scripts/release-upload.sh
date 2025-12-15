@@ -34,17 +34,15 @@ shopt -u nullglob
 missing=0
 if [ ${#GPG_SIGS[@]} -eq 0 ]; then
   echo "❌ No GPG signatures (SHA256SUMS-*.asc) found in $DIR" >&2
-  echo "   Run GPG signing first:" >&2
-  echo "   gpg --local-user \"\$PGP_KEY_ID\" --detach-sign --armor dist/release/SHA256SUMS-goneat-tools" >&2
-  echo "   gpg --local-user \"\$PGP_KEY_ID\" --detach-sign --armor dist/release/SHA256SUMS-sbom-tools" >&2
+  echo "   Run GPG signing first (per image):" >&2
+  echo "   gpg --local-user \"\$PGP_KEY_ID\" --detach-sign --armor dist/release/SHA256SUMS-<image>" >&2
   missing=1
 fi
 
 if [ ${#MINISIG_SIGS[@]} -eq 0 ]; then
   echo "❌ No minisign signatures (SHA256SUMS-*.minisig) found in $DIR" >&2
-  echo "   Run minisign signing first:" >&2
-  echo "   minisign -S -s \"\$MINISIGN_KEY\" -m dist/release/SHA256SUMS-goneat-tools" >&2
-  echo "   minisign -S -s \"\$MINISIGN_KEY\" -m dist/release/SHA256SUMS-sbom-tools" >&2
+  echo "   Run minisign signing first (per image):" >&2
+  echo "   minisign -S -s \"\$MINISIGN_KEY\" -m dist/release/SHA256SUMS-<image>" >&2
   missing=1
 fi
 

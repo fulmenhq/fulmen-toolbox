@@ -7,7 +7,7 @@
 # Usage: ./scripts/release-sign.sh <tag> [dir]
 #
 # Examples:
-#   export RELEASE_TAG=v0.1.6
+#   export RELEASE_TAG=v0.2.0
 #   export PGP_KEY_ID='448A539320A397AF!'
 #   export MINISIGN_KEY="$HOME/.minisign/minisign.key"
 #   make release-download RELEASE_TAG=$RELEASE_TAG
@@ -16,7 +16,8 @@
 # Environment variables:
 #   REGISTRY      - Container registry (default: ghcr.io)
 #   OWNER         - Registry owner/org (default: fulmenhq)
-#   IMAGES        - Space-delimited images to sign (default: "goneat-tools sbom-tools")
+#   IMAGES        - Space-delimited images to sign
+#                  (default: "goneat-tools-runner goneat-tools-slim sbom-tools-runner sbom-tools-slim")
 #   PGP_KEY_ID    - GPG key ID for signing SHA256SUMS-*
 #   GPG_HOMEDIR   - Optional GPG home directory (script sets GNUPGHOME internally)
 #   MINISIGN_KEY  - Path to minisign secret key for signing SHA256SUMS-*
@@ -35,18 +36,20 @@
 set -euo pipefail
 
 TAG=${1:?
-"Usage: release-sign.sh <tag> [dir]\n\nExample: release-sign.sh v0.1.6 dist/release"}
+"Usage: release-sign.sh <tag> [dir]\n\nExample: release-sign.sh v0.2.0 dist/release"}
 DIR=${2:-dist/release}
 
 REGISTRY=${REGISTRY:-ghcr.io}
 OWNER=${OWNER:-fulmenhq}
-IMAGES=${IMAGES:-"goneat-tools sbom-tools"}
+IMAGES=${IMAGES:-"goneat-tools-runner goneat-tools-slim sbom-tools-runner sbom-tools-slim"}
 
 PGP_KEY_ID=${PGP_KEY_ID:-}
 GPG_HOMEDIR=${GPG_HOMEDIR:-}
 MINISIGN_KEY=${MINISIGN_KEY:-}
 
-ATTACH_SBOM=${ATTACH_SBOM:-1}
+# NOTE: `cosign attach sbom` is deprecated upstream; attestations are the canonical SBOM signal.
+# Default to attestation-only; set ATTACH_SBOM=1 to enable legacy OCI attachment.
+ATTACH_SBOM=${ATTACH_SBOM:-0}
 
 SKIP_COSIGN=${SKIP_COSIGN:-0}
 SKIP_GPG=${SKIP_GPG:-0}

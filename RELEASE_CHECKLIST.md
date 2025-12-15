@@ -6,6 +6,9 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
 
 - [ ] Confirm working tree clean and CI green
 - [ ] Ensure `VERSION` reflects the intended semver (`make bump-*` to adjust)
+- [ ] Ensure GitHub Packages access for verification (for `gh api`):
+  - Use a classic PAT with `read:packages` (and `repo` if `gh auth login` requires it)
+  - Some `gh` interactions also require org read access depending on visibility/policy
 - [ ] Update `CHANGELOG.md` and `RELEASE_NOTES.md` with the release entry
 - [ ] Sync pins: update `manifests/tools.json`, Dockerfile ARGs, and `docs/images/goneat-tools.md`
 - [ ] Run local checks: `make precommit` (manifest + workflows lint) and `make prepush` (quality + build + test)
@@ -29,7 +32,7 @@ CI generates artifacts but signing requires interactive authentication. Use this
 
 ```bash
 # Release tag
-export RELEASE_TAG=v0.1.4
+export RELEASE_TAG=v0.2.0
 
 # GPG key ID (use ! suffix to force specific subkey; single quotes to avoid ! expansion)
 export PGP_KEY_ID='448A539320A397AF!'
@@ -64,10 +67,13 @@ make release-download RELEASE_TAG=$RELEASE_TAG
 make release-notes RELEASE_TAG=$RELEASE_TAG
 
 # (optional) Get image digests for signing
+# Defaults to v0.2.x variants; override with IMAGES if needed.
 make release-digests RELEASE_TAG=$RELEASE_TAG
 ```
 
 ### Phase 2: Interactive Signing (Human - REQUIRED before upload)
+
+Note: keyless sigstore signing/attestation writes to public transparency logs and may include personal data (e.g., your email) as an immutable record. Read the prompt carefully when it appears.
 
 > **Note:** `make release-upload` will **block** if signatures are missing. Complete all steps below first.
 
@@ -83,7 +89,7 @@ Optional:
 
 - `GPG_HOMEDIR` (recommended if you use multiple keyrings)
 - `COSIGN=0` (disable all cosign operations)
-- `ATTACH_SBOM=0` (skip OCI SBOM attachment)
+- `ATTACH_SBOM=1` (enable OCI SBOM attachment; deprecated upstream; off by default)
 
 #### Step 2.2: Run signing helper (cosign + checksums)
 
@@ -93,9 +99,9 @@ make release-sign RELEASE_TAG=$RELEASE_TAG
 
 This wraps the interactive signing steps:
 
-- Resolves image digests from GHCR (requires registry auth)
+- Resolves image digests from GHCR for each image variant (requires registry auth)
 - `cosign sign` + `cosign attest` for each image (browser prompts for OIDC)
-- `cosign attach sbom` to publish SBOM as OCI artifact (registry write; no OIDC)
+- Optional: `cosign attach sbom` for registry-native discovery (deprecated upstream; does not sign the SBOM; disabled by default)
 - GPG signs `dist/release/SHA256SUMS-*` (passphrase prompts)
 - Minisign signs `dist/release/SHA256SUMS-*` (passphrase prompts)
 
@@ -122,6 +128,13 @@ ls dist/release/*.asc dist/release/*.minisig
 ### Phase 3: Automated Upload (AI/CLI friendly)
 
 Requires `PGP_KEY_ID` and `MINISIGN_KEY` env vars from Phase 2.
+
+Recommended verification before upload:
+
+- `make verify-release-key` (verifies exported GPG public key contains no private material)
+- `make verify-minisign-key` (verifies minisign public key was exported/copied)
+- `make verify-release-digests RELEASE_TAG=$RELEASE_TAG` (fails if any expected image tag is missing)
+- `make release-digests RELEASE_TAG=$RELEASE_TAG` (prints digests for copy/paste)
 
 #### Step 3.1: Stage release notes (optional)
 
@@ -172,45 +185,64 @@ Document these in release notes for consumers:
 
 ### Cosign (keyless)
 
+Repeat for each variant image:
+
 ```bash
 cosign verify \
   --certificate-oidc-issuer https://accounts.google.com \
   --certificate-identity-regexp ".*@.*" \
-  ghcr.io/fulmenhq/goneat-tools@sha256:<digest>
+  ghcr.io/fulmenhq/goneat-tools-runner@sha256:<digest>
 ```
 
-### Cosign SBOM (OCI-attached)
+### Cosign SBOM (attestation, recommended)
+
+`cosign attest` is the canonical assurance mechanism.
+
+- Note: `--type` is a predicate-type label (string); it must match the value used during attestation.
+- Fulmen Toolbox standard: `--type spdxjson` for SPDX-JSON SBOM attestations.
 
 ```bash
-# Discover SBOM attached to the image in GHCR
-cosign download sbom ghcr.io/fulmenhq/goneat-tools@sha256:<digest>
+cosign verify-attestation \
+  --type spdxjson \
+  ghcr.io/fulmenhq/goneat-tools-runner@sha256:<digest>
 
-# (or by tag if you prefer)
-cosign download sbom ghcr.io/fulmenhq/goneat-tools:$RELEASE_TAG
+# Extract the predicate JSON (SPDX) from the attestation:
+cosign verify-attestation --type spdxjson ghcr.io/fulmenhq/goneat-tools-runner@sha256:<digest> \
+  | jq -r '.payload' \
+  | base64 -d \
+  | jq -r '.predicate'
+```
+
+### Cosign SBOM (OCI-attached, optional)
+
+OCI attachment is a discovery convenience but is deprecated upstream (`cosign attach sbom`).
+
+```bash
+cosign download sbom ghcr.io/fulmenhq/goneat-tools-runner@sha256:<digest>
 ```
 
 ### GPG
 
 ```bash
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/SHA256SUMS-goneat-tools
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/SHA256SUMS-goneat-tools.asc
+curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/SHA256SUMS-goneat-tools-runner
+curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/SHA256SUMS-goneat-tools-runner.asc
 curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/fulmen-toolbox-release-signing-key.asc
 
 # Use temp keyring to avoid polluting user's GPG home
 GPG_TMPDIR=$(mktemp -d)
 gpg --homedir "$GPG_TMPDIR" --import fulmen-toolbox-release-signing-key.asc
-gpg --homedir "$GPG_TMPDIR" --verify SHA256SUMS-goneat-tools.asc SHA256SUMS-goneat-tools
+gpg --homedir "$GPG_TMPDIR" --verify SHA256SUMS-goneat-tools-runner.asc SHA256SUMS-goneat-tools-runner
 rm -rf "$GPG_TMPDIR"
 ```
 
 ### Minisign
 
 ```bash
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/SHA256SUMS-goneat-tools
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/SHA256SUMS-goneat-tools.minisig
+curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/SHA256SUMS-goneat-tools-runner
+curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/SHA256SUMS-goneat-tools-runner.minisig
 curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/fulmenhq-release-signing.pub
 
-minisign -Vm SHA256SUMS-goneat-tools -p fulmenhq-release-signing.pub
+minisign -Vm SHA256SUMS-goneat-tools-runner -p fulmenhq-release-signing.pub
 ```
 
 ## Post-release

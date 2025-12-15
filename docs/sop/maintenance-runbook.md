@@ -65,6 +65,64 @@ Copyleft note:
 3. Check for any references in docs and tests.
 4. Run the validation suite and tests.
 
+## GHCR Package Lifecycle (Variants, Aliases, Retirement)
+
+### Variant packages vs alias packages
+
+In v0.2.x we publish explicit variant packages per family:
+
+- `goneat-tools-runner`, `goneat-tools-slim`
+- `sbom-tools-runner`, `sbom-tools-slim`
+
+We also publish compatibility aliases (bare names):
+
+- `goneat-tools:*` aliases to `goneat-tools-runner:*`
+- `sbom-tools:*` aliases to `sbom-tools-runner:*`
+
+Operational implication:
+- GHCR will show multiple **packages** for the repo (variants + aliases).
+- A release should apply tags to all intended package namespaces (canonical variants, plus aliases if we want them).
+
+### Verify tags on packages (recommended)
+
+Requires a classic PAT with `read:packages` scope.
+
+```bash
+gh api -H "Accept: application/vnd.github+json" \
+  "/orgs/fulmenhq/packages?package_type=container&per_page=100" \
+  | jq -r '.[].name'
+
+# Example: confirm v0.2.0 tags on runner variant
+gh api -H "Accept: application/vnd.github+json" \
+  "/orgs/fulmenhq/packages/container/goneat-tools-runner/versions?per_page=100" \
+  | jq -r '.[] | [.id, .created_at, (.metadata.container.tags|join(","))] | @tsv'
+
+# Example: confirm v0.2.0 tag exists on alias package
+gh api -H "Accept: application/vnd.github+json" \
+  "/orgs/fulmenhq/packages/container/goneat-tools/versions?per_page=100" \
+  | jq -r '.[] | select((.metadata.container.tags // []) | index("v0.2.0")) | .metadata.container.tags'
+```
+
+### Signaling legacy versions are not active
+
+GitHub Packages does not provide a first-class "deprecated" flag for container packages.
+
+Default approach (Option A):
+
+- Keep legacy tags available.
+- Make support status obvious in docs and release notes.
+- Prefer explicit `-runner` / `-slim` names in all examples.
+
+Selective cleanup (Option B, maintainer judgment):
+
+- After a stability/grace period (typically a few releases), maintainers may delete legacy **package versions** (e.g. `v0.1.x`) from GHCR.
+- Prefer leaving at least one rollback anchor version.
+
+Exceptional cleanup (Option C, incident response):
+
+- Remove an entire GHCR package only for security, assurance/compliance, or operational integrity incidents.
+- This is disruptive and may break downstream CI/CD pipelines.
+
 ## License/Notice Audit Approach (Current)
 
 We currently treat license/notice content as **best-effort but enforced for curated top-level tools**.
