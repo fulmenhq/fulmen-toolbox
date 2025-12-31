@@ -108,13 +108,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 RUN set -eux; \
     mkdir -p /out/bin /tmp/rg /tmp/minisign; \
     case "$(uname -m)" in \
-      x86_64) ARCH="amd64"; RG_ARCH="x86_64"; TAPLO_ARCH="x86_64" ;; \
-      aarch64) ARCH="arm64"; RG_ARCH="aarch64"; TAPLO_ARCH="aarch64" ;; \
+      x86_64) ARCH="amd64"; RG_ARCH="x86_64"; RG_LIBC="musl"; TAPLO_ARCH="x86_64" ;; \
+      aarch64) ARCH="arm64"; RG_ARCH="aarch64"; RG_LIBC="gnu"; TAPLO_ARCH="aarch64" ;; \
       *) echo "Unsupported arch: $(uname -m)" >&2; exit 1 ;; \
     esac; \
     curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${ARCH}" -o /out/bin/jq; \
     curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${ARCH}" -o /out/bin/yq; \
-    curl -fsSL "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VERSION}/ripgrep-${RIPGREP_VERSION}-${RG_ARCH}-unknown-linux-gnu.tar.gz" -o /tmp/rg.tar.gz; \
+    curl -fsSL "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VERSION}/ripgrep-${RIPGREP_VERSION}-${RG_ARCH}-unknown-linux-${RG_LIBC}.tar.gz" -o /tmp/rg.tar.gz; \
     tar -xzf /tmp/rg.tar.gz -C /tmp/rg --strip-components=1; \
     install -m 0755 /tmp/rg/rg /out/bin/rg; \
     curl -fsSL "https://github.com/tamasfe/taplo/releases/download/${TAPLO_VERSION}/taplo-linux-${TAPLO_ARCH}.gz" -o /tmp/taplo.gz; \
