@@ -75,21 +75,15 @@ jobs:
           ALIASES: ${{ matrix.aliases }}
         run: |
           set -eu
-          CANON_TAGS=$(cat <<EOF
-          $REGISTRY/$OWNER/$IMAGE:manual
-          $REGISTRY/$OWNER/$IMAGE:${GITHUB_SHA}
-          EOF
-          )
+          CANON_TAGS=$(printf '%s\n' \
+            "$REGISTRY/$OWNER/$IMAGE:manual" \
+            "$REGISTRY/$OWNER/$IMAGE:${GITHUB_SHA}")
           TAGS="$CANON_TAGS"
           if [ -n "${ALIASES}" ]; then
             while IFS= read -r alias; do
               [ -n "$alias" ] || continue
-              TAGS="$TAGS
-          $REGISTRY/$OWNER/$alias:manual
-          $REGISTRY/$OWNER/$alias:${GITHUB_SHA}"
-            done <<EOF
-          $ALIASES
-EOF
+              TAGS="${TAGS}"$'\n'"$REGISTRY/$OWNER/$alias:manual"$'\n'"$REGISTRY/$OWNER/$alias:${GITHUB_SHA}"
+            done <<< "$ALIASES"
           fi
           {
             echo "tags<<EOF"
