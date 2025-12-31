@@ -22,7 +22,7 @@ ARG RIPGREP_VERSION=15.1.0-r0
 ARG TAPLO_VERSION=0.10.0-r0
 
 # DX tools (Go)
-ARG GONEAT_VERSION=v0.3.25
+ARG GONEAT_VERSION=v0.4.0
 ARG SFETCH_VERSION=v0.2.9
 
 # Runner-baseline pinned packages (subset)

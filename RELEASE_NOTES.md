@@ -9,7 +9,7 @@
 - Added build tools to the musl runner baseline (`build-base`, `pkgconf`) so CGO workflows can run without root installs.
 - Pinned bookworm base image digests for glibc variants.
 - Documented multi-arch tagging, alias taxonomy, and Apple Silicon guidance for runners.
-- Bumped `goneat` to v0.3.25 and `sfetch` to v0.2.9.
+- Bumped `goneat` to v0.4.0 and `sfetch` to v0.2.9.
 
 ## v0.2.1 (2025-12-15)
 
