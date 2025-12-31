@@ -24,10 +24,12 @@ graph TD
 
   subgraph "Profiles"
     RB[runner_baseline\nCI job container expectations]
+    RBA[runner_baseline_apt\nCI job container + build tools]
     SB[server_* (planned)\nProduction runtime expectations]
   end
 
   RB --> R
+  RBA --> R
   SB --> B
 ```
 
@@ -52,6 +54,7 @@ Current `runner_baseline` (apk packages):
 | Package |
 |--------:|
 | `bash` |
+| `build-base` |
 | `ca-certificates` |
 | `coreutils` |
 | `curl` |
@@ -61,9 +64,37 @@ Current `runner_baseline` (apk packages):
 | `gzip` |
 | `make` |
 | `openssh-client` |
+| `pkgconf` |
 | `tar` |
 | `unzip` |
 | `xz` |
+
+### `runner_baseline_apt` (SSOT)
+
+Used by `*-runner-glibc` images (Debian/apt).
+
+Current `runner_baseline_apt` (apt packages):
+
+| Package |
+|--------:|
+| `bash` |
+| `build-essential` |
+| `ca-certificates` |
+| `coreutils` |
+| `curl` |
+| `diffutils` |
+| `findutils` |
+| `g++` |
+| `gcc` |
+| `git` |
+| `gzip` |
+| `libc6-dev` |
+| `make` |
+| `openssh-client` |
+| `pkg-config` |
+| `tar` |
+| `unzip` |
+| `xz-utils` |
 
 Notes:
 - We intentionally include `openssh-client` in the runner baseline; appserver images should not inherit it by default.

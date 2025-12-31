@@ -1,6 +1,6 @@
 # SOP: Runner Baseline Packages (Alpine)
 
-Purpose: define the baseline packages we add to turn a minimal Alpine image into a general-purpose CI runner.
+Purpose: define the baseline packages we add to turn minimal Alpine or Debian images into general-purpose CI runners.
 
 These packages are frequently assumed by CI tooling and composite actions.
 
@@ -18,6 +18,7 @@ Recommended baseline packages (Alpine `apk` names):
 | Package | Why it’s needed | Typical license family | Copyleft? |
 |--------:|------------------|------------------------|----------:|
 | `bash` | Common CI shell; `set -euo pipefail` scripts | GPL-3.0 | Yes |
+| `build-base` | CGO toolchain meta-package (gcc/g++/make/libc-dev) | GPL/varies | Yes |
 | `git` | Repo operations in CI | GPL-2.0 | Yes |
 | `make` | Build orchestration, Makefile-based tooling | GPL-3.0 | Yes |
 | `curl` | Fetch release artifacts/installers | MIT-like | No |
@@ -30,10 +31,38 @@ Recommended baseline packages (Alpine `apk` names):
 | `findutils` | `find`, `xargs` expectations in scripts | GPL-3.0 | Yes |
 | `diffutils` | `diff` behavior expected by many tools | GPL-3.0 | Yes |
 | `openssh-client` | Fetch private deps over SSH | BSD-style | No |
+| `pkgconf` | `pkg-config` for CGO builds | ISC-like | No |
 
 Optional additions (only if needed):
 
 (None currently.)
+
+## Glibc runner baseline (Debian/apt)
+
+For `*-runner-glibc` images, the SSOT is `manifests/profiles.json` (`profiles.runner_baseline_apt.packages`).
+
+This baseline includes the Alpine-equivalent userland **plus** build tooling required for `CGO_ENABLED=1`.
+
+Current baseline packages (Debian `apt` names):
+
+- `bash`
+- `build-essential`
+- `ca-certificates`
+- `coreutils`
+- `curl`
+- `diffutils`
+- `findutils`
+- `g++`
+- `gcc`
+- `git`
+- `gzip`
+- `libc6-dev`
+- `make`
+- `openssh-client`
+- `pkg-config`
+- `tar`
+- `unzip`
+- `xz-utils`
 
 ## How we document and ship licenses
 

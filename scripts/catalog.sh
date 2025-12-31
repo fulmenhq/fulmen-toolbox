@@ -67,6 +67,13 @@ while IFS= read -r img; do
   images+=("$img")
 done < <(jq -r '.tools[].images[]' "$TOOLS_JSON" | sort -u)
 
+profile_for_image() {
+  case "$1" in
+    *-runner-glibc) echo "runner_baseline_apt" ;;
+    *) echo "runner_baseline" ;;
+  esac
+}
+
 if [ -n "$image_filter" ]; then
   found=0
   for img in "${images[@]}"; do
@@ -119,10 +126,11 @@ for image in "${images[@]}"; do
 
   echo
 
-  if [[ "$image" == *-runner ]]; then
+  if [[ "$image" == *-runner* ]]; then
+    profile="$(profile_for_image "$image")"
     echo "### Runner baseline packages (policy; from manifests/profiles.json)"
     echo
-    jq -r '.profiles.runner_baseline.packages[]' "$PROFILES_JSON" | sort -u | while IFS= read -r pkg; do
+    jq -r --arg profile "$profile" '.profiles[$profile].packages[]' "$PROFILES_JSON" | sort -u | while IFS= read -r pkg; do
       printf -- "- \`%s\`\n" "$pkg"
     done
     echo

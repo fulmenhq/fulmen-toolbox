@@ -63,6 +63,29 @@ check_pin "$sbom_df" "sbom-tools yq-go" "ARG YQ_VERSION=${sbom_yq}" || fail=1
 check_pin "$sbom_df" "sbom-tools git" "ARG GIT_VERSION=${sbom_git}" || fail=1
 check_pin "$sbom_df" "sbom-tools curl" "ARG CURL_VERSION=${sbom_curl}" || fail=1
 
+# sbom-tools-glibc pins
+sbom_glibc_df="$ROOT/images/sbom-tools-glibc/Dockerfile"
+sbom_glibc_base=$(get_version "debian-base" "sbom-tools-runner-glibc")
+sbom_glibc_syft=$(get_version "syft" "sbom-tools-runner-glibc")
+sbom_glibc_grype=$(get_version "grype" "sbom-tools-runner-glibc")
+sbom_glibc_trivy=$(get_version "trivy" "sbom-tools-runner-glibc")
+sbom_glibc_jq=$(get_version "jq" "sbom-tools-runner-glibc")
+sbom_glibc_yq=$(get_version "yq-go" "sbom-tools-runner-glibc")
+
+for name in sbom_glibc_base sbom_glibc_syft sbom_glibc_grype sbom_glibc_trivy sbom_glibc_jq sbom_glibc_yq; do
+  if [ -z "${!name:-}" ]; then
+    echo "❌ Missing manifest entry for ${name#sbom_glibc_}"
+    fail=1
+  fi
+done
+
+check_pin "$sbom_glibc_df" "sbom-tools-glibc base image" "ARG DEBIAN_IMAGE=${sbom_glibc_base}" || fail=1
+check_pin "$sbom_glibc_df" "sbom-tools-glibc syft" "ARG SYFT_VERSION=${sbom_glibc_syft}" || fail=1
+check_pin "$sbom_glibc_df" "sbom-tools-glibc grype" "ARG GRYPE_VERSION=${sbom_glibc_grype}" || fail=1
+check_pin "$sbom_glibc_df" "sbom-tools-glibc trivy" "ARG TRIVY_VERSION=${sbom_glibc_trivy}" || fail=1
+check_pin "$sbom_glibc_df" "sbom-tools-glibc jq" "ARG JQ_VERSION=${sbom_glibc_jq}" || fail=1
+check_pin "$sbom_glibc_df" "sbom-tools-glibc yq-go" "ARG YQ_VERSION=${sbom_glibc_yq}" || fail=1
+
 # goneat-tools pins
 goneat_df="$ROOT/images/goneat-tools/Dockerfile"
 goneat_node=$(get_version "node-base" "goneat-tools-slim")
@@ -109,6 +132,47 @@ check_pin "$goneat_df" "goneat-tools curl" "ARG CURL_VERSION=${goneat_curl}" || 
 check_pin "$goneat_df" "goneat-tools minisign" "ARG MINISIGN_VERSION=${goneat_minisign}" || fail=1
 check_pin "$goneat_df" "goneat-tools goneat" "ARG GONEAT_VERSION=${goneat_goneat}" || fail=1
 check_pin "$goneat_df" "goneat-tools sfetch" "ARG SFETCH_VERSION=${goneat_sfetch}" || fail=1
+
+# goneat-tools-glibc pins
+goneat_glibc_df="$ROOT/images/goneat-tools-glibc/Dockerfile"
+goneat_glibc_node=$(get_version "node-base-glibc" "goneat-tools-runner-glibc")
+goneat_glibc_go=$(get_version "golang-builder-glibc" "goneat-tools-runner-glibc")
+goneat_glibc_prettier=$(get_version "prettier" "goneat-tools-runner-glibc")
+goneat_glibc_biome=$(get_version "biome" "goneat-tools-runner-glibc")
+goneat_glibc_yamlfmt=$(get_version "yamlfmt" "goneat-tools-runner-glibc")
+goneat_glibc_shfmt=$(get_version "shfmt" "goneat-tools-runner-glibc")
+goneat_glibc_checkmake=$(get_version "checkmake" "goneat-tools-runner-glibc")
+goneat_glibc_actionlint=$(get_version "actionlint" "goneat-tools-runner-glibc")
+goneat_glibc_jq=$(get_version "jq" "goneat-tools-runner-glibc")
+goneat_glibc_yq=$(get_version "yq-go" "goneat-tools-runner-glibc")
+goneat_glibc_ripgrep=$(get_version "ripgrep" "goneat-tools-runner-glibc")
+goneat_glibc_taplo=$(get_version "taplo" "goneat-tools-runner-glibc")
+goneat_glibc_minisign=$(get_version "minisign" "goneat-tools-runner-glibc")
+goneat_glibc_goneat=$(get_version "goneat" "goneat-tools-runner-glibc")
+goneat_glibc_sfetch=$(get_version "sfetch" "goneat-tools-runner-glibc")
+
+for name in goneat_glibc_node goneat_glibc_go goneat_glibc_prettier goneat_glibc_biome goneat_glibc_yamlfmt goneat_glibc_shfmt goneat_glibc_checkmake goneat_glibc_actionlint goneat_glibc_jq goneat_glibc_yq goneat_glibc_ripgrep goneat_glibc_taplo goneat_glibc_minisign goneat_glibc_goneat goneat_glibc_sfetch; do
+  if [ -z "${!name:-}" ]; then
+    echo "❌ Missing manifest entry for ${name#goneat_glibc_}"
+    fail=1
+  fi
+done
+
+check_pin "$goneat_glibc_df" "goneat-tools-glibc node base" "ARG NODE_IMAGE=${goneat_glibc_node}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc golang builder" "ARG GO_IMAGE=${goneat_glibc_go}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc prettier" "ARG PRETTIER_VERSION=${goneat_glibc_prettier}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc biome" "ARG BIOME_VERSION=${goneat_glibc_biome}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc yamlfmt" "ARG YAMLFMT_VERSION=${goneat_glibc_yamlfmt}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc shfmt" "ARG SHFMT_VERSION=${goneat_glibc_shfmt}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc checkmake" "ARG CHECKMAKE_VERSION=${goneat_glibc_checkmake}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc actionlint" "ARG ACTIONLINT_VERSION=${goneat_glibc_actionlint}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc jq" "ARG JQ_VERSION=${goneat_glibc_jq}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc yq-go" "ARG YQ_VERSION=${goneat_glibc_yq}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc ripgrep" "ARG RIPGREP_VERSION=${goneat_glibc_ripgrep}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc taplo" "ARG TAPLO_VERSION=${goneat_glibc_taplo}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc minisign" "ARG MINISIGN_VERSION=${goneat_glibc_minisign}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc goneat" "ARG GONEAT_VERSION=${goneat_glibc_goneat}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc sfetch" "ARG SFETCH_VERSION=${goneat_glibc_sfetch}" || fail=1
 
 if [ "$fail" -ne 0 ]; then
   echo "Pin validation failed."

@@ -1,43 +1,40 @@
-# goneat-tools Docker Image
-# Code quality and formatting tools: Prettier, Biome, yamlfmt, shfmt, checkmake, actionlint, jq, yq, ripgrep, taplo
-# Base: node:22-alpine for Prettier + Alpine pkgs for others
+# goneat-tools glibc runner Docker Image
+# Code quality and formatting tools + CGO-capable runner baseline
+# Base: node:22-bookworm-slim (glibc)
 # Multi-arch: linux/amd64 + linux/arm64
 #
 # Build targets:
-# - slim: tool payload only (no runner baseline)
-# - runner (default): slim + runner baseline packages
+# - slim: tool payload only (not published)
+# - runner (default): slim + runner baseline + build tools
 
 # Version pins
-ARG GO_IMAGE=golang:1.25-alpine@sha256:26111811bc967321e7b6f852e914d14bede324cd1accb7f81811929a6a57fea9
-ARG NODE_IMAGE=node:22-alpine@sha256:9632533eda8061fc1e9960cfb3f8762781c07a00ee7317f5dc0e13c05e15166f
+ARG GO_IMAGE=golang:1.25-bookworm@sha256:2c7c65601b020ee79db4c1a32ebee0bf3d6b298969ec683e24fcbea29305f10e
+ARG NODE_IMAGE=node:22-bookworm-slim@sha256:7378f5a4830ef48eb36d1abf4ef398391db562b5c41a0bded83192fbcea21cc8
+ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c
 ARG YAMLFMT_VERSION=v0.20.0
 ARG SHFMT_VERSION=v3.12.0
 ARG CHECKMAKE_VERSION=0.2.2
 ARG ACTIONLINT_VERSION=v1.7.9
 ARG PRETTIER_VERSION=3.7.4
 ARG BIOME_VERSION=2.3.8
-ARG JQ_VERSION=1.8.1-r0
-ARG YQ_VERSION=4.49.2-r1
-ARG RIPGREP_VERSION=15.1.0-r0
-ARG TAPLO_VERSION=0.10.0-r0
+ARG JQ_VERSION=1.8.1
+ARG YQ_VERSION=v4.49.2
+ARG RIPGREP_VERSION=15.1.0
+ARG TAPLO_VERSION=0.10.0
 
 # DX tools (Go)
 ARG GONEAT_VERSION=v0.3.25
 ARG SFETCH_VERSION=v0.2.9
 
-# Runner-baseline pinned packages (subset)
-ARG BASH_VERSION=5.3.3-r1
-ARG GIT_VERSION=2.52.0-r0
-ARG CURL_VERSION=8.17.0-r1
-
 # Non-runner tool pins
-ARG MINISIGN_VERSION=0.12-r0
+ARG MINISIGN_VERSION=0.12
 
 # Stage 1: Build Go tools (yamlfmt, shfmt, checkmake, actionlint, goneat, sfetch)
 FROM ${GO_IMAGE} AS go-builder
 
 # Build-only dependency: required for some `go install` VCS fetches.
-RUN apk add --no-cache git
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 ARG YAMLFMT_VERSION
 ARG SHFMT_VERSION
@@ -89,41 +86,59 @@ RUN set -eux; \
     chmod -R a+rX /licenses /notices
 
 # Stage 2: Fetch curated license texts (kept out of runtime layers)
-FROM ${NODE_IMAGE} AS license-fetcher
+FROM ${DEBIAN_IMAGE} AS license-fetcher
 ARG MINISIGN_VERSION
-RUN apk add --no-cache ca-certificates curl
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl && \
+    rm -rf /var/lib/apt/lists/*
 RUN set -eux; \
-    MINISIGN_UPSTREAM_VERSION="${MINISIGN_VERSION%%-r*}"; \
     mkdir -p /licenses/github/jedisct1/minisign; \
-    curl -fsSL "https://raw.githubusercontent.com/jedisct1/minisign/${MINISIGN_UPSTREAM_VERSION}/LICENSE" \
+    curl -fsSL "https://raw.githubusercontent.com/jedisct1/minisign/${MINISIGN_VERSION}/LICENSE" \
       -o /licenses/github/jedisct1/minisign/LICENSE; \
     chmod -R a+rX /licenses
 
-# Stage 3: slim variant (tools only)
-FROM ${NODE_IMAGE} AS slim
-ARG PRETTIER_VERSION
-ARG BIOME_VERSION
+# Stage 3: Fetch platform binaries (jq, yq, ripgrep, taplo, minisign)
+FROM ${DEBIAN_IMAGE} AS bin-fetcher
 ARG JQ_VERSION
 ARG YQ_VERSION
 ARG RIPGREP_VERSION
 ARG TAPLO_VERSION
 ARG MINISIGN_VERSION
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl tar gzip xz-utils && \
+    rm -rf /var/lib/apt/lists/*
+RUN set -eux; \
+    mkdir -p /out/bin /tmp/rg /tmp/minisign; \
+    case "$(uname -m)" in \
+      x86_64) ARCH="amd64"; RG_ARCH="x86_64"; TAPLO_ARCH="x86_64" ;; \
+      aarch64) ARCH="arm64"; RG_ARCH="aarch64"; TAPLO_ARCH="aarch64" ;; \
+      *) echo "Unsupported arch: $(uname -m)" >&2; exit 1 ;; \
+    esac; \
+    curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${ARCH}" -o /out/bin/jq; \
+    curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${ARCH}" -o /out/bin/yq; \
+    curl -fsSL "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VERSION}/ripgrep-${RIPGREP_VERSION}-${RG_ARCH}-unknown-linux-gnu.tar.gz" -o /tmp/rg.tar.gz; \
+    tar -xzf /tmp/rg.tar.gz -C /tmp/rg --strip-components=1; \
+    install -m 0755 /tmp/rg/rg /out/bin/rg; \
+    curl -fsSL "https://github.com/tamasfe/taplo/releases/download/${TAPLO_VERSION}/taplo-linux-${TAPLO_ARCH}.gz" -o /tmp/taplo.gz; \
+    gunzip -c /tmp/taplo.gz > /out/bin/taplo; \
+    curl -fsSL "https://github.com/jedisct1/minisign/releases/download/${MINISIGN_VERSION}/minisign-${MINISIGN_VERSION}-linux.tar.gz" -o /tmp/minisign.tar.gz; \
+    tar -xzf /tmp/minisign.tar.gz -C /tmp/minisign; \
+    MINISIGN_BIN="$(find /tmp/minisign -type f -name minisign -perm -u+x | head -n 1)"; \
+    [ -n "$MINISIGN_BIN" ]; \
+    install -m 0755 "$MINISIGN_BIN" /out/bin/minisign; \
+    chmod 0755 /out/bin/jq /out/bin/yq /out/bin/taplo /out/bin/rg /out/bin/minisign
 
-# Install non-runner Alpine packages
-RUN apk add --no-cache \
-    jq=${JQ_VERSION} \
-    yq-go=${YQ_VERSION} \
-    ripgrep=${RIPGREP_VERSION} \
-    taplo=${TAPLO_VERSION} \
-    minisign=${MINISIGN_VERSION}
+# Stage 4: slim variant (tools only)
+FROM ${NODE_IMAGE} AS slim
+ARG PRETTIER_VERSION
+ARG BIOME_VERSION
+
+# Minimal runtime deps
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 # Standard location for license texts and notices (transparency / compliance support)
 RUN mkdir -p \
-      /licenses/github /licenses/alpine /licenses/npm \
-      /notices/github /notices/alpine /notices/npm && \
-    if [ -d /usr/share/licenses ]; then \
-      cp -a /usr/share/licenses/. /licenses/alpine/; \
-    fi && \
+      /licenses/github /licenses/debian /licenses/npm \
+      /notices/github /notices/debian /notices/npm && \
     chmod -R a+rX /licenses /notices
 
 # Install Prettier and Biome globally
@@ -149,6 +164,13 @@ COPY --from=go-builder /go/bin/actionlint /usr/local/bin/actionlint
 COPY --from=go-builder /go/bin/goneat /usr/local/bin/goneat
 COPY --from=go-builder /go/bin/sfetch /usr/local/bin/sfetch
 
+# Copy platform binaries
+COPY --from=bin-fetcher /out/bin/jq /usr/local/bin/jq
+COPY --from=bin-fetcher /out/bin/yq /usr/local/bin/yq
+COPY --from=bin-fetcher /out/bin/rg /usr/local/bin/rg
+COPY --from=bin-fetcher /out/bin/taplo /usr/local/bin/taplo
+COPY --from=bin-fetcher /out/bin/minisign /usr/local/bin/minisign
+
 # Copy staged Go tool licenses/notices
 COPY --from=go-builder /licenses/github/ /licenses/github/
 COPY --from=go-builder /notices/github/ /notices/github/
@@ -156,7 +178,7 @@ COPY --from=go-builder /notices/github/ /notices/github/
 # Copy curated license texts
 COPY --from=license-fetcher /licenses/github/jedisct1/minisign/LICENSE /licenses/github/jedisct1/minisign/LICENSE
 
-# Create non-root user for security (node:alpine provides 'node' user)
+# Create non-root user for security (node:bookworm-slim provides 'node' user)
 # /work owned by node user for volume mounts
 RUN mkdir -p /work && chown node:node /work
 
@@ -164,21 +186,16 @@ WORKDIR /work
 USER node
 ENTRYPOINT ["/bin/sh"]
 
-# Stage 4: runner variant (default)
+# Stage 5: runner variant (default)
 FROM slim AS runner
-ARG BASH_VERSION
-ARG GIT_VERSION
-ARG CURL_VERSION
 
 USER root
 
-# Install runner baseline packages
-RUN apk add --no-cache \
-    bash=${BASH_VERSION} \
-    git=${GIT_VERSION} \
-    curl=${CURL_VERSION} \
-    build-base \
-    pkgconf \
+# Install runner baseline packages + build tools for CGO
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
+    git \
+    curl \
     ca-certificates \
     coreutils \
     findutils \
@@ -186,8 +203,14 @@ RUN apk add --no-cache \
     make \
     tar \
     gzip \
-    xz \
+    xz-utils \
     unzip \
-    openssh-client
+    openssh-client \
+    build-essential \
+    gcc \
+    g++ \
+    libc6-dev \
+    pkg-config && \
+    rm -rf /var/lib/apt/lists/*
 
 USER node

@@ -4,6 +4,15 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 ## [Unreleased]
 
+## [0.2.2] - 2025-12-31
+
+- Added glibc runner variants (`*-runner-glibc`) with CGO toolchain support (gcc, libc6-dev, pkg-config).
+- Introduced `runner_baseline_apt` profile and extended validation/catalog tooling for apt-based runners.
+- Added build tools to the musl runner baseline (`build-base`, `pkgconf`) so CGO workflows can run without root installs.
+- Pinned bookworm base image digests for glibc variants.
+- Documented multi-arch tagging, alias taxonomy, and Apple Silicon guidance for runners.
+- Bumped `goneat` to v0.3.25 and `sfetch` to v0.2.9.
+
 ## [0.2.1] - 2025-12-15
 
 - Prefer `GITHUB_TOKEN` for GHCR auth in CI workflows (reduces long-lived secrets).
@@ -33,7 +42,8 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 For earlier history, see GitHub Releases: https://github.com/fulmenhq/fulmen-toolbox/releases
 
-[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.2
 [0.2.1]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.1
 [0.2.0]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.0
 [0.1.6]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.1.6

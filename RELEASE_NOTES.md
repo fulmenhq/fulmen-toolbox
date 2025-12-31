@@ -1,5 +1,16 @@
 # Release Notes
 
+## v0.2.2 (2025-12-31)
+
+**Glibc Runner Variants + CGO Support**
+
+- Added `goneat-tools-runner-glibc` and `sbom-tools-runner-glibc` for glibc-based CI jobs.
+- Introduced an apt-based runner baseline profile that includes build tooling (`gcc`, `libc6-dev`, `pkg-config`).
+- Added build tools to the musl runner baseline (`build-base`, `pkgconf`) so CGO workflows can run without root installs.
+- Pinned bookworm base image digests for glibc variants.
+- Documented multi-arch tagging, alias taxonomy, and Apple Silicon guidance for runners.
+- Bumped `goneat` to v0.3.25 and `sfetch` to v0.2.9.
+
 ## v0.2.1 (2025-12-15)
 
 **GHCR Auth: Prefer `GITHUB_TOKEN`**
@@ -33,17 +44,3 @@
 **DX tools in goneat-tools**
 
 - Added `goneat` v0.3.20 and `sfetch` v0.2.7 to the goneat-tools payload (both `-slim` and `-runner`).
-
-## v0.1.6 (2025-12-13)
-
-**Minisign in goneat-tools + License Transparency**
-
-- goneat-tools: added `minisign` (requested by users) and pinned it in `manifests/tools.json`.
-- Both images now expose `/licenses/` and `/notices/` with curated license texts for bundled tools (plus best-effort package-manager license copying).
-- Added ADR-0003 and SOP documentation for how licenses/notices are collected and where they live.
-
-**Release Process DX**
-
-- `make release-sign` now covers cosign sign + SBOM attest + OCI-attached SBOM publish (`cosign attach sbom`), plus GPG/minisign checksum signatures.
-- Added `GPG_HOMEDIR` support for maintainers with multiple GPG keyrings.
-- Added optional `make release-notes` staging and updated `release-upload` to upload notes when present.

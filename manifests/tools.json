@@ -5,7 +5,7 @@
       "name": "prettier",
       "version": "3.7.4",
       "source": "npm",
-      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "images": ["goneat-tools-slim", "goneat-tools-runner", "goneat-tools-runner-glibc"],
       "notes": "Pinned npm global install for formatting.",
       "license_spdx": "MIT",
       "license_source": "npm",
@@ -15,7 +15,7 @@
       "name": "biome",
       "version": "2.3.8",
       "source": "npm",
-      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "images": ["goneat-tools-slim", "goneat-tools-runner", "goneat-tools-runner-glibc"],
       "notes": "Pinned npm global install; complements Prettier (JS/TS/JSON lint/format).",
       "license_spdx": "Apache-2.0 OR MIT",
       "license_source": "npm",
@@ -28,7 +28,7 @@
       "name": "yamlfmt",
       "version": "v0.20.0",
       "source": "go",
-      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "images": ["goneat-tools-slim", "goneat-tools-runner", "goneat-tools-runner-glibc"],
       "notes": "Go install from github.com/google/yamlfmt/cmd/yamlfmt.",
       "license_spdx": "Apache-2.0",
       "license_source": "gomodcache",
@@ -49,6 +49,13 @@
       "notes": "Alpine 3.21 version"
     },
     {
+      "name": "jq",
+      "version": "1.8.1",
+      "source": "binary",
+      "images": ["goneat-tools-runner-glibc", "sbom-tools-runner-glibc"],
+      "notes": "GitHub release binary for glibc runners."
+    },
+    {
       "name": "yq-go",
       "version": "4.49.2-r1",
       "source": "apk",
@@ -63,10 +70,24 @@
       "notes": "Alpine 3.21 version"
     },
     {
+      "name": "yq-go",
+      "version": "v4.49.2",
+      "source": "binary",
+      "images": ["goneat-tools-runner-glibc", "sbom-tools-runner-glibc"],
+      "notes": "GitHub release binary for glibc runners."
+    },
+    {
       "name": "ripgrep",
       "version": "15.1.0-r0",
       "source": "apk",
       "images": ["goneat-tools-slim", "goneat-tools-runner"]
+    },
+    {
+      "name": "ripgrep",
+      "version": "15.1.0",
+      "source": "binary",
+      "images": ["goneat-tools-runner-glibc"],
+      "notes": "GitHub release binary for glibc runners."
     },
     {
       "name": "taplo",
@@ -74,6 +95,13 @@
       "source": "apk",
       "images": ["goneat-tools-slim", "goneat-tools-runner"],
       "notes": "TOML formatter/linter"
+    },
+    {
+      "name": "taplo",
+      "version": "0.10.0",
+      "source": "binary",
+      "images": ["goneat-tools-runner-glibc"],
+      "notes": "GitHub release binary for glibc runners."
     },
     {
       "name": "bash",
@@ -113,11 +141,28 @@
       "license_path": "/licenses/github/jedisct1/minisign/LICENSE"
     },
     {
+      "name": "minisign",
+      "version": "0.12",
+      "source": "binary",
+      "images": ["goneat-tools-runner-glibc"],
+      "notes": "GitHub release binary for glibc runners (ISC license).",
+      "license_spdx": "ISC",
+      "license_source": "upstream-url",
+      "license_path": "/licenses/github/jedisct1/minisign/LICENSE"
+    },
+    {
       "name": "node-base",
       "version": "node:22-alpine@sha256:9632533eda8061fc1e9960cfb3f8762781c07a00ee7317f5dc0e13c05e15166f",
       "source": "other",
       "images": ["goneat-tools-slim", "goneat-tools-runner"],
       "notes": "Pinned base image digest for multi-arch."
+    },
+    {
+      "name": "node-base-glibc",
+      "version": "node:22-bookworm-slim@sha256:7378f5a4830ef48eb36d1abf4ef398391db562b5c41a0bded83192fbcea21cc8",
+      "source": "other",
+      "images": ["goneat-tools-runner-glibc"],
+      "notes": "Pinned base image tag for glibc runner."
     },
     {
       "name": "golang-builder",
@@ -127,10 +172,17 @@
       "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint)."
     },
     {
+      "name": "golang-builder-glibc",
+      "version": "golang:1.25-bookworm@sha256:2c7c65601b020ee79db4c1a32ebee0bf3d6b298969ec683e24fcbea29305f10e",
+      "source": "other",
+      "images": ["goneat-tools-runner-glibc"],
+      "notes": "Pinned builder image tag for Go tools in glibc runner."
+    },
+    {
       "name": "shfmt",
       "version": "v3.12.0",
       "source": "go",
-      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "images": ["goneat-tools-slim", "goneat-tools-runner", "goneat-tools-runner-glibc"],
       "notes": "Shell formatter (BSD-3 license). Go install from mvdan.cc/sh/v3/cmd/shfmt.",
       "license_spdx": "BSD-3-Clause",
       "license_source": "gomodcache",
@@ -140,7 +192,7 @@
       "name": "checkmake",
       "version": "0.2.2",
       "source": "go",
-      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "images": ["goneat-tools-slim", "goneat-tools-runner", "goneat-tools-runner-glibc"],
       "notes": "Makefile linter (MIT license). Go install from github.com/mrtazz/checkmake/cmd/checkmake.",
       "license_spdx": "MIT",
       "license_source": "gomodcache",
@@ -150,7 +202,7 @@
       "name": "actionlint",
       "version": "v1.7.9",
       "source": "go",
-      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "images": ["goneat-tools-slim", "goneat-tools-runner", "goneat-tools-runner-glibc"],
       "notes": "GitHub Actions workflow linter (MIT license). Go install from github.com/rhysd/actionlint/cmd/actionlint.",
       "license_spdx": "MIT",
       "license_source": "gomodcache",
@@ -158,9 +210,9 @@
     },
     {
       "name": "goneat",
-      "version": "v0.3.20",
+      "version": "v0.3.25",
       "source": "go",
-      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "images": ["goneat-tools-slim", "goneat-tools-runner", "goneat-tools-runner-glibc"],
       "notes": "FulmenHQ DX CLI: wrap and orchestrate formatting/linting/assessment/hook workflows.",
       "license_spdx": "Apache-2.0",
       "license_source": "gomodcache",
@@ -170,9 +222,9 @@
     },
     {
       "name": "sfetch",
-      "version": "v0.2.7",
+      "version": "v0.2.9",
       "source": "go",
-      "images": ["goneat-tools-slim", "goneat-tools-runner"],
+      "images": ["goneat-tools-slim", "goneat-tools-runner", "goneat-tools-runner-glibc"],
       "notes": "Trust-anchor downloader: defaults to signature+checksum verification for GitHub release assets.",
       "license_spdx": "MIT",
       "license_source": "gomodcache",
@@ -182,7 +234,7 @@
       "name": "syft",
       "version": "v1.18.1",
       "source": "binary",
-      "images": ["sbom-tools-slim", "sbom-tools-runner"],
+      "images": ["sbom-tools-slim", "sbom-tools-runner", "sbom-tools-runner-glibc"],
       "notes": "SBOM generator from Anchore (GitHub release binary). Supports CycloneDX + SPDX output formats.",
       "license_spdx": "Apache-2.0",
       "license_source": "upstream-url",
@@ -193,7 +245,7 @@
       "name": "grype",
       "version": "v0.86.1",
       "source": "binary",
-      "images": ["sbom-tools-slim", "sbom-tools-runner"],
+      "images": ["sbom-tools-slim", "sbom-tools-runner", "sbom-tools-runner-glibc"],
       "notes": "Vulnerability scanner from Anchore (GitHub release binary). Pulls DB on first run (~150MB).",
       "license_spdx": "Apache-2.0",
       "license_source": "upstream-url",
@@ -204,7 +256,7 @@
       "name": "trivy",
       "version": "v0.68.1",
       "source": "binary",
-      "images": ["sbom-tools-slim", "sbom-tools-runner"],
+      "images": ["sbom-tools-slim", "sbom-tools-runner", "sbom-tools-runner-glibc"],
       "notes": "SBOM/vuln scanner from Aqua Security (GitHub release binary). Alternative to Syft/Grype workflow. Also provides Dockerfile config scanning.",
       "license_spdx": "Apache-2.0",
       "license_source": "upstream-url",
@@ -218,6 +270,13 @@
       "source": "other",
       "images": ["sbom-tools-slim", "sbom-tools-runner"],
       "notes": "Pinned base image digest for sbom-tools."
+    },
+    {
+      "name": "debian-base",
+      "version": "debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c",
+      "source": "other",
+      "images": ["sbom-tools-runner-glibc"],
+      "notes": "Pinned base image tag for glibc runner."
     },
     {
       "name": "curl",

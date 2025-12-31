@@ -25,8 +25,10 @@ This runbook covers routine maintenance tasks for Fulmen Toolbox images: bumping
 4. Build + test locally:
    - `make build-goneat-tools-runner && make test-goneat-tools-runner`
    - `make build-goneat-tools-slim && make test-goneat-tools-slim`
+   - `make build-goneat-tools-runner-glibc && make test-goneat-tools-runner-glibc`
    - `make build-sbom-tools-runner && make test-sbom-tools-runner`
    - `make build-sbom-tools-slim && make test-sbom-tools-slim`
+   - `make build-sbom-tools-runner-glibc && make test-sbom-tools-runner-glibc`
 5. Update `CHANGELOG.md` and release notes as needed.
 
 ### 2) Add a new tool (Go/npm/GitHub binary)
@@ -46,7 +48,7 @@ This runbook covers routine maintenance tasks for Fulmen Toolbox images: bumping
 
 ### 3) Add a new runner baseline package
 
-1. Update `manifests/profiles.json` (`profiles.runner_baseline.packages`).
+1. Update `manifests/profiles.json` (`profiles.runner_baseline.packages` or `profiles.runner_baseline_apt.packages`).
 2. Update `docs/sop/runner-baseline.md` rationale table.
 3. Update Dockerfiles:
    - ensure `runner` stage installs the new package

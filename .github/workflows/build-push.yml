@@ -19,19 +19,39 @@ jobs:
           - family: goneat-tools
             image: goneat-tools-runner
             target: runner
-            alias: goneat-tools
+            aliases: |
+              goneat-tools
+              goneat-tools-runner-musl
+              goneat-tools-runner-alpine
           - family: goneat-tools
             image: goneat-tools-slim
             target: slim
-            alias: ""
+            aliases: |
+              goneat-tools-slim-musl
+              goneat-tools-slim-alpine
+          - family: goneat-tools-glibc
+            image: goneat-tools-runner-glibc
+            target: runner
+            aliases: |
+              goneat-tools-runner-debian
           - family: sbom-tools
             image: sbom-tools-runner
             target: runner
-            alias: sbom-tools
+            aliases: |
+              sbom-tools
+              sbom-tools-runner-musl
+              sbom-tools-runner-alpine
           - family: sbom-tools
             image: sbom-tools-slim
             target: slim
-            alias: ""
+            aliases: |
+              sbom-tools-slim-musl
+              sbom-tools-slim-alpine
+          - family: sbom-tools-glibc
+            image: sbom-tools-runner-glibc
+            target: runner
+            aliases: |
+              sbom-tools-runner-debian
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -52,7 +72,7 @@ jobs:
         env:
           OWNER: ${{ github.repository_owner }}
           IMAGE: ${{ matrix.image }}
-          ALIAS: ${{ matrix.alias }}
+          ALIASES: ${{ matrix.aliases }}
         run: |
           set -eu
           CANON_TAGS=$(cat <<EOF
@@ -60,16 +80,16 @@ jobs:
           $REGISTRY/$OWNER/$IMAGE:${GITHUB_SHA}
           EOF
           )
-          if [ -n "${ALIAS}" ]; then
-            ALIAS_TAGS=$(cat <<EOF
-          $REGISTRY/$OWNER/$ALIAS:manual
-          $REGISTRY/$OWNER/$ALIAS:${GITHUB_SHA}
-          EOF
-            )
-            TAGS="$CANON_TAGS
-          $ALIAS_TAGS"
-          else
-            TAGS="$CANON_TAGS"
+          TAGS="$CANON_TAGS"
+          if [ -n "${ALIASES}" ]; then
+            while IFS= read -r alias; do
+              [ -n "$alias" ] || continue
+              TAGS="$TAGS
+          $REGISTRY/$OWNER/$alias:manual
+          $REGISTRY/$OWNER/$alias:${GITHUB_SHA}"
+            done <<EOF
+          $ALIASES
+EOF
           fi
           {
             echo "tags<<EOF"

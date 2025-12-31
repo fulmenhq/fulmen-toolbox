@@ -26,21 +26,25 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 1
 fi
 
-runner_baseline_pkgs=()
-while IFS= read -r pkg; do
-  runner_baseline_pkgs+=("$pkg")
-done < <(jq -r '.profiles.runner_baseline.packages[]' "$PROFILES_JSON")
+profile_packages() {
+  local profile="$1"
+  jq -r --arg profile "$profile" '.profiles[$profile].packages[]' "$PROFILES_JSON"
+}
 
-if [ "${#runner_baseline_pkgs[@]}" -eq 0 ]; then
-  echo "runner_baseline is empty in $PROFILES_JSON" >&2
-  exit 1
-fi
+profile_exists() {
+  local profile="$1"
+  jq -e --arg profile "$profile" '.profiles[$profile]' "$PROFILES_JSON" >/dev/null 2>&1
+}
 
 # Packages that may appear in slim images without implying "runner".
 # Keep this list small and documented.
 slim_allowlist=(
   ca-certificates
 )
+
+escape_regex() {
+  printf '%s' "$1" | sed -e 's/[][(){}.^$*+?|\\\/]/\\&/g'
+}
 
 is_allowed_in_slim() {
   local candidate="$1"
@@ -65,11 +69,13 @@ extract_stage() {
 
 assert_runner_has_pkg() {
   local dockerfile="$1" pkg="$2"
+  local pkg_re
+  pkg_re="$(escape_regex "$pkg")"
 
   # Accept either:
   # - pkg
   # - pkg=version
-  if ! grep -Eq "(^|[[:space:]])${pkg}([[:space:]]|=|$)" "$dockerfile"; then
+  if ! grep -Eq "(^|[[:space:]])${pkg_re}([[:space:]]|=|$)" "$dockerfile"; then
     echo "❌ runner missing package '$pkg' in $dockerfile" >&2
     return 1
   fi
@@ -77,16 +83,34 @@ assert_runner_has_pkg() {
 
 assert_slim_does_not_have_pkg() {
   local dockerfile="$1" pkg="$2"
+  local pkg_re
+  pkg_re="$(escape_regex "$pkg")"
 
-  if grep -Eq "(^|[[:space:]])${pkg}([[:space:]]|=|$)" "$dockerfile"; then
+  if grep -Eq "(^|[[:space:]])${pkg_re}([[:space:]]|=|$)" "$dockerfile"; then
     echo "❌ slim includes runner-only package '$pkg' in $dockerfile" >&2
     return 1
   fi
 }
 
+profile_for_family() {
+  local family="$1"
+  case "$family" in
+    *-glibc) echo "runner_baseline_apt" ;;
+    *) echo "runner_baseline" ;;
+  esac
+}
+
 validate_image_family() {
   local family="$1"
   local dockerfile="$ROOT/images/$family/Dockerfile"
+  local profile
+
+  profile="$(profile_for_family "$family")"
+
+  if ! profile_exists "$profile"; then
+    echo "Profile not found: $profile (family: $family)" >&2
+    return 1
+  fi
 
   if [ ! -f "$dockerfile" ]; then
     echo "Dockerfile not found: $dockerfile" >&2
@@ -109,6 +133,16 @@ validate_image_family() {
 
   local fail=0
 
+  local runner_baseline_pkgs=()
+  while IFS= read -r pkg; do
+    runner_baseline_pkgs+=("$pkg")
+  done < <(profile_packages "$profile")
+
+  if [ "${#runner_baseline_pkgs[@]}" -eq 0 ]; then
+    echo "${profile} is empty in $PROFILES_JSON" >&2
+    return 1
+  fi
+
   for pkg in "${runner_baseline_pkgs[@]}"; do
     if is_allowed_in_slim "$pkg"; then
       continue
@@ -130,6 +164,8 @@ fail=0
 
 validate_image_family goneat-tools || fail=1
 validate_image_family sbom-tools || fail=1
+validate_image_family goneat-tools-glibc || fail=1
+validate_image_family sbom-tools-glibc || fail=1
 
 if [ "$fail" -ne 0 ]; then
   echo "Profile validation failed." >&2

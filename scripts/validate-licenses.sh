@@ -34,6 +34,8 @@ family_for_image() {
   case "$1" in
     goneat-tools-slim|goneat-tools-runner) echo "goneat-tools" ;;
     sbom-tools-slim|sbom-tools-runner) echo "sbom-tools" ;;
+    goneat-tools-runner-glibc) echo "goneat-tools-glibc" ;;
+    sbom-tools-runner-glibc) echo "sbom-tools-glibc" ;;
     *) return 1 ;;
   esac
 }
@@ -41,6 +43,7 @@ family_for_image() {
 target_for_image() {
   case "$1" in
     *-slim) echo "slim" ;;
+    *-runner-glibc) echo "runner" ;;
     *-runner) echo "runner" ;;
     *) return 1 ;;
   esac

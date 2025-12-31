@@ -14,6 +14,8 @@ Purpose: keep third-party license texts and attribution notices discoverable ins
   - `/notices/github/<owner>/<repo>/NOTICE`
 - Alpine packages:
   - `/licenses/alpine/` (copied from `/usr/share/licenses` when present)
+- Debian packages:
+  - `/licenses/debian/` (directory placeholder for glibc runners; see Dockerfile notes)
 - npm global tools:
   - `/licenses/npm/<package>/LICENSE` (best effort, top-level only)
 
@@ -28,7 +30,7 @@ Purpose: keep third-party license texts and attribution notices discoverable ins
    - If installed via npm global, copy package LICENSE into `/licenses/npm/...`.
    - If installed from a GitHub release binary, fetch LICENSE from the upstream repo at the pinned tag/version.
 4. If the upstream requires an attribution NOTICE, copy it into `/notices/...`.
-5. Run `make validate-pins`, `make validate-profiles`, `make validate-licenses`, and image smoke tests (`make test-goneat-tools-runner`, `make test-goneat-tools-slim`, `make test-sbom-tools-runner`, `make test-sbom-tools-slim`).
+5. Run `make validate-pins`, `make validate-profiles`, `make validate-licenses`, and image smoke tests (`make test-goneat-tools-runner`, `make test-goneat-tools-slim`, `make test-goneat-tools-runner-glibc`, `make test-sbom-tools-runner`, `make test-sbom-tools-slim`, `make test-sbom-tools-runner-glibc`).
 
 ## Review / audit checklist
 

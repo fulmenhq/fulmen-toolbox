@@ -1,10 +1,14 @@
 .PHONY: all build-all test-all \
 	build-goneat-tools build-goneat-tools-runner build-goneat-tools-slim \
-	build-goneat-tools-multi build-goneat-tools-runner-multi build-goneat-tools-slim-multi \
+	build-goneat-tools-runner-glibc \
+	build-goneat-tools-multi build-goneat-tools-runner-multi build-goneat-tools-slim-multi build-goneat-tools-runner-glibc-multi \
 	test-goneat-tools test-goneat-tools-runner test-goneat-tools-slim \
+	test-goneat-tools-runner-glibc \
 	build-sbom-tools build-sbom-tools-runner build-sbom-tools-slim \
-	build-sbom-tools-multi build-sbom-tools-runner-multi build-sbom-tools-slim-multi \
+	build-sbom-tools-runner-glibc \
+	build-sbom-tools-multi build-sbom-tools-runner-multi build-sbom-tools-slim-multi build-sbom-tools-runner-glibc-multi \
 	test-sbom-tools test-sbom-tools-runner test-sbom-tools-slim \
+	test-sbom-tools-runner-glibc \
 	clean help bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap \
 	validate-manifest lint-workflows lint-dockerfiles quality precommit prepush check-clean check-quick \
 	catalog \
@@ -19,18 +23,24 @@ REGISTRY := ghcr.io/fulmenhq
 GONEAT_FAMILY := goneat-tools
 GONEAT_RUNNER_IMAGE := $(GONEAT_FAMILY)-runner
 GONEAT_SLIM_IMAGE := $(GONEAT_FAMILY)-slim
+GONEAT_GLIBC_IMAGE := $(GONEAT_FAMILY)-runner-glibc
 GONEAT_RUNNER_TAG_LOCAL := $(REGISTRY)/$(GONEAT_RUNNER_IMAGE):local
 GONEAT_RUNNER_TAG_LATEST := $(REGISTRY)/$(GONEAT_RUNNER_IMAGE):latest
 GONEAT_SLIM_TAG_LOCAL := $(REGISTRY)/$(GONEAT_SLIM_IMAGE):local
 GONEAT_SLIM_TAG_LATEST := $(REGISTRY)/$(GONEAT_SLIM_IMAGE):latest
+GONEAT_GLIBC_TAG_LOCAL := $(REGISTRY)/$(GONEAT_GLIBC_IMAGE):local
+GONEAT_GLIBC_TAG_LATEST := $(REGISTRY)/$(GONEAT_GLIBC_IMAGE):latest
 
 SBOM_FAMILY := sbom-tools
 SBOM_RUNNER_IMAGE := $(SBOM_FAMILY)-runner
 SBOM_SLIM_IMAGE := $(SBOM_FAMILY)-slim
+SBOM_GLIBC_IMAGE := $(SBOM_FAMILY)-runner-glibc
 SBOM_RUNNER_TAG_LOCAL := $(REGISTRY)/$(SBOM_RUNNER_IMAGE):local
 SBOM_RUNNER_TAG_LATEST := $(REGISTRY)/$(SBOM_RUNNER_IMAGE):latest
 SBOM_SLIM_TAG_LOCAL := $(REGISTRY)/$(SBOM_SLIM_IMAGE):local
 SBOM_SLIM_TAG_LATEST := $(REGISTRY)/$(SBOM_SLIM_IMAGE):latest
+SBOM_GLIBC_TAG_LOCAL := $(REGISTRY)/$(SBOM_GLIBC_IMAGE):local
+SBOM_GLIBC_TAG_LATEST := $(REGISTRY)/$(SBOM_GLIBC_IMAGE):latest
 VERSION_FILE := VERSION
 BUMP_SCRIPT := scripts/bump-version.sh
 
@@ -54,10 +64,10 @@ YAMLLINT ?= yamllint
 all: build-all test-all
 
 ## Build all images (single-arch)
-build-all: build-goneat-tools-runner build-goneat-tools-slim build-sbom-tools-runner build-sbom-tools-slim
+build-all: build-goneat-tools-runner build-goneat-tools-slim build-goneat-tools-runner-glibc build-sbom-tools-runner build-sbom-tools-slim build-sbom-tools-runner-glibc
 
 ## Test all images
-test-all: test-goneat-tools-runner test-goneat-tools-slim test-sbom-tools-runner test-sbom-tools-slim
+test-all: test-goneat-tools-runner test-goneat-tools-slim test-goneat-tools-runner-glibc test-sbom-tools-runner test-sbom-tools-slim test-sbom-tools-runner-glibc
 
 # ─────────────────────────────────────────────────────────────────────────────
 # goneat-tools targets
@@ -66,6 +76,10 @@ test-all: test-goneat-tools-runner test-goneat-tools-slim test-sbom-tools-runner
 ## Build goneat-tools runner (single-arch)
 build-goneat-tools-runner:
 	docker build --target runner -t $(GONEAT_RUNNER_TAG_LOCAL) images/$(GONEAT_FAMILY)
+
+## Build goneat-tools runner glibc (single-arch)
+build-goneat-tools-runner-glibc:
+	docker build --target runner -t $(GONEAT_GLIBC_TAG_LOCAL) images/$(GONEAT_FAMILY)-glibc
 
 ## Build goneat-tools slim (single-arch)
 build-goneat-tools-slim:
@@ -84,6 +98,17 @@ build-goneat-tools-runner-multi:
 		-t $(GONEAT_RUNNER_TAG_LATEST) \
 		--push=false \
 		images/$(GONEAT_FAMILY)
+
+## Build goneat-tools runner glibc multi-arch (linux/amd64 + linux/arm64)
+build-goneat-tools-runner-glibc-multi:
+	docker buildx create --use || true
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--target runner \
+		-t $(GONEAT_GLIBC_TAG_LOCAL) \
+		-t $(GONEAT_GLIBC_TAG_LATEST) \
+		--push=false \
+		images/$(GONEAT_FAMILY)-glibc
 
 ## Build goneat-tools slim multi-arch (linux/amd64 + linux/arm64)
 build-goneat-tools-slim-multi:
@@ -119,6 +144,8 @@ test-goneat-tools-runner:
 		bash --version >/dev/null 2>&1 && \
 		git --version >/dev/null 2>&1 && \
 		curl --version >/dev/null 2>&1 && \
+		gcc --version >/dev/null 2>&1 && \
+		pkg-config --version >/dev/null 2>&1 && \
 		[ -d /licenses ] && [ -d /licenses/alpine ] && [ -d /notices ] && \
 		[ -f /licenses/github/jedisct1/minisign/LICENSE ] && \
 		echo 'goneat-tools-runner OK!'"
@@ -148,6 +175,31 @@ test-goneat-tools-slim:
 ## Back-compat alias target (runner)
 test-goneat-tools: test-goneat-tools-runner
 
+## Test goneat-tools runner glibc
+test-goneat-tools-runner-glibc:
+	docker run --rm $(GONEAT_GLIBC_TAG_LOCAL) -c "\
+		prettier --version && \
+		biome --version && \
+		yamlfmt --version && \
+		shfmt --version && \
+		checkmake --version && \
+		actionlint --version && \
+		jq --version && \
+		yq --version && \
+		rg --version && \
+		taplo --version && \
+		minisign -v >/dev/null 2>&1 && \
+		goneat version >/dev/null 2>&1 && \
+		sfetch --help >/dev/null 2>&1 && \
+		bash --version >/dev/null 2>&1 && \
+		git --version >/dev/null 2>&1 && \
+		curl --version >/dev/null 2>&1 && \
+		gcc --version >/dev/null 2>&1 && \
+		pkg-config --version >/dev/null 2>&1 && \
+		[ -d /licenses ] && [ -d /licenses/debian ] && [ -d /notices ] && \
+		[ -f /licenses/github/jedisct1/minisign/LICENSE ] && \
+		echo 'goneat-tools-runner-glibc OK!'"
+
 # ─────────────────────────────────────────────────────────────────────────────
 # sbom-tools targets
 # ─────────────────────────────────────────────────────────────────────────────
@@ -155,6 +207,10 @@ test-goneat-tools: test-goneat-tools-runner
 ## Build sbom-tools runner single-arch
 build-sbom-tools-runner:
 	docker build --target runner -t $(SBOM_RUNNER_TAG_LOCAL) images/$(SBOM_FAMILY)
+
+## Build sbom-tools runner glibc single-arch
+build-sbom-tools-runner-glibc:
+	docker build --target runner -t $(SBOM_GLIBC_TAG_LOCAL) images/$(SBOM_FAMILY)-glibc
 
 ## Build sbom-tools slim single-arch
 build-sbom-tools-slim:
@@ -173,6 +229,17 @@ build-sbom-tools-runner-multi:
 		-t $(SBOM_RUNNER_TAG_LATEST) \
 		--push=false \
 		images/$(SBOM_FAMILY)
+
+## Build sbom-tools runner glibc multi-arch (linux/amd64 + linux/arm64)
+build-sbom-tools-runner-glibc-multi:
+	docker buildx create --use || true
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--target runner \
+		-t $(SBOM_GLIBC_TAG_LOCAL) \
+		-t $(SBOM_GLIBC_TAG_LATEST) \
+		--push=false \
+		images/$(SBOM_FAMILY)-glibc
 
 ## Build sbom-tools slim multi-arch (linux/amd64 + linux/arm64)
 build-sbom-tools-slim-multi:
@@ -204,6 +271,8 @@ test-sbom-tools-runner:
 		jq --version && \
 		yq --version && \
 		git --version && \
+		gcc --version >/dev/null 2>&1 && \
+		pkg-config --version >/dev/null 2>&1 && \
 		syft /fixture -o cyclonedx-json > /tmp/sbom.json && \
 		[ -s /tmp/sbom.json ] && \
 		grype sbom:/tmp/sbom.json --fail-on critical && \
@@ -244,6 +313,33 @@ test-sbom-tools-slim:
 ## Back-compat alias target (runner)
 test-sbom-tools: test-sbom-tools-runner
 
+## Test sbom-tools runner glibc
+# NOTE:
+# - These tests assume network access.
+# - grype and trivy may download databases on first run (can take ~1-2 minutes).
+test-sbom-tools-runner-glibc:
+	docker run --rm \
+		-v $(CURDIR)/tests/fixtures/sbom:/fixture:ro \
+		$(SBOM_GLIBC_TAG_LOCAL) -c "\
+		syft version && \
+		grype version && \
+		trivy version && \
+		jq --version && \
+		yq --version && \
+		git --version && \
+		gcc --version >/dev/null 2>&1 && \
+		pkg-config --version >/dev/null 2>&1 && \
+		syft /fixture -o cyclonedx-json > /tmp/sbom.json && \
+		[ -s /tmp/sbom.json ] && \
+		grype sbom:/tmp/sbom.json --fail-on critical && \
+		trivy fs --exit-code 0 --severity HIGH,CRITICAL /fixture > /tmp/trivy.txt && \
+		[ -s /tmp/trivy.txt ] && \
+		[ -d /licenses ] && [ -d /licenses/debian ] && [ -d /notices ] && \
+		[ -f /licenses/github/anchore/syft/LICENSE ] && \
+		[ -f /licenses/github/anchore/grype/LICENSE ] && \
+		[ -f /licenses/github/aquasecurity/trivy/LICENSE ] && \
+		echo 'sbom-tools-runner-glibc OK!'"
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 ## Clean up local images
@@ -251,8 +347,10 @@ clean:
 	docker rmi \
 		$(GONEAT_RUNNER_TAG_LOCAL) $(GONEAT_RUNNER_TAG_LATEST) \
 		$(GONEAT_SLIM_TAG_LOCAL) $(GONEAT_SLIM_TAG_LATEST) \
+		$(GONEAT_GLIBC_TAG_LOCAL) $(GONEAT_GLIBC_TAG_LATEST) \
 		$(SBOM_RUNNER_TAG_LOCAL) $(SBOM_RUNNER_TAG_LATEST) \
-		$(SBOM_SLIM_TAG_LOCAL) $(SBOM_SLIM_TAG_LATEST) || true
+		$(SBOM_SLIM_TAG_LOCAL) $(SBOM_SLIM_TAG_LATEST) \
+		$(SBOM_GLIBC_TAG_LOCAL) $(SBOM_GLIBC_TAG_LATEST) || true
 
 ## Show Docker image sizes
 size:
@@ -426,7 +524,7 @@ release-notes:
 release-digests:
 	@echo "Image digests for $(RELEASE_TAG):"
 	@echo ""
-	@IMAGES="$${IMAGES:-goneat-tools-runner goneat-tools-slim sbom-tools-runner sbom-tools-slim}"; \
+	@IMAGES="$${IMAGES:-goneat-tools-runner goneat-tools-slim goneat-tools-runner-glibc sbom-tools-runner sbom-tools-slim sbom-tools-runner-glibc}"; \
 	for image in $$IMAGES; do \
 	  DIGEST=$$(docker manifest inspect ghcr.io/fulmenhq/$$image:$(RELEASE_TAG) -v 2>/dev/null | \
 	    jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end' 2>/dev/null) || true; \
@@ -441,7 +539,7 @@ release-digests:
 ## Verify all expected images exist for a release tag
 # Fails if any image digest cannot be resolved.
 verify-release-digests:
-	@IMAGES="$${IMAGES:-goneat-tools-runner goneat-tools-slim sbom-tools-runner sbom-tools-slim}"; \
+	@IMAGES="$${IMAGES:-goneat-tools-runner goneat-tools-slim goneat-tools-runner-glibc sbom-tools-runner sbom-tools-slim sbom-tools-runner-glibc}"; \
 	missing=0; \
 	echo "Verifying image digests for $(RELEASE_TAG)..."; \
 	for image in $$IMAGES; do \

@@ -4,26 +4,36 @@ This guide explains two ways to use Fulmen Toolbox images. Many developers are f
 
 ## Choosing an Image Variant
 
-Each toolbox image comes in two variants:
+Each toolbox image comes in three variants:
 
 | Variant | Image Suffix | Best For | What's Included |
 |---------|--------------|----------|-----------------|
-| **Runner** | `-runner` | CI jobs, GitHub Actions, build tasks | Tools + bash, git, make, curl, coreutils |
+| **Runner** | `-runner` | CI jobs, GitHub Actions, build tasks | Tools + runner baseline + build tools (gcc, pkg-config) |
 | **Slim** | `-slim` | Local tool replacement, shell aliases | Tools only, minimal footprint |
+| **Runner (glibc)** | `-runner-glibc` | CGO builds, glibc-only dependencies | Tools + runner baseline + build tools |
 
 ### Decision Guide
 
 **Use `-runner` when:**
 - Running as a CI job container (GitHub Actions, GitLab CI, etc.)
-- Your scripts need `bash`, `make`, `git`, or GNU coreutils
+- Your scripts need `bash`, `make`, `gcc`, or GNU coreutils
 - You want a full shell environment with common utilities
 - You need to fetch artifacts with `curl` or extract with `tar`
+
+**Use `-runner-glibc` when:**
+- You require `CGO_ENABLED=1` and a glibc toolchain
+- Your dependencies ship glibc-only prebuilt libraries (e.g., libsql)
+- You need `gcc`/`pkg-config` available at runtime
 
 **Use `-slim` when:**
 - Replacing locally-installed tools (via shell aliases)
 - Running a single tool command (e.g., `prettier --write .`)
 - You want a smaller image (and fewer baseline utilities)
 - You want to minimize copyleft surface area (best-effort; not a guarantee)
+
+**Why no `-slim-glibc`?**
+- Glibc variants are meant for CGO/system-library workflows that need the runner baseline.
+- `-slim` is optimized for minimal local tool use; glibc alone doesn’t add value without build tools.
 
 ### Examples
 
@@ -38,6 +48,8 @@ docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:la
 ```
 
 > **Note:** Images without a suffix (`goneat-tools`, `sbom-tools`) are aliases for `-runner` variants.
+>
+> **Note:** Apple Silicon and ARM64 users should pull the standard tags; multi-arch manifests resolve to native arm64 layers automatically (no Rosetta/QEMU needed).
 
 ---
 

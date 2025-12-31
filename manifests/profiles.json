@@ -6,6 +6,7 @@
       "package_manager": "apk",
       "packages": [
         "bash",
+        "build-base",
         "ca-certificates",
         "coreutils",
         "curl",
@@ -15,9 +16,34 @@
         "gzip",
         "make",
         "openssh-client",
+        "pkgconf",
         "tar",
         "unzip",
         "xz"
+      ]
+    },
+    "runner_baseline_apt": {
+      "description": "CI runner baseline userland + build tools (apt packages)",
+      "package_manager": "apt",
+      "packages": [
+        "bash",
+        "build-essential",
+        "ca-certificates",
+        "coreutils",
+        "curl",
+        "diffutils",
+        "findutils",
+        "g++",
+        "gcc",
+        "git",
+        "gzip",
+        "libc6-dev",
+        "make",
+        "openssh-client",
+        "pkg-config",
+        "tar",
+        "unzip",
+        "xz-utils"
       ]
     }
   }

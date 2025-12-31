@@ -8,8 +8,9 @@ Practical guides for using Fulmen Toolbox images.
 
 | Variant | Use | Example |
 |---------|-----|---------|
-| `-runner` | CI jobs, needs bash/make/git | `ghcr.io/fulmenhq/goneat-tools-runner:latest` |
+| `-runner` | CI jobs, needs bash/make/gcc | `ghcr.io/fulmenhq/goneat-tools-runner:latest` |
 | `-slim` | Local tool replacement | `ghcr.io/fulmenhq/goneat-tools-slim:latest` |
+| `-runner-glibc` | CGO builds, glibc deps | `ghcr.io/fulmenhq/goneat-tools-runner-glibc:latest` |
 
 **Run a tool without installing it:**
 ```bash
@@ -31,4 +32,5 @@ docker run --rm -it -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-run
 ## See Also
 
 - [Runner Baseline Packages](../sop/runner-baseline.md) - What's included in `-runner` images
+- [Image Tag Taxonomy](../images/tag-taxonomy.md) - Canonical tags and alias conventions
 - [ADR-0004](../adr/ADR-0004-copyleft-and-runner-images.md) - Copyleft licensing decisions

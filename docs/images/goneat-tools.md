@@ -11,7 +11,10 @@ This doc is intentionally conceptual. It does not enumerate pinned versions (to 
 
 - `ghcr.io/fulmenhq/goneat-tools-slim` — tool payload only (no runner baseline)
 - `ghcr.io/fulmenhq/goneat-tools-runner` — tool payload + runner baseline utilities for CI
+- `ghcr.io/fulmenhq/goneat-tools-runner-glibc` — glibc runner + build tools for CGO workloads
 - Compatibility alias: `ghcr.io/fulmenhq/goneat-tools:*` points to `goneat-tools-runner:*`
+
+See `docs/images/tag-taxonomy.md` for canonical tags and alias mappings.
 
 ## How to see what’s included (definitively)
 

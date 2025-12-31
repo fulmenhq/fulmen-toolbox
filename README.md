@@ -17,37 +17,68 @@
 
 ## Image Variants
 
-Each toolbox image comes in two variants to match your use case:
+Each toolbox image comes in three variants to match your use case:
 
 | Variant | Use Case | Includes | Copyleft? |
 |---------|----------|----------|----------|
-| **`-runner`** | CI jobs, build tasks | Tools + runner baseline (bash, git, make, curl, coreutils) | Yes (by design) |
+| **`-runner`** | CI jobs, build tasks | Tools + runner baseline + build tools (gcc, pkg-config) | Yes (by design) |
 | **`-slim`** | Tool replacement, local use | Tools only, smaller footprint | Best-effort minimized |
+| **`-runner-glibc`** | CGO builds, glibc-only deps | Tools + runner baseline + build tools (gcc, libc6-dev) | Yes (by design) |
 
 **Which should I use?**
-- Use **`-runner`** if you're running CI jobs, need `make`, or want a full shell environment
+- Use **`-runner`** if you're running CI jobs, need `make`/`gcc`, or want a full shell environment (musl/Alpine)
+- Use **`-runner-glibc`** if you need `CGO_ENABLED=1` or glibc-only dependencies
 - Use **`-slim`** if you just want to run a tool without installing it locally (e.g., `docker run ... prettier --write .`)
+
+**Why no `-slim-glibc`?**
+- Glibc variants target CGO and system-library workflows that typically need the runner baseline anyway.
+- `-slim` is optimized for minimal local tool use; adding glibc doesn’t provide value without the baseline tools.
 
 See [Container Usage Patterns](docs/user-guide/container-usage-patterns.md) for detailed examples.
 
-## Available Images
+## Available Images (Canonical)
 
-| Image | Variant | Purpose | Copyleft? |
-|-------|---------|---------|----------|
-| `goneat-tools-runner` | runner | Code quality + CI runner baseline | Yes (runner baseline) |
-| `goneat-tools-slim` | slim | Code quality tools only | Best-effort minimized |
-| `sbom-tools-runner` | runner | SBOM/vuln scanning + CI runner baseline | Yes (runner baseline) |
-| `sbom-tools-slim` | slim | SBOM/vuln scanning tools only | Best-effort minimized |
+| Canonical Image | Libc/Distro | Arch | Purpose |
+|-----------------|-------------|------|---------|
+| `goneat-tools-runner` | musl / Alpine | multi-arch (amd64, arm64) | Code quality + CI runner baseline |
+| `goneat-tools-slim` | musl / Alpine | multi-arch (amd64, arm64) | Code quality tools only |
+| `goneat-tools-runner-glibc` | glibc / Debian | multi-arch (amd64, arm64) | Code quality + glibc runner baseline |
+| `sbom-tools-runner` | musl / Alpine | multi-arch (amd64, arm64) | SBOM/vuln scanning + CI runner baseline |
+| `sbom-tools-slim` | musl / Alpine | multi-arch (amd64, arm64) | SBOM/vuln scanning tools only |
+| `sbom-tools-runner-glibc` | glibc / Debian | multi-arch (amd64, arm64) | SBOM/vuln scanning + glibc runner baseline |
 
-> **Note:** `goneat-tools` and `sbom-tools` (without suffix) are aliases for `-runner` variants.
+## Alias Sets (Published)
+
+| Canonical | Type | Alias Tags | Notes |
+|-----------|------|------------|-------|
+| `goneat-tools-runner` | multi-arch | `goneat-tools`, `goneat-tools-runner-musl`, `goneat-tools-runner-alpine` | `-runner` remains the musl/Alpine default. |
+| `goneat-tools-slim` | multi-arch | `goneat-tools-slim-musl`, `goneat-tools-slim-alpine` | Slim remains musl/Alpine. |
+| `goneat-tools-runner-glibc` | multi-arch | `goneat-tools-runner-debian` | Glibc runner uses Debian bookworm-slim. |
+| `goneat-tools-runner-amd64` | single-arch (when published) | `goneat-tools-runner-musl-amd64`, `goneat-tools-runner-alpine-amd64` | Force amd64 in CI/debug. |
+| `goneat-tools-runner-arm64` | single-arch (when published) | `goneat-tools-runner-musl-arm64`, `goneat-tools-runner-alpine-arm64` | Force arm64 on Apple Silicon/Graviton. |
+| `goneat-tools-runner-glibc-amd64` | single-arch (when published) | `goneat-tools-runner-debian-amd64` | Force amd64 glibc in CI/debug. |
+| `goneat-tools-runner-glibc-arm64` | single-arch (when published) | `goneat-tools-runner-debian-arm64` | Force arm64 glibc on Apple Silicon/Graviton. |
+| `sbom-tools-runner` | multi-arch | `sbom-tools`, `sbom-tools-runner-musl`, `sbom-tools-runner-alpine` | `-runner` remains the musl/Alpine default. |
+| `sbom-tools-slim` | multi-arch | `sbom-tools-slim-musl`, `sbom-tools-slim-alpine` | Slim remains musl/Alpine. |
+| `sbom-tools-runner-glibc` | multi-arch | `sbom-tools-runner-debian` | Glibc runner uses Debian bookworm-slim. |
+| `sbom-tools-runner-amd64` | single-arch (when published) | `sbom-tools-runner-musl-amd64`, `sbom-tools-runner-alpine-amd64` | Force amd64 in CI/debug. |
+| `sbom-tools-runner-arm64` | single-arch (when published) | `sbom-tools-runner-musl-arm64`, `sbom-tools-runner-alpine-arm64` | Force arm64 on Apple Silicon/Graviton. |
+| `sbom-tools-runner-glibc-amd64` | single-arch (when published) | `sbom-tools-runner-debian-amd64` | Force amd64 glibc in CI/debug. |
+| `sbom-tools-runner-glibc-arm64` | single-arch (when published) | `sbom-tools-runner-debian-arm64` | Force arm64 glibc on Apple Silicon/Graviton. |
+
+Arch suffixes (optional): append `-amd64` or `-arm64` to any canonical or alias tag to target a single-arch manifest when published. Default tags are multi-arch and already include arm64.
+
+Multi-arch tags pull native layers automatically (Apple Silicon/Graviton get arm64 without emulation).
+
+> **Note:** `goneat-tools` and `sbom-tools` (without suffix) are aliases for `-runner` (musl/Alpine) variants.
 >
 > **Note:** Slim variants aim to avoid adding the runner baseline; the base distro may still include copyleft components. Inspect `/licenses/` in the image for details.
 
 Pinned versions: see `manifests/tools.json` (validated via `make validate-manifest`).
 
-**goneat-tools**: Prettier `3.7.4`, Biome `2.3.8`, yamlfmt `v0.20.0`, shfmt `v3.12.0`, checkmake `0.2.2`, actionlint `v1.7.9`, jq, yq-go, ripgrep, taplo, bash, git, curl (all pinned).
+**goneat-tools**: Prettier `3.7.4`, Biome `2.3.8`, yamlfmt `v0.20.0`, shfmt `v3.12.0`, checkmake `0.2.2`, actionlint `v1.7.9`, goneat `v0.3.25`, sfetch `v0.2.9`, minisign `0.12-r0`, jq `1.8.1-r0`, yq-go `4.49.2-r1`, ripgrep `15.1.0-r0`, taplo `0.10.0-r0`, bash `5.3.3-r1`, git `2.52.0-r0`, curl `8.17.0-r1` (all pinned). Glibc runners use `node:22-bookworm-slim` and `golang:1.25-bookworm`.
 
-**sbom-tools**: syft `v1.18.1`, grype `v0.86.1`, trivy `v0.68.1`, jq `1.8.1-r0`, yq-go `4.49.2-r1`, git `2.52.0-r0`. Base: `alpine:3.21`.
+**sbom-tools**: syft `v1.18.1`, grype `v0.86.1`, trivy `v0.68.1`, jq `1.7.1-r0`, yq-go `4.44.5-r5`, git `2.47.3-r0`. Base: `alpine:3.21` (musl). Glibc runners use `debian:bookworm-slim`.
 
 **Image Registry:** `ghcr.io/fulmenhq/{image}:{tag}`
 
