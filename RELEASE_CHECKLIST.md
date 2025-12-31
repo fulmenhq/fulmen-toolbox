@@ -12,6 +12,7 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
   - `FULMEN_TOOLBOX_MINISIGN_KEY` (path to minisign secret key)
   - `FULMEN_TOOLBOX_GPG_HOMEDIR` (optional; multiple keyrings)
   - `FULMEN_TOOLBOX_ATTACH_SBOM=1` (optional; enable OCI SBOM attach)
+  - `FULMEN_TOOLBOX_IMAGES` (optional; override default image set for digests/signing)
 - [ ] Ensure GitHub Packages access for verification (for local `gh api`):
   - CI publishing should use `GITHUB_TOKEN` (short-lived) with workflow `permissions: packages: write`.
   - For local `gh api` queries, use a classic PAT with `read:packages`.
@@ -39,16 +40,16 @@ CI generates artifacts but signing requires interactive authentication. Use this
 
 ```bash
 # Release tag (v<semver> convention)
-export FULMEN_TOOLBOX_RELEASE_TAG=v0.2.0
+export FULMEN_TOOLBOX_RELEASE_TAG=v<x.y.z> # e.g., v0.2.2
 
-# GPG key ID (use ! suffix to force specific subkey; single quotes to avoid ! expansion)
-export FULMEN_TOOLBOX_PGP_KEY_ID='448A539320A397AF!'
+# GPG key ID (use ! suffix to force specific subkey; single quotes to avoid ! expansion) - ex: '44234232EF!' (not a real value - see gpg keyring)
+export FULMEN_TOOLBOX_PGP_KEY_ID=<subkey in single quotes>
 
 # OPTIONAL: choose which local GPG homedir to use (script sets GNUPGHOME internally)
-# Useful if you keep multiple keyrings.
+# Useful if you keep multiple keyrings.  Default value shown but change as appropriate
 export FULMEN_TOOLBOX_GPG_HOMEDIR="$HOME/.gnupg"
 
-# Minisign secret key path
+# Minisign secret key path - default value shown but change as appropriate
 export FULMEN_TOOLBOX_MINISIGN_KEY="$HOME/.minisign/minisign.key"
 
 # Minisign expects the public key adjacent to the secret key:
@@ -74,7 +75,7 @@ make release-download FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 make release-notes FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 
 # (optional) Get image digests for signing
-# Defaults to v0.2.x variants; override with IMAGES if needed.
+# Defaults to the current image set (runner/slim + glibc). Override with FULMEN_TOOLBOX_IMAGES if needed.
 make release-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 ```
 
@@ -278,5 +279,5 @@ minisign -Vm SHA256SUMS-goneat-tools-runner -p fulmenhq-release-signing.pub
     # Username must match the PAT owner
     echo "$FULMEN_TOOLBOX_GHCR_TOKEN" | docker login ghcr.io -u <pat-owner-username> --password-stdin
     ```
-- **Multiple Signing Subkeys**: Use `!` suffix on GPG key ID (e.g., `448A539320A397AF!`) to force specific subkey.
+- **Multiple Signing Subkeys**: Use `!` suffix on GPG key ID (e.g., `485823223AF!`) to force specific subkey.
 - **4 Browser Prompts**: Keyless cosign requires separate OIDC auth for each sign/attest operation (2 images × 2 ops = 4 prompts).
