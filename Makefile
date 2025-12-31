@@ -486,7 +486,7 @@ release-plan:
 # ─────────────────────────────────────────────────────────────────────────────
 # Manual signing workflow targets
 # ─────────────────────────────────────────────────────────────────────────────
-RELEASE_TAG ?= $(shell cat VERSION 2>/dev/null || echo "v0.0.0")
+FULMEN_TOOLBOX_RELEASE_TAG ?= v$(shell cat VERSION 2>/dev/null || echo "0.0.0")
 DIST_RELEASE ?= dist/release
 GPG_KEY_FILE ?= $(DIST_RELEASE)/fulmen-toolbox-release-signing-key.asc
 MINISIGN_PUB ?= $(DIST_RELEASE)/fulmenhq-release-signing.pub
@@ -498,19 +498,19 @@ release-clean:
 	@mkdir -p $(DIST_RELEASE)
 	@echo "✅ $(DIST_RELEASE) is clean"
 
-## Download release artifacts for manual signing (RELEASE_TAG=vX.Y.Z)
+## Download release artifacts for manual signing (FULMEN_TOOLBOX_RELEASE_TAG=vX.Y.Z)
 release-download:
-	@scripts/release-download.sh $(RELEASE_TAG) $(DIST_RELEASE)
+	@scripts/release-download.sh $(FULMEN_TOOLBOX_RELEASE_TAG) $(DIST_RELEASE)
 
-## Stage release notes into dist/ for upload (RELEASE_TAG=vX.Y.Z)
+## Stage release notes into dist/ for upload (FULMEN_TOOLBOX_RELEASE_TAG=vX.Y.Z)
 release-notes:
-	@SRC="docs/releases/$(RELEASE_TAG).md"; \
-	DEST="$(DIST_RELEASE)/release-notes-$(RELEASE_TAG).md"; \
+	@SRC="docs/releases/$(FULMEN_TOOLBOX_RELEASE_TAG).md"; \
+	DEST="$(DIST_RELEASE)/release-notes-$(FULMEN_TOOLBOX_RELEASE_TAG).md"; \
 	if [ ! -f "$$SRC" ]; then \
 	  echo "⚠️  Release notes not found: $$SRC"; \
 	  echo "   Skip ok for now; create it for next release."; \
-	  echo "   To require notes: RELEASE_NOTES_REQUIRED=1 make release-notes RELEASE_TAG=$(RELEASE_TAG)"; \
-	  if [ "$$RELEASE_NOTES_REQUIRED" = "1" ]; then exit 1; fi; \
+	  echo "   To require notes: FULMEN_TOOLBOX_RELEASE_NOTES_REQUIRED=1 make release-notes FULMEN_TOOLBOX_RELEASE_TAG=$(FULMEN_TOOLBOX_RELEASE_TAG)"; \
+	  if [ "$$FULMEN_TOOLBOX_RELEASE_NOTES_REQUIRED" = "1" ]; then exit 1; fi; \
 	  exit 0; \
 	fi; \
 	mkdir -p "$(DIST_RELEASE)"; \
@@ -518,15 +518,15 @@ release-notes:
 	chmod 0644 "$$DEST"; \
 	echo "✅ Staged release notes: $$DEST"
 
-## Get image digests for manual cosign signing (RELEASE_TAG=vX.Y.Z)
+## Get image digests for manual cosign signing (FULMEN_TOOLBOX_RELEASE_TAG=vX.Y.Z)
 #
-# Images can be overridden via IMAGES env var (space-delimited). Defaults to v0.2.x variants.
+# Images can be overridden via FULMEN_TOOLBOX_IMAGES env var (space-delimited). Defaults to v0.2.x variants.
 release-digests:
-	@echo "Image digests for $(RELEASE_TAG):"
+	@echo "Image digests for $(FULMEN_TOOLBOX_RELEASE_TAG):"
 	@echo ""
-	@IMAGES="$${IMAGES:-goneat-tools-runner goneat-tools-slim goneat-tools-runner-glibc sbom-tools-runner sbom-tools-slim sbom-tools-runner-glibc}"; \
+	@IMAGES="$${FULMEN_TOOLBOX_IMAGES:-goneat-tools-runner goneat-tools-slim goneat-tools-runner-glibc sbom-tools-runner sbom-tools-slim sbom-tools-runner-glibc}"; \
 	for image in $$IMAGES; do \
-	  DIGEST=$$(docker manifest inspect ghcr.io/fulmenhq/$$image:$(RELEASE_TAG) -v 2>/dev/null | \
+	  DIGEST=$$(docker manifest inspect ghcr.io/fulmenhq/$$image:$(FULMEN_TOOLBOX_RELEASE_TAG) -v 2>/dev/null | \
 	    jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end' 2>/dev/null) || true; \
 	  if [ -n "$$DIGEST" ] && [ "$$DIGEST" != "null" ]; then \
 	    echo "$$image: $$DIGEST"; \
@@ -539,16 +539,16 @@ release-digests:
 ## Verify all expected images exist for a release tag
 # Fails if any image digest cannot be resolved.
 verify-release-digests:
-	@IMAGES="$${IMAGES:-goneat-tools-runner goneat-tools-slim goneat-tools-runner-glibc sbom-tools-runner sbom-tools-slim sbom-tools-runner-glibc}"; \
+	@IMAGES="$${FULMEN_TOOLBOX_IMAGES:-goneat-tools-runner goneat-tools-slim goneat-tools-runner-glibc sbom-tools-runner sbom-tools-slim sbom-tools-runner-glibc}"; \
 	missing=0; \
-	echo "Verifying image digests for $(RELEASE_TAG)..."; \
+	echo "Verifying image digests for $(FULMEN_TOOLBOX_RELEASE_TAG)..."; \
 	for image in $$IMAGES; do \
-	  DIGEST=$$(docker manifest inspect ghcr.io/fulmenhq/$$image:$(RELEASE_TAG) -v 2>/dev/null | \
+	  DIGEST=$$(docker manifest inspect ghcr.io/fulmenhq/$$image:$(FULMEN_TOOLBOX_RELEASE_TAG) -v 2>/dev/null | \
 	    jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end' 2>/dev/null) || true; \
 	  if [ -n "$$DIGEST" ] && [ "$$DIGEST" != "null" ]; then \
 	    echo "✅ $$image: $$DIGEST"; \
 	  else \
-	    echo "❌ $$image: missing tag $(RELEASE_TAG) or auth required" >&2; \
+	    echo "❌ $$image: missing tag $(FULMEN_TOOLBOX_RELEASE_TAG) or auth required" >&2; \
 	    missing=1; \
 	  fi; \
 	done; \
@@ -558,34 +558,34 @@ verify-release-digests:
 	  exit 1; \
 	fi; \
 	echo "✅ All expected release image digests resolved."
-## Perform interactive signing for downloaded release (RELEASE_TAG=vX.Y.Z)
+## Perform interactive signing for downloaded release (FULMEN_TOOLBOX_RELEASE_TAG=vX.Y.Z)
 release-sign:
-	@scripts/release-sign.sh $(RELEASE_TAG) $(DIST_RELEASE)
+	@scripts/release-sign.sh $(FULMEN_TOOLBOX_RELEASE_TAG) $(DIST_RELEASE)
 
-## Export GPG public key for release (requires PGP_KEY_ID env var)
+## Export GPG public key for release (requires FULMEN_TOOLBOX_PGP_KEY_ID env var)
 release-export-gpg-key:
-	@if [ -z "$$PGP_KEY_ID" ]; then \
-	  echo "❌ PGP_KEY_ID env var not set"; \
-	  echo "   Set with: export PGP_KEY_ID='<your-key-id>!'"; \
+	@if [ -z "$$FULMEN_TOOLBOX_PGP_KEY_ID" ]; then \
+	  echo "❌ FULMEN_TOOLBOX_PGP_KEY_ID env var not set"; \
+	  echo "   Set with: export FULMEN_TOOLBOX_PGP_KEY_ID='<your-key-id>!'"; \
 	  exit 1; \
 	fi
 	@mkdir -p $(DIST_RELEASE)
-	@echo "🔑 Exporting GPG public key ($$PGP_KEY_ID) to $(GPG_KEY_FILE)..."
-	@if [ -n "$$GPG_HOMEDIR" ]; then \
-	  env GNUPGHOME="$$GPG_HOMEDIR" gpg --armor --export "$$PGP_KEY_ID" > $(GPG_KEY_FILE); \
+	@echo "🔑 Exporting GPG public key ($$FULMEN_TOOLBOX_PGP_KEY_ID) to $(GPG_KEY_FILE)..."
+	@if [ -n "$$FULMEN_TOOLBOX_GPG_HOMEDIR" ]; then \
+	  env GNUPGHOME="$$FULMEN_TOOLBOX_GPG_HOMEDIR" gpg --armor --export "$$FULMEN_TOOLBOX_PGP_KEY_ID" > $(GPG_KEY_FILE); \
 	else \
-	  gpg --armor --export "$$PGP_KEY_ID" > $(GPG_KEY_FILE); \
+	  gpg --armor --export "$$FULMEN_TOOLBOX_PGP_KEY_ID" > $(GPG_KEY_FILE); \
 	fi
 	@echo "✅ GPG public key exported"
 
-## Export minisign public key for release (requires MINISIGN_KEY env var)
+## Export minisign public key for release (requires FULMEN_TOOLBOX_MINISIGN_KEY env var)
 release-export-minisign-key:
-	@if [ -z "$$MINISIGN_KEY" ]; then \
-	  echo "❌ MINISIGN_KEY env var not set"; \
-	  echo "   Set with: export MINISIGN_KEY=\"\$$HOME/.minisign/minisign.key\""; \
+	@if [ -z "$$FULMEN_TOOLBOX_MINISIGN_KEY" ]; then \
+	  echo "❌ FULMEN_TOOLBOX_MINISIGN_KEY env var not set"; \
+	  echo "   Set with: export FULMEN_TOOLBOX_MINISIGN_KEY=\"\$$HOME/.minisign/minisign.key\""; \
 	  exit 1; \
 	fi
-	@MINISIGN_PUB_SRC="$${MINISIGN_KEY%.key}.pub"; \
+	@MINISIGN_PUB_SRC="$${FULMEN_TOOLBOX_MINISIGN_KEY%.key}.pub"; \
 	if [ ! -f "$$MINISIGN_PUB_SRC" ]; then \
 	  echo "❌ Minisign public key not found: $$MINISIGN_PUB_SRC"; \
 	  exit 1; \
@@ -608,9 +608,9 @@ verify-minisign-key: release-export-minisign-key
 	@test -f $(MINISIGN_PUB) || { echo "❌ minisign public key missing: $(MINISIGN_PUB)"; exit 1; }
 	@echo "✅ minisign public key present: $(MINISIGN_PUB)"
 
-## Upload signed artifacts to GitHub Release (RELEASE_TAG=vX.Y.Z)
+## Upload signed artifacts to GitHub Release (FULMEN_TOOLBOX_RELEASE_TAG=vX.Y.Z)
 release-upload: verify-release-key verify-minisign-key
-	@scripts/release-upload.sh $(RELEASE_TAG) $(DIST_RELEASE)
+	@scripts/release-upload.sh $(FULMEN_TOOLBOX_RELEASE_TAG) $(DIST_RELEASE)
 
 ## Show manual signing workflow steps
 release-signing-help:
@@ -619,24 +619,24 @@ release-signing-help:
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo ""
 	@echo "1. AUTOMATED (run via make):"
-	@echo "   RELEASE_TAG=v0.1.2 make release-download"
-	@echo "   RELEASE_TAG=v0.1.2 make release-digests"
+	@echo "   FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-download"
+	@echo "   FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-digests"
 	@echo ""
 	@echo "2. INTERACTIVE (run via make - still requires passphrase/browser):"
-	@echo "   export PGP_KEY_ID='<your-key-id>!'"
-	@echo "   export GPG_HOMEDIR=\"\$$HOME/.gnupg\"  # optional (multiple keyrings)"
-	@echo "   export MINISIGN_KEY=\"\$$HOME/.minisign/minisign.key\""
-	@echo "   RELEASE_TAG=v0.1.2 make release-sign"
+	@echo "   export FULMEN_TOOLBOX_PGP_KEY_ID='<your-key-id>!'"
+	@echo "   export FULMEN_TOOLBOX_GPG_HOMEDIR=\"\$$HOME/.gnupg\"  # optional (multiple keyrings)"
+	@echo "   export FULMEN_TOOLBOX_MINISIGN_KEY=\"\$$HOME/.minisign/minisign.key\""
+	@echo "   FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-sign"
 	@echo ""
 	@echo "   # Optional skips (debugging / partial runs):"
-	@echo "   COSIGN=0 RELEASE_TAG=v0.1.2 make release-sign"
-	@echo "   GPG=0 RELEASE_TAG=v0.1.2 make release-sign"
-	@echo "   MINISIGN=0 RELEASE_TAG=v0.1.2 make release-sign"
-	@echo "   # (equivalents: SKIP_COSIGN=1, SKIP_GPG=1, SKIP_MINISIGN=1)"
+	@echo "   FULMEN_TOOLBOX_COSIGN=0 FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-sign"
+	@echo "   FULMEN_TOOLBOX_GPG=0 FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-sign"
+	@echo "   FULMEN_TOOLBOX_MINISIGN=0 FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-sign"
+	@echo "   # (equivalents: FULMEN_TOOLBOX_SKIP_COSIGN=1, FULMEN_TOOLBOX_SKIP_GPG=1, FULMEN_TOOLBOX_SKIP_MINISIGN=1)"
 	@echo ""
 	@echo "3. AUTOMATED (run via make):"
 	@echo "   make verify-release-key"
-	@echo "   RELEASE_TAG=v0.1.2 make release-upload"
+	@echo "   FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-upload"
 	@echo ""
 
 ## Check required tooling is installed (tiered: core vs release)

@@ -28,8 +28,8 @@ Each release publishes SBOM assets. For example (v0.2.1):
 Download and inspect:
 
 ```bash
-RELEASE_TAG=v0.2.1
-curl -LO "https://github.com/fulmenhq/fulmen-toolbox/releases/download/${RELEASE_TAG}/sbom-goneat-tools-runner-0.2.1.json"
+FULMEN_TOOLBOX_RELEASE_TAG=v0.2.1
+curl -LO "https://github.com/fulmenhq/fulmen-toolbox/releases/download/${FULMEN_TOOLBOX_RELEASE_TAG}/sbom-goneat-tools-runner-0.2.1.json"
 
 jq -r '.packages[]?.name' sbom-goneat-tools-runner-0.2.1.json | sort -u | head
 ```

@@ -35,14 +35,14 @@ missing=0
 if [ ${#GPG_SIGS[@]} -eq 0 ]; then
   echo "❌ No GPG signatures (SHA256SUMS-*.asc) found in $DIR" >&2
   echo "   Run GPG signing first (per image):" >&2
-  echo "   gpg --local-user \"\$PGP_KEY_ID\" --detach-sign --armor dist/release/SHA256SUMS-<image>" >&2
+  echo "   gpg --local-user \"\$FULMEN_TOOLBOX_PGP_KEY_ID\" --detach-sign --armor dist/release/SHA256SUMS-<image>" >&2
   missing=1
 fi
 
 if [ ${#MINISIG_SIGS[@]} -eq 0 ]; then
   echo "❌ No minisign signatures (SHA256SUMS-*.minisig) found in $DIR" >&2
   echo "   Run minisign signing first (per image):" >&2
-  echo "   minisign -S -s \"\$MINISIGN_KEY\" -m dist/release/SHA256SUMS-<image>" >&2
+  echo "   minisign -S -s \"\$FULMEN_TOOLBOX_MINISIGN_KEY\" -m dist/release/SHA256SUMS-<image>" >&2
   missing=1
 fi
 
@@ -70,7 +70,7 @@ else
 fi
 
 # Optional: release notes as an uploaded asset
-NOTES_REQUIRED=${RELEASE_NOTES_REQUIRED:-0}
+NOTES_REQUIRED=${FULMEN_TOOLBOX_RELEASE_NOTES_REQUIRED:-0}
 if [ ${#RELEASE_NOTES[@]} -gt 0 ]; then
   echo ""
   echo "📤 Uploading release notes asset..."
@@ -82,12 +82,12 @@ else
     echo "❌ Release notes required but not found" >&2
     echo "   Expected: $DIR/release-notes-$TAG.md" >&2
     echo "   Create: docs/releases/$TAG.md" >&2
-    echo "   Stage: make release-notes RELEASE_TAG=$TAG" >&2
+    echo "   Stage: make release-notes FULMEN_TOOLBOX_RELEASE_TAG=$TAG" >&2
     exit 1
   fi
   echo ""
   echo "⚠️  No release notes asset found (skip)"
-  echo "   To stage: make release-notes RELEASE_TAG=$TAG"
+  echo "   To stage: make release-notes FULMEN_TOOLBOX_RELEASE_TAG=$TAG"
 fi
 
 echo ""

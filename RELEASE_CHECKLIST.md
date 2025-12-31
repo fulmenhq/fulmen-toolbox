@@ -6,6 +6,12 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
 
 - [ ] Confirm working tree clean and CI green
 - [ ] Ensure `VERSION` reflects the intended semver (`make bump-*` to adjust)
+- [ ] Set release env vars (avoid cross-repo collisions):
+  - `FULMEN_TOOLBOX_RELEASE_TAG` (must be `v<semver>`, e.g. `v0.2.2`)
+  - `FULMEN_TOOLBOX_PGP_KEY_ID` (GPG key ID, with `!` suffix to force subkey)
+  - `FULMEN_TOOLBOX_MINISIGN_KEY` (path to minisign secret key)
+  - `FULMEN_TOOLBOX_GPG_HOMEDIR` (optional; multiple keyrings)
+  - `FULMEN_TOOLBOX_ATTACH_SBOM=1` (optional; enable OCI SBOM attach)
 - [ ] Ensure GitHub Packages access for verification (for local `gh api`):
   - CI publishing should use `GITHUB_TOKEN` (short-lived) with workflow `permissions: packages: write`.
   - For local `gh api` queries, use a classic PAT with `read:packages`.
@@ -32,26 +38,26 @@ CI generates artifacts but signing requires interactive authentication. Use this
 ### Manual Signing Env Vars (set once)
 
 ```bash
-# Release tag
-export RELEASE_TAG=v0.2.0
+# Release tag (v<semver> convention)
+export FULMEN_TOOLBOX_RELEASE_TAG=v0.2.0
 
 # GPG key ID (use ! suffix to force specific subkey; single quotes to avoid ! expansion)
-export PGP_KEY_ID='448A539320A397AF!'
+export FULMEN_TOOLBOX_PGP_KEY_ID='448A539320A397AF!'
 
 # OPTIONAL: choose which local GPG homedir to use (script sets GNUPGHOME internally)
 # Useful if you keep multiple keyrings.
-export GPG_HOMEDIR="$HOME/.gnupg"
+export FULMEN_TOOLBOX_GPG_HOMEDIR="$HOME/.gnupg"
 
 # Minisign secret key path
-export MINISIGN_KEY="$HOME/.minisign/minisign.key"
+export FULMEN_TOOLBOX_MINISIGN_KEY="$HOME/.minisign/minisign.key"
 
 # Minisign expects the public key adjacent to the secret key:
-#   MINISIGN_KEY=/path/to/minisign.key
+#   FULMEN_TOOLBOX_MINISIGN_KEY=/path/to/minisign.key
 #   public key=/path/to/minisign.pub
-[ -f "${MINISIGN_KEY%.key}.pub" ] || echo "⚠️ minisign pubkey missing: ${MINISIGN_KEY%.key}.pub"
+[ -f "${FULMEN_TOOLBOX_MINISIGN_KEY%.key}.pub" ] || echo "⚠️ minisign pubkey missing: ${FULMEN_TOOLBOX_MINISIGN_KEY%.key}.pub"
 
 # OPTIONAL: disable cosign if needed
-# export COSIGN=0
+# export FULMEN_TOOLBOX_COSIGN=0
 ```
 
 ### Phase 1: Automated Setup (AI/CLI friendly)
@@ -61,15 +67,15 @@ export MINISIGN_KEY="$HOME/.minisign/minisign.key"
 make release-clean
 
 # Download release artifacts
-make release-download RELEASE_TAG=$RELEASE_TAG
+make release-download FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 
 # OPTIONAL: stage release notes from docs/releases/
-# (warns if missing; can enforce with RELEASE_NOTES_REQUIRED=1)
-make release-notes RELEASE_TAG=$RELEASE_TAG
+# (warns if missing; can enforce with FULMEN_TOOLBOX_RELEASE_NOTES_REQUIRED=1)
+make release-notes FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 
 # (optional) Get image digests for signing
 # Defaults to v0.2.x variants; override with IMAGES if needed.
-make release-digests RELEASE_TAG=$RELEASE_TAG
+make release-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 ```
 
 ### Phase 2: Interactive Signing (Human - REQUIRED before upload)
@@ -82,20 +88,20 @@ Note: keyless sigstore signing/attestation writes to public transparency logs an
 
 Required:
 
-- `RELEASE_TAG`
-- `PGP_KEY_ID`
-- `MINISIGN_KEY`
+- `FULMEN_TOOLBOX_RELEASE_TAG`
+- `FULMEN_TOOLBOX_PGP_KEY_ID`
+- `FULMEN_TOOLBOX_MINISIGN_KEY`
 
 Optional:
 
-- `GPG_HOMEDIR` (recommended if you use multiple keyrings)
-- `COSIGN=0` (disable all cosign operations)
-- `ATTACH_SBOM=1` (enable OCI SBOM attachment; deprecated upstream; off by default)
+- `FULMEN_TOOLBOX_GPG_HOMEDIR` (recommended if you use multiple keyrings)
+- `FULMEN_TOOLBOX_COSIGN=0` (disable all cosign operations)
+- `FULMEN_TOOLBOX_ATTACH_SBOM=1` (enable OCI SBOM attachment; deprecated upstream; off by default)
 
 #### Step 2.2: Run signing helper (cosign + checksums)
 
 ```bash
-make release-sign RELEASE_TAG=$RELEASE_TAG
+make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 ```
 
 This wraps the interactive signing steps:
@@ -109,15 +115,15 @@ This wraps the interactive signing steps:
 Optional skips (debugging/partial runs):
 
 ```bash
-COSIGN=0 make release-sign RELEASE_TAG=$RELEASE_TAG
-ATTACH_SBOM=0 make release-sign RELEASE_TAG=$RELEASE_TAG
-GPG=0 make release-sign RELEASE_TAG=$RELEASE_TAG
-MINISIGN=0 make release-sign RELEASE_TAG=$RELEASE_TAG
+FULMEN_TOOLBOX_COSIGN=0 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
+FULMEN_TOOLBOX_ATTACH_SBOM=0 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
+FULMEN_TOOLBOX_GPG=0 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
+FULMEN_TOOLBOX_MINISIGN=0 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 
 # (equivalents)
-SKIP_COSIGN=1 make release-sign RELEASE_TAG=$RELEASE_TAG
-SKIP_GPG=1 make release-sign RELEASE_TAG=$RELEASE_TAG
-SKIP_MINISIGN=1 make release-sign RELEASE_TAG=$RELEASE_TAG
+FULMEN_TOOLBOX_SKIP_COSIGN=1 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
+FULMEN_TOOLBOX_SKIP_GPG=1 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
+FULMEN_TOOLBOX_SKIP_MINISIGN=1 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 ```
 
 Verify signatures created:
@@ -128,26 +134,26 @@ ls dist/release/*.asc dist/release/*.minisig
 
 ### Phase 3: Automated Upload (AI/CLI friendly)
 
-Requires `PGP_KEY_ID` and `MINISIGN_KEY` env vars from Phase 2.
+Requires `FULMEN_TOOLBOX_PGP_KEY_ID` and `FULMEN_TOOLBOX_MINISIGN_KEY` env vars from Phase 2.
 
 Recommended verification before upload:
 
 - `make verify-release-key` (verifies exported GPG public key contains no private material)
 - `make verify-minisign-key` (verifies minisign public key was exported/copied)
-- `make verify-release-digests RELEASE_TAG=$RELEASE_TAG` (fails if any expected image tag is missing)
-- `make release-digests RELEASE_TAG=$RELEASE_TAG` (prints digests for copy/paste)
+- `make verify-release-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (fails if any expected image tag is missing)
+- `make release-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (prints digests for copy/paste)
 
 #### Step 3.1: Stage release notes (optional)
 
 ```bash
-# Copies docs/releases/$RELEASE_TAG.md into dist/release/ as:
-#   dist/release/release-notes-$RELEASE_TAG.md
+# Copies docs/releases/$FULMEN_TOOLBOX_RELEASE_TAG.md into dist/release/ as:
+#   dist/release/release-notes-$FULMEN_TOOLBOX_RELEASE_TAG.md
 #
 # Note: release-upload will upload it if present.
-make release-notes RELEASE_TAG=$RELEASE_TAG
+make release-notes FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 
 # To enforce (fail if missing):
-# RELEASE_NOTES_REQUIRED=1 make release-notes RELEASE_TAG=$RELEASE_TAG
+# FULMEN_TOOLBOX_RELEASE_NOTES_REQUIRED=1 make release-notes FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 ```
 
 #### Step 3.2: Export public keys (recommended)
@@ -158,7 +164,7 @@ make release-notes RELEASE_TAG=$RELEASE_TAG
 # - dist/release/fulmenhq-release-signing.pub
 #
 # NOTE: minisign expects the public key adjacent to the secret key:
-#   MINISIGN_KEY=/path/to/minisign.key
+#   FULMEN_TOOLBOX_MINISIGN_KEY=/path/to/minisign.key
 #   public key=/path/to/minisign.pub
 make release-export-keys
 ```
@@ -170,7 +176,7 @@ make release-export-keys
 ```bash
 # Uploads signatures and keys to GitHub Release
 # (automatically exports public keys and verifies GPG key is safe)
-make release-upload RELEASE_TAG=$RELEASE_TAG
+make release-upload FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 ```
 
 ### Quick Reference
@@ -225,9 +231,9 @@ cosign download sbom ghcr.io/fulmenhq/goneat-tools-runner@sha256:<digest>
 ### GPG
 
 ```bash
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/SHA256SUMS-goneat-tools-runner
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/SHA256SUMS-goneat-tools-runner.asc
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/fulmen-toolbox-release-signing-key.asc
+curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner
+curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner.asc
+curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/fulmen-toolbox-release-signing-key.asc
 
 # Use temp keyring to avoid polluting user's GPG home
 GPG_TMPDIR=$(mktemp -d)
@@ -239,9 +245,9 @@ rm -rf "$GPG_TMPDIR"
 ### Minisign
 
 ```bash
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/SHA256SUMS-goneat-tools-runner
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/SHA256SUMS-goneat-tools-runner.minisig
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$RELEASE_TAG/fulmenhq-release-signing.pub
+curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner
+curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner.minisig
+curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/fulmenhq-release-signing.pub
 
 minisign -Vm SHA256SUMS-goneat-tools-runner -p fulmenhq-release-signing.pub
 ```

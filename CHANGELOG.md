@@ -31,7 +31,7 @@ Adheres to Keep a Changelog format. Versions follow semver.
 ## [0.1.6] - 2025-12-13
 
 - Added `scripts/release-sign.sh` and `make release-sign` to consolidate manual signing.
-- Added `GPG_HOMEDIR` support and clearer preflight failures for multi-keyring setups.
+- Added `FULMEN_TOOLBOX_GPG_HOMEDIR` support and clearer preflight failures for multi-keyring setups.
 - Added `make release-notes` and updated `release-upload` to optionally include staged release notes.
 - Added OCI-attached SBOM publishing via `cosign attach sbom` in the manual signing flow.
 - Added `/licenses` and `/notices` conventions in images; seeded curated license texts and best-effort notices.
