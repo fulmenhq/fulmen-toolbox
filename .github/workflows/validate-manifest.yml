@@ -5,6 +5,7 @@ on:
       - "manifests/**"
       - "schemas/**"
       - "scripts/**"
+      - "images/**"
       - "Makefile"
       - ".github/workflows/**"
   push:
@@ -13,6 +14,7 @@ on:
       - "manifests/**"
       - "schemas/**"
       - "scripts/**"
+      - "images/**"
       - "Makefile"
       - ".github/workflows/**"
 jobs:
