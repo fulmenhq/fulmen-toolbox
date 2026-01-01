@@ -95,7 +95,9 @@ else
   echo "   ✅ GPG confirms: public keys only (no secret keys)"
   echo ""
   echo "   Key details:"
-  echo "$GPG_OUTPUT" | sed 's/^/      /'
+  while IFS= read -r line; do
+    printf '      %s\n' "$line"
+  done <<< "$GPG_OUTPUT"
 fi
 
 # === FINAL VERIFICATION SUMMARY ===

@@ -1,4 +1,4 @@
-name: Release (build, sign, attest)
+name: Release (build, sbom, checksums)
 on:
   push:
     tags:
@@ -52,7 +52,6 @@ jobs:
     permissions:
       contents: write
       packages: write
-      id-token: write # for keyless cosign if used
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -124,40 +123,6 @@ jobs:
           image: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}@${{ env.DIGEST }}
           format: spdx-json
           output-file: sbom-${{ matrix.image }}-${{ steps.meta.outputs.version }}.json
-      # Check which signing secrets are available
-      - name: Check signing secrets
-        id: secrets
-        run: |
-          {
-            echo "has_cosign=${{ secrets.COSIGN_PRIVATE_KEY != '' }}"
-            echo "has_gpg=${{ secrets.GPG_PRIVATE_KEY != '' && secrets.GPG_PASSPHRASE != '' }}"
-            echo "has_minisign=${{ secrets.MINISIGN_KEY != '' && secrets.MINISIGN_PASS != '' }}"
-          } >> "$GITHUB_OUTPUT"
-      # Cosign signing/attestation (optional; skip if secrets not set)
-      - name: Install cosign
-        if: steps.secrets.outputs.has_cosign == 'true'
-        uses: sigstore/cosign-installer@v3
-        with:
-          cosign-release: "v2.4.0"
-      - name: Cosign sign image
-        if: steps.secrets.outputs.has_cosign == 'true'
-        env:
-          COSIGN_YES: "true"
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-        run: |
-          cosign sign --key env://COSIGN_PRIVATE_KEY \
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}@${{ env.DIGEST }}
-      - name: Cosign attest (SBOM)
-        if: steps.secrets.outputs.has_cosign == 'true'
-        env:
-          COSIGN_YES: "true"
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-        run: |
-          cosign attest --predicate sbom-${{ matrix.image }}-${{ steps.meta.outputs.version }}.json \
-            --type spdxjson \
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}@${{ env.DIGEST }}
       - name: Generate SHA256SUMS
         env:
           OWNER: ${{ github.repository_owner }}
@@ -166,35 +131,61 @@ jobs:
           printf "%s\n" "${{ steps.tags.outputs.tags }}" | sed '/^\s*$/d' | while IFS= read -r ref; do
             echo "$DIGEST  $ref"
           done > SHA256SUMS-${{ matrix.image }}
-      - name: GPG sign SHA256SUMS
-        if: steps.secrets.outputs.has_gpg == 'true'
-        run: |
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --yes --import
-          gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
-            --armor --detach-sign --output SHA256SUMS-${{ matrix.image }}.asc SHA256SUMS-${{ matrix.image }}
-      - name: Install minisign
-        if: steps.secrets.outputs.has_minisign == 'true'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y minisign
-      - name: Minisign sign SHA256SUMS
-        if: steps.secrets.outputs.has_minisign == 'true'
-        run: |
-          printf "%s" "${{ secrets.MINISIGN_KEY }}" > minisign.key
-          minisign -Sm SHA256SUMS-${{ matrix.image }} -s minisign.key -p /dev/null \
-            -x SHA256SUMS-${{ matrix.image }}.minisig -t "fulmen-toolbox ${{ matrix.image }} ${{ steps.meta.outputs.version }}"
-        env:
-          MINISIGN_KEY: ${{ secrets.MINISIGN_KEY }}
-          MINISIGN_PASS: ${{ secrets.MINISIGN_PASS }}
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
           files: |
             sbom-${{ matrix.image }}-${{ steps.meta.outputs.version }}.json
             SHA256SUMS-${{ matrix.image }}
-            SHA256SUMS-${{ matrix.image }}.asc
-            SHA256SUMS-${{ matrix.image }}.minisig
           tag_name: v${{ steps.meta.outputs.version }}
           name: v${{ steps.meta.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
+  cosign:
+    needs: release
+    runs-on: ubuntu-latest
+    environment: release-signing
+    permissions:
+      id-token: write
+      packages: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set version env
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          {
+            echo "VERSION=$VERSION"
+            echo "TAG=v$VERSION"
+          } >> "$GITHUB_ENV"
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: "v2.4.0"
+      - name: Sign and attest images (keyless)
+        env:
+          COSIGN_YES: "true"
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -eu
+          IMAGES="$(bash scripts/list-images.sh --format space)"
+          for image in $IMAGES; do
+            ref="$REGISTRY/$OWNER/$image:v$VERSION"
+            digest=$(docker manifest inspect "$ref" -v 2>/dev/null | \
+              jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end') || true
+            if [ -z "$digest" ] || [ "$digest" = "null" ]; then
+              echo "❌ Unable to resolve digest for $ref" >&2
+              exit 1
+            fi
+            sbom="sbom-$image-$VERSION.json"
+            curl -fsSL "https://github.com/$OWNER/fulmen-toolbox/releases/download/v$VERSION/$sbom" -o "$sbom"
+            cosign sign "$REGISTRY/$OWNER/$image@$digest"
+            cosign attest --predicate "$sbom" --type spdxjson "$REGISTRY/$OWNER/$image@$digest"
+          done

@@ -449,7 +449,7 @@ lint-dockerfiles:
 	fi
 
 ## Quality bundle: manifest validation + profile validation + workflow lint + dockerfile lint
-quality: validate-manifest validate-pins validate-profiles lint-workflows lint-dockerfiles
+quality: validate-manifest validate-pins validate-profiles lint-workflows lint-dockerfiles lint-sh
 
 ## Precommit bundle: quality checks
 precommit:
@@ -526,11 +526,11 @@ release-notes:
 
 ## Get image digests for manual cosign signing (FULMEN_TOOLBOX_RELEASE_TAG=vX.Y.Z)
 #
-# Images can be overridden via FULMEN_TOOLBOX_IMAGES env var (space-delimited). Defaults to v0.2.x variants.
+# Images can be overridden via FULMEN_TOOLBOX_IMAGES env var (space-delimited). Defaults to manifest list.
 release-digests:
 	@echo "Image digests for $(FULMEN_TOOLBOX_RELEASE_TAG):"
 	@echo ""
-	@IMAGES="$${FULMEN_TOOLBOX_IMAGES:-goneat-tools-runner goneat-tools-slim goneat-tools-runner-glibc sbom-tools-runner sbom-tools-slim sbom-tools-runner-glibc}"; \
+	@IMAGES="$${FULMEN_TOOLBOX_IMAGES:-$$(bash scripts/list-images.sh --format space)}"; \
 	for image in $$IMAGES; do \
 	  DIGEST=$$(docker manifest inspect ghcr.io/fulmenhq/$$image:$(FULMEN_TOOLBOX_RELEASE_TAG) -v 2>/dev/null | \
 	    jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end' 2>/dev/null) || true; \
@@ -545,7 +545,7 @@ release-digests:
 ## Verify all expected images exist for a release tag
 # Fails if any image digest cannot be resolved.
 verify-release-digests:
-	@IMAGES="$${FULMEN_TOOLBOX_IMAGES:-goneat-tools-runner goneat-tools-slim goneat-tools-runner-glibc sbom-tools-runner sbom-tools-slim sbom-tools-runner-glibc}"; \
+	@IMAGES="$${FULMEN_TOOLBOX_IMAGES:-$$(bash scripts/list-images.sh --format space)}"; \
 	missing=0; \
 	echo "Verifying image digests for $(FULMEN_TOOLBOX_RELEASE_TAG)..."; \
 	for image in $$IMAGES; do \

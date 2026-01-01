@@ -4,6 +4,13 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-01-01
+
+- Added `yamllint` (and `python3`) to all runner baselines for semantic YAML linting.
+- Updated runner tests to validate `yamllint` presence (and absence in slim variants).
+- Documented `yamllint` rationale and runner-baseline guidance updates.
+- Wired CI cosign signing to a manifest-derived image list to avoid hardcoded catalog drift.
+
 ## [0.2.2] - 2025-12-31
 
 - Added glibc runner variants (`*-runner-glibc`) with CGO toolchain support (gcc, libc6-dev, pkg-config).
@@ -42,7 +49,8 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 For earlier history, see GitHub Releases: https://github.com/fulmenhq/fulmen-toolbox/releases
 
-[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.3
 [0.2.2]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.2
 [0.2.1]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.1
 [0.2.0]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.0

@@ -34,6 +34,7 @@ Create a protected environment named `release-signing`:
 ### What “protected environment” means (plain language)
 
 This is a **GitHub Actions feature**, not a local machine or Docker concept.
+The environment is associated with a **repository** rather than with an **organization**.
 
 - It lives in the **GitHub repo settings** (Actions → Environments).
 - It adds a **human approval gate** before a job runs.
@@ -62,6 +63,7 @@ jobs:
 
 1) **Build & push images** (existing release workflow).
 2) **Collect digests** from the build outputs:
+   - Use the manifest-derived image list (from `manifests/tools.json`) to avoid per-variant hand edits.
    - For each image, record the pushed digest (`ghcr.io/...@sha256:...`).
 3) **Sign + attest in CI** using cosign keyless:
    - Set `COSIGN_YES=true` to avoid prompts.
@@ -104,5 +106,5 @@ cosign verify-attestation --type spdxjson \
 ## Notes
 
 - Keyless signing writes to the public transparency log.
-- Environment approvals provide the human gate without local prompts.
-- This is the preferred default as the image catalog grows.
+- Environment approvals provide the human gate once per release without local prompts.
+- The canonical image list should come from the manifest to scale with new catalog variants.

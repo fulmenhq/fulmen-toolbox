@@ -16,7 +16,7 @@ echo "Planned release for version: $VERSION"
 echo
 echo "Prereqs (install if missing):"
 for cmd in $commands_required; do
-  if command -v $cmd >/dev/null 2>&1; then
+  if command -v "$cmd" >/dev/null 2>&1; then
     echo "  - $cmd: ok"
   else
     echo "  - $cmd: MISSING"

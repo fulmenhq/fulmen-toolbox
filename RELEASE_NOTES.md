@@ -1,5 +1,14 @@
 # Release Notes
 
+## v0.2.3 (2026-01-01)
+
+**Runner Baseline: yamllint**
+
+- Added `yamllint` (and `python3`) to all runner baselines for semantic YAML linting.
+- Updated runner tests to validate `yamllint` presence and ensure slim variants stay minimal.
+- Documented yamllint rationale and runner baseline guidance.
+- CI cosign signing now reads the image list from the manifest to avoid hardcoded drift.
+
 ## v0.2.2 (2025-12-31)
 
 **Glibc Runner Variants + CGO Support**
@@ -20,27 +29,3 @@
   - CI publishing: `GITHUB_TOKEN` with workflow `permissions: packages: write`
   - Local verification/troubleshooting: packages-only classic PAT
 - Added a fallback SOP for a dedicated GHCR bot + packages-only classic PAT.
-
-## v0.2.0 (2025-12-14)
-
-**Variant Split + Compliance Automation**
-
-- Images now publish explicit variants: `goneat-tools-{slim,runner}` and `sbom-tools-{slim,runner}`.
-- Bare names remain compatibility aliases for runner:
-  - `goneat-tools:*` → `goneat-tools-runner:*`
-  - `sbom-tools:*` → `sbom-tools-runner:*`
-
-**Baseline profiles (DRY + enforceable)**
-
-- Added schema-driven baseline profiles in `manifests/profiles.json`.
-- `make validate-profiles` enforces that runner baseline packages are present in `-runner` and do not leak into `-slim`.
-
-**Licenses & notices (manifest-driven)**
-
-- Tool manifest now optionally declares `license_spdx` plus required in-image `license_path`/`license_paths`.
-- Added `make validate-licenses` to build images and assert curated license/notice paths exist (ADR-0005).
-- Enforced NOTICE where explicitly required (e.g. Trivy NOTICE; goneat NOTICE).
-
-**DX tools in goneat-tools**
-
-- Added `goneat` v0.3.20 and `sfetch` v0.2.7 to the goneat-tools payload (both `-slim` and `-runner`).

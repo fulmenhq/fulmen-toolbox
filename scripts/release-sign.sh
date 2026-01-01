@@ -17,7 +17,7 @@
 #   FULMEN_TOOLBOX_REGISTRY - Container registry (default: ghcr.io)
 #   FULMEN_TOOLBOX_OWNER    - Registry owner/org (default: fulmenhq)
 #   FULMEN_TOOLBOX_IMAGES   - Space-delimited images to sign
-#                  (default: "goneat-tools-runner goneat-tools-slim goneat-tools-runner-glibc sbom-tools-runner sbom-tools-slim sbom-tools-runner-glibc")
+#                  (default: derived from manifests/tools.json)
 #   FULMEN_TOOLBOX_PGP_KEY_ID    - GPG key ID for signing SHA256SUMS-*
 #   FULMEN_TOOLBOX_GPG_HOMEDIR   - Optional GPG home directory (script sets GNUPGHOME internally)
 #   FULMEN_TOOLBOX_MINISIGN_KEY  - Path to minisign secret key for signing SHA256SUMS-*
@@ -35,13 +35,16 @@
 
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
 TAG=${1:?
 "Usage: release-sign.sh <tag> [dir]\n\nExample: release-sign.sh v0.2.0 dist/release"}
 DIR=${2:-dist/release}
 
 REGISTRY=${FULMEN_TOOLBOX_REGISTRY:-ghcr.io}
 OWNER=${FULMEN_TOOLBOX_OWNER:-fulmenhq}
-IMAGES=${FULMEN_TOOLBOX_IMAGES:-"goneat-tools-runner goneat-tools-slim goneat-tools-runner-glibc sbom-tools-runner sbom-tools-slim sbom-tools-runner-glibc"}
+# Derive image list from manifest unless explicitly overridden.
+IMAGES=${FULMEN_TOOLBOX_IMAGES:-"$(bash "$ROOT/scripts/list-images.sh" --format space)"}
 # Normalize whitespace/newlines to avoid accidental word splits.
 IMAGES=$(printf '%s' "$IMAGES" | tr '\n' ' ' | xargs)
 

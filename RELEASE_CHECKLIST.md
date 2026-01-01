@@ -19,7 +19,7 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
   - Avoid `repo` scope for GHCR-only usage; some `gh` interactions may still require additional org access depending on visibility/policy.
 - [ ] Update `CHANGELOG.md` and `RELEASE_NOTES.md` with the release entry
 - [ ] Sync pins: update `manifests/tools.json`, Dockerfile ARGs, and `docs/images/goneat-tools.md`
-- [ ] If adding a new image, update the default image lists in `scripts/release-sign.sh` and `Makefile` (release-digests/verify-release-digests)
+- [ ] If adding a new image, confirm `manifests/tools.json` includes it (release signing/digests derive from the manifest list)
 - [ ] Run local checks: `make precommit` (manifest + workflows lint) and `make prepush` (quality + build + test)
 - [ ] Validate docs reflect current tooling (inventory, architecture, ADRs)
 - [ ] Review CI cosign signing runbook: `docs/operations/ci-cosign-signing.md`
@@ -32,6 +32,9 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
   - Pushes to GHCR (`:latest`, `:v<major>`, and semver tag)
   - Generates SBOMs and SHA256SUMS per-image
   - Uploads artifacts to GitHub Release
+- [ ] Approve the `release-signing` environment for the cosign job:
+  - GitHub → Actions → **Release (build, sbom, checksums)** → “Review deployments”
+  - Approve the `release-signing` job so keyless cosign signing/attestation runs once
 - [ ] Verify release artifacts appear on GitHub Release page
 
 ## Manual Signing Workflow
@@ -81,9 +84,9 @@ make release-notes FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 make release-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 ```
 
-### Phase 2: Interactive Signing (Human - REQUIRED before upload)
+### Phase 2: Manual Artifact Signing (Human - REQUIRED before upload)
 
-Note: keyless sigstore signing/attestation writes to public transparency logs and may include personal data (e.g., your email) as an immutable record. Read the prompt carefully when it appears.
+Cosign signing/attestation now runs in CI under the `release-signing` environment (see `docs/operations/ci-cosign-signing.md`). Manual signing is only for checksum artifacts (GPG + minisign).
 
 > **Note:** `make release-upload` will **block** if signatures are missing. Complete all steps below first.
 
@@ -101,7 +104,7 @@ Optional:
 - `FULMEN_TOOLBOX_COSIGN=0` (disable all cosign operations)
 - `FULMEN_TOOLBOX_ATTACH_SBOM=1` (enable OCI SBOM attachment; deprecated upstream; off by default)
 
-#### Step 2.2: Run signing helper (cosign + checksums)
+#### Step 2.2: Run signing helper (checksums only)
 
 ```bash
 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
@@ -109,22 +112,16 @@ make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 
 This wraps the interactive signing steps:
 
-- Resolves image digests from GHCR for each image variant (requires registry auth)
-- `cosign sign` + `cosign attest` for each image (browser prompts for OIDC)
-- Optional: `cosign attach sbom` for registry-native discovery (deprecated upstream; does not sign the SBOM; disabled by default)
 - GPG signs `dist/release/SHA256SUMS-*` (passphrase prompts)
 - Minisign signs `dist/release/SHA256SUMS-*` (passphrase prompts)
 
 Optional skips (debugging/partial runs):
 
 ```bash
-FULMEN_TOOLBOX_COSIGN=0 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
-FULMEN_TOOLBOX_ATTACH_SBOM=0 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 FULMEN_TOOLBOX_GPG=0 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 FULMEN_TOOLBOX_MINISIGN=0 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 
 # (equivalents)
-FULMEN_TOOLBOX_SKIP_COSIGN=1 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 FULMEN_TOOLBOX_SKIP_GPG=1 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 FULMEN_TOOLBOX_SKIP_MINISIGN=1 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 ```
@@ -282,4 +279,4 @@ minisign -Vm SHA256SUMS-goneat-tools-runner -p fulmenhq-release-signing.pub
     echo "$FULMEN_TOOLBOX_GHCR_TOKEN" | docker login ghcr.io -u <pat-owner-username> --password-stdin
     ```
 - **Multiple Signing Subkeys**: Use `!` suffix on GPG key ID (e.g., `485823223AF!`) to force specific subkey.
-- **4 Browser Prompts**: Keyless cosign requires separate OIDC auth for each sign/attest operation (2 images × 2 ops = 4 prompts).
+- **Cosign approvals**: CI signing is gated once via the `release-signing` environment; local cosign prompts only apply if you opt into manual cosign.
