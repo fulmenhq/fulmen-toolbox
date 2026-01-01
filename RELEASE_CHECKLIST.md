@@ -19,8 +19,10 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
   - Avoid `repo` scope for GHCR-only usage; some `gh` interactions may still require additional org access depending on visibility/policy.
 - [ ] Update `CHANGELOG.md` and `RELEASE_NOTES.md` with the release entry
 - [ ] Sync pins: update `manifests/tools.json`, Dockerfile ARGs, and `docs/images/goneat-tools.md`
+- [ ] If adding a new image, update the default image lists in `scripts/release-sign.sh` and `Makefile` (release-digests/verify-release-digests)
 - [ ] Run local checks: `make precommit` (manifest + workflows lint) and `make prepush` (quality + build + test)
 - [ ] Validate docs reflect current tooling (inventory, architecture, ADRs)
+- [ ] Review CI cosign signing runbook: `docs/operations/ci-cosign-signing.md`
 
 ## Build & Publish (CI-driven)
 

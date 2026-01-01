@@ -31,6 +31,24 @@ Create a protected environment named `release-signing`:
 - Limit to `main`/tag workflows.
 - Enable environment secrets if needed (not required for keyless).
 
+Recommended settings:
+
+- **Deployment branches**: only `main` and tags matching `v*.*.*`.
+- **Required reviewers**: at least one maintainer.
+- **Wait timer**: optional (use 0 unless you want a cooling-off period).
+
+Workflow usage example:
+
+```yaml
+jobs:
+  sign:
+    environment: release-signing
+    permissions:
+      id-token: write
+      packages: write
+      contents: read
+```
+
 ## CI Signing Flow (Recommended)
 
 1) **Build & push images** (existing release workflow).
