@@ -67,6 +67,10 @@ Copyleft note:
 3. Check for any references in docs and tests.
 4. Run the validation suite and tests.
 
+## Release Operations
+
+- CI cosign signing (keyless, non-interactive): see `docs/operations/ci-cosign-signing.md`.
+
 ## GHCR Package Lifecycle (Variants, Aliases, Retirement)
 
 ### Variant packages vs alias packages
