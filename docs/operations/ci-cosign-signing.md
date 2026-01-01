@@ -31,6 +31,15 @@ Create a protected environment named `release-signing`:
 - Limit to `main`/tag workflows.
 - Enable environment secrets if needed (not required for keyless).
 
+### What “protected environment” means (plain language)
+
+This is a **GitHub Actions feature**, not a local machine or Docker concept.
+
+- It lives in the **GitHub repo settings** (Actions → Environments).
+- It adds a **human approval gate** before a job runs.
+- It does **not** require a special dev machine, container, or shell setup.
+- If you only have a laptop and a bash shell, that’s fine — the approvals happen in GitHub.
+
 Recommended settings:
 
 - **Deployment branches**: only `main` and tags matching `v*.*.*`.
