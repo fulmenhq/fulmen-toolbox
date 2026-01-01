@@ -17,8 +17,10 @@
         "make",
         "openssh-client",
         "pkgconf",
+        "python3",
         "tar",
         "unzip",
+        "yamllint",
         "xz"
       ]
     },
@@ -41,8 +43,10 @@
         "make",
         "openssh-client",
         "pkg-config",
+        "python3",
         "tar",
         "unzip",
+        "yamllint",
         "xz-utils"
       ]
     }

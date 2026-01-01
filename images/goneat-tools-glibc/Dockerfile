@@ -210,7 +210,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     libc6-dev \
-    pkg-config && \
+    pkg-config \
+    python3 \
+    yamllint && \
     rm -rf /var/lib/apt/lists/*
 
 USER node

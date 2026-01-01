@@ -8,6 +8,8 @@ These packages are frequently assumed by CI tooling and composite actions.
 
 - Many “runner baseline” tools are GNU utilities and therefore copyleft (GPLv2/GPLv3). See `docs/adr/ADR-0004-copyleft-and-runner-images.md`.
 - Our images run as **non-root** by default. If downstream workflows require package installation at runtime, they need a root-capable variant (or a derived image) rather than relying on `sudo`.
+- Do not use Homebrew inside images; we standardize on `apk` (Alpine) and `apt` (Debian) for baseline packages to keep installs deterministic and minimal.
+- We include `yamllint` in runner baselines for semantic YAML linting; `yamlfmt` handles formatting only.
 
 ## Baseline package set
 
@@ -32,6 +34,8 @@ Recommended baseline packages (Alpine `apk` names):
 | `diffutils` | `diff` behavior expected by many tools | GPL-3.0 | Yes |
 | `openssh-client` | Fetch private deps over SSH | BSD-style | No |
 | `pkgconf` | `pkg-config` for CGO builds | ISC-like | No |
+| `python3` | Runtime for Python-based tools (e.g., yamllint) | PSF | No |
+| `yamllint` | Semantic YAML linting (GPLv3) | GPL-3.0 | Yes |
 
 Optional additions (only if needed):
 
@@ -60,8 +64,10 @@ Current baseline packages (Debian `apt` names):
 - `make`
 - `openssh-client`
 - `pkg-config`
+- `python3`
 - `tar`
 - `unzip`
+- `yamllint`
 - `xz-utils`
 
 ## How we document and ship licenses

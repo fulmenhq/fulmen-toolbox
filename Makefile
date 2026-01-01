@@ -131,6 +131,7 @@ test-goneat-tools-runner:
 		prettier --version && \
 		biome --version && \
 		yamlfmt --version && \
+		yamllint --version && \
 		shfmt --version && \
 		checkmake --version && \
 		actionlint --version && \
@@ -157,6 +158,7 @@ test-goneat-tools-slim:
 		prettier --version && \
 		biome --version && \
 		yamlfmt --version && \
+		! command -v yamllint >/dev/null 2>&1 && \
 		shfmt --version && \
 		checkmake --version && \
 		actionlint --version && \
@@ -181,6 +183,7 @@ test-goneat-tools-runner-glibc:
 		prettier --version && \
 		biome --version && \
 		yamlfmt --version && \
+		yamllint --version && \
 		shfmt --version && \
 		checkmake --version && \
 		actionlint --version && \
@@ -268,6 +271,7 @@ test-sbom-tools-runner:
 		syft version && \
 		grype version && \
 		trivy version && \
+		yamllint --version && \
 		jq --version && \
 		yq --version && \
 		git --version && \
@@ -295,6 +299,7 @@ test-sbom-tools-slim:
 		syft version && \
 		grype version && \
 		trivy version && \
+		! command -v yamllint >/dev/null 2>&1 && \
 		jq --version && \
 		yq --version && \
 		! command -v git >/dev/null 2>&1 && \
@@ -324,6 +329,7 @@ test-sbom-tools-runner-glibc:
 		syft version && \
 		grype version && \
 		trivy version && \
+		yamllint --version && \
 		jq --version && \
 		yq --version && \
 		git --version && \

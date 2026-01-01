@@ -120,6 +120,8 @@ RUN apk add --no-cache \
     curl=${CURL_VERSION} \
     build-base \
     pkgconf \
+    python3 \
+    yamllint \
     coreutils \
     findutils \
     diffutils \

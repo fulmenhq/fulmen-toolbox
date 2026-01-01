@@ -17,6 +17,7 @@ Each toolbox image comes in three variants:
 **Use `-runner` when:**
 - Running as a CI job container (GitHub Actions, GitLab CI, etc.)
 - Your scripts need `bash`, `make`, `gcc`, or GNU coreutils
+- You want `yamllint` for semantic YAML linting (beyond formatting)
 - You want a full shell environment with common utilities
 - You need to fetch artifacts with `curl` or extract with `tar`
 
