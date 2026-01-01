@@ -17,7 +17,7 @@
 #   FULMEN_TOOLBOX_REGISTRY - Container registry (default: ghcr.io)
 #   FULMEN_TOOLBOX_OWNER    - Registry owner/org (default: fulmenhq)
 #   FULMEN_TOOLBOX_IMAGES   - Space-delimited images to sign
-#                  (default: "goneat-tools-runner goneat-tools-slim sbom-tools-runner sbom-tools-slim")
+#                  (default: "goneat-tools-runner goneat-tools-slim goneat-tools-runner-glibc sbom-tools-runner sbom-tools-slim sbom-tools-runner-glibc")
 #   FULMEN_TOOLBOX_PGP_KEY_ID    - GPG key ID for signing SHA256SUMS-*
 #   FULMEN_TOOLBOX_GPG_HOMEDIR   - Optional GPG home directory (script sets GNUPGHOME internally)
 #   FULMEN_TOOLBOX_MINISIGN_KEY  - Path to minisign secret key for signing SHA256SUMS-*
@@ -41,7 +41,9 @@ DIR=${2:-dist/release}
 
 REGISTRY=${FULMEN_TOOLBOX_REGISTRY:-ghcr.io}
 OWNER=${FULMEN_TOOLBOX_OWNER:-fulmenhq}
-IMAGES=${FULMEN_TOOLBOX_IMAGES:-"goneat-tools-runner goneat-tools-slim sbom-tools-runner sbom-tools-slim"}
+IMAGES=${FULMEN_TOOLBOX_IMAGES:-"goneat-tools-runner goneat-tools-slim goneat-tools-runner-glibc sbom-tools-runner sbom-tools-slim sbom-tools-runner-glibc"}
+# Normalize whitespace/newlines to avoid accidental word splits.
+IMAGES=$(printf '%s' "$IMAGES" | tr '\n' ' ' | xargs)
 
 PGP_KEY_ID=${FULMEN_TOOLBOX_PGP_KEY_ID:-}
 GPG_HOMEDIR=${FULMEN_TOOLBOX_GPG_HOMEDIR:-}
