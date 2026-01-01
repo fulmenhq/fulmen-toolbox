@@ -8,6 +8,7 @@
 - Updated runner tests to validate `yamllint` presence and ensure slim variants stay minimal.
 - Documented yamllint rationale and runner baseline guidance.
 - CI cosign signing now reads the image list from the manifest to avoid hardcoded drift.
+- Updated agentic docs to use supervised, role-based attribution (no named identities).
 
 ## v0.2.2 (2025-12-31)
 

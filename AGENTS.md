@@ -49,6 +49,8 @@ Use the role IDs below and keep attribution aligned with the Crucible standard u
 | `secrev` | Security, signing, SBOM, SLSA, policy |
 | `infoarch` | Documentation, runbooks, standards |
 
+Pick the role that matches the task (most changes in this repo use `cicd`).
+
 ## Operational Guidelines (Container Repo Focus)
 
 **DO** (Dockerfile/CI-centric):

@@ -10,6 +10,7 @@ Adheres to Keep a Changelog format. Versions follow semver.
 - Updated runner tests to validate `yamllint` presence (and absence in slim variants).
 - Documented `yamllint` rationale and runner-baseline guidance updates.
 - Wired CI cosign signing to a manifest-derived image list to avoid hardcoded catalog drift.
+- Updated agentic docs to use supervised, role-based attribution (no named identities).
 
 ## [0.2.2] - 2025-12-31
 
