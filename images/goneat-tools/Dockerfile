@@ -31,7 +31,7 @@ ARG GIT_VERSION=2.52.0-r0
 ARG CURL_VERSION=8.17.0-r1
 
 # Non-runner tool pins
-ARG MINISIGN_VERSION=0.12-r0
+ARG MINISIGN_VERSION=0.12-r1
 
 # Stage 1: Build Go tools (yamlfmt, shfmt, checkmake, actionlint, goneat, sfetch)
 FROM ${GO_IMAGE} AS go-builder

@@ -132,7 +132,7 @@
     },
     {
       "name": "minisign",
-      "version": "0.12-r0",
+      "version": "0.12-r1",
       "source": "apk",
       "images": ["goneat-tools-slim", "goneat-tools-runner"],
       "notes": "File signing/verification tool (ISC license).",

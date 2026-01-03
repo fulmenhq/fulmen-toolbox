@@ -10,7 +10,7 @@
 	test-sbom-tools test-sbom-tools-runner test-sbom-tools-slim \
 	test-sbom-tools-runner-glibc \
 	clean help bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap \
-	validate-manifest lint-workflows lint-dockerfiles quality precommit prepush check-clean check-quick \
+	validate-manifest validate-apk-pins lint-workflows lint-dockerfiles quality precommit prepush check-clean check-quick \
 	catalog \
 	release-download release-notes release-sign release-upload verify-release-key release-digests
 
@@ -53,6 +53,7 @@ PREREQ_RELEASE ?= cosign gpg minisign syft
 OPTIONAL_CMDS ?= shellcheck shfmt
 VALIDATE_MANIFEST ?= scripts/validate-manifest.sh
 VALIDATE_PINS ?= scripts/validate-pins.sh
+VALIDATE_APK_PINS ?= scripts/validate-apk-pins.sh
 VALIDATE_PROFILES ?= scripts/validate-profiles.sh
 VALIDATE_LICENSES ?= scripts/validate-licenses.sh
 YAMLFMT ?= yamlfmt
@@ -389,6 +390,10 @@ validate-manifest:
 validate-pins:
 	@$(VALIDATE_PINS)
 
+## Validate APK package pins are available in upstream Alpine repos (requires Docker)
+validate-apk-pins:
+	@$(VALIDATE_APK_PINS)
+
 ## Validate Dockerfiles conform to baseline profiles
 validate-profiles:
 	@$(VALIDATE_PROFILES)
@@ -449,7 +454,7 @@ lint-dockerfiles:
 	fi
 
 ## Quality bundle: manifest validation + profile validation + workflow lint + dockerfile lint
-quality: validate-manifest validate-pins validate-profiles lint-workflows lint-dockerfiles lint-sh
+quality: validate-manifest validate-pins validate-apk-pins validate-profiles lint-workflows lint-dockerfiles lint-sh
 
 ## Precommit bundle: quality checks
 precommit:
