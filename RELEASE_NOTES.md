@@ -1,5 +1,12 @@
 # Release Notes
 
+## v0.2.4 (2026-01-03)
+
+**Tool Updates**
+
+- Bumped `goneat` to v0.4.2.
+- Bumped `sfetch` to v0.3.2.
+
 ## v0.2.3 (2026-01-01)
 
 **Runner Baseline: yamllint**

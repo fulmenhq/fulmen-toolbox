@@ -4,6 +4,11 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-01-03
+
+- Bumped `goneat` to v0.4.2.
+- Bumped `sfetch` to v0.3.2.
+
 ## [0.2.3] - 2026-01-01
 
 - Added `yamllint` (and `python3`) to all runner baselines for semantic YAML linting.
@@ -50,7 +55,8 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 For earlier history, see GitHub Releases: https://github.com/fulmenhq/fulmen-toolbox/releases
 
-[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.2.4...HEAD
+[0.2.4]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.4
 [0.2.3]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.3
 [0.2.2]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.2
 [0.2.1]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.1
