@@ -49,6 +49,10 @@ jobs:
             target: runner
             aliases: |
               sbom-tools-runner-debian
+          - family: valkey
+            image: valkey-server-glibc
+            target: server
+            aliases: ""
     permissions:
       contents: write
       packages: write
@@ -173,6 +177,8 @@ jobs:
           - image: sbom-tools-runner-glibc
             aliases: |
               sbom-tools-runner-debian
+          - image: valkey-server-glibc
+            aliases: ""
     permissions:
       id-token: write
       packages: write

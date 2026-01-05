@@ -52,6 +52,10 @@ jobs:
             target: runner
             aliases: |
               sbom-tools-runner-debian
+          - family: valkey
+            image: valkey-server-glibc
+            target: server
+            aliases: ""
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

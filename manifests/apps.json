@@ -1,5 +1,46 @@
 {
   "$schema": "https://schema.fulmenhq.dev/fulmen-toolbox/app-manifest.schema.json",
   "version": 1,
-  "apps": {}
+  "apps": {
+    "valkey": {
+      "tag_prefix": "valkey",
+      "description": "Valkey (Redis-compatible) key-value store server image",
+      "upstream": {
+        "type": "vendor-image",
+        "image": "valkey/valkey",
+        "version": "8.1-bookworm",
+        "digest": "sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571"
+      },
+      "variants": {
+        "server": {
+          "scope": "server",
+          "platform": {
+            "os": "linux",
+            "arch": ["amd64", "arm64"],
+            "libc": "glibc"
+          },
+          "base_image": {
+            "ref": "valkey/valkey:8.1-bookworm",
+            "digest": "sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571"
+          },
+          "baseline_profile": "server_minimal_apt",
+          "contracts": {
+            "ports": [
+              {"name": "valkey", "port": 6379, "protocol": "tcp"}
+            ],
+            "volumes": [
+              {"path": "/data", "mode": "rw", "required": false},
+              {"path": "/certs", "mode": "ro", "required": false}
+            ],
+            "healthcheck": {"type": "cmd", "cmd": ["valkey-cli", "ping"]}
+          },
+          "runtime": {
+            "user": "valkey",
+            "entrypoint": ["docker-entrypoint.sh"],
+            "cmd": ["valkey-server"]
+          }
+        }
+      }
+    }
+  }
 }

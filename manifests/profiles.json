@@ -49,6 +49,14 @@
         "yamllint",
         "xz-utils"
       ]
+    },
+    "server_minimal_apt": {
+      "description": "Minimal production runtime baseline (apt packages)",
+      "package_manager": "apt",
+      "packages": [
+        "ca-certificates",
+        "tzdata"
+      ]
     }
   }
 }

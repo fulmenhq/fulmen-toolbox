@@ -9,13 +9,14 @@
 	build-sbom-tools-multi build-sbom-tools-runner-multi build-sbom-tools-slim-multi build-sbom-tools-runner-glibc-multi \
 	test-sbom-tools test-sbom-tools-runner test-sbom-tools-slim \
 	test-sbom-tools-runner-glibc \
+	build-valkey-server-glibc build-valkey-server-glibc-multi test-valkey-server-glibc \
 	clean help bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap \
 	validate-manifest validate-apk-pins lint-workflows lint-dockerfiles quality precommit prepush check-clean check-quick \
 	catalog \
 	release-download release-notes release-sign release-upload verify-release-key release-digests
 
 # Fulmen Toolbox - Local Development Makefile
-# Supports building/testing goneat-tools and sbom-tools
+# Supports building/testing goneat-tools, sbom-tools, and application images (valkey, etc.)
 
 REGISTRY := ghcr.io/fulmenhq
 
@@ -43,6 +44,12 @@ SBOM_SLIM_TAG_LOCAL := $(REGISTRY)/$(SBOM_SLIM_IMAGE):local
 SBOM_SLIM_TAG_LATEST := $(REGISTRY)/$(SBOM_SLIM_IMAGE):latest
 SBOM_GLIBC_TAG_LOCAL := $(REGISTRY)/$(SBOM_GLIBC_IMAGE):local
 SBOM_GLIBC_TAG_LATEST := $(REGISTRY)/$(SBOM_GLIBC_IMAGE):latest
+
+# Application images (v0.3.0+)
+VALKEY_FAMILY := valkey
+VALKEY_SERVER_GLIBC_IMAGE := $(VALKEY_FAMILY)-server-glibc
+VALKEY_SERVER_GLIBC_TAG_LOCAL := $(REGISTRY)/$(VALKEY_SERVER_GLIBC_IMAGE):local
+VALKEY_SERVER_GLIBC_TAG_LATEST := $(REGISTRY)/$(VALKEY_SERVER_GLIBC_IMAGE):latest
 
 VERSION_FILE := VERSION
 BUMP_SCRIPT := scripts/bump-version.sh
@@ -351,6 +358,38 @@ test-sbom-tools-runner-glibc:
 		echo 'sbom-tools-runner-glibc OK!'"
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Application images (v0.3.0+)
+# ─────────────────────────────────────────────────────────────────────────────
+
+## Build valkey-server-glibc (single-arch)
+build-valkey-server-glibc:
+	docker build --target server -t $(VALKEY_SERVER_GLIBC_TAG_LOCAL) images/$(VALKEY_FAMILY)
+
+## Build valkey-server-glibc multi-arch (linux/amd64 + linux/arm64)
+build-valkey-server-glibc-multi:
+	docker buildx create --use || true
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--target server \
+		-t $(VALKEY_SERVER_GLIBC_TAG_LOCAL) \
+		-t $(VALKEY_SERVER_GLIBC_TAG_LATEST) \
+		--push=false \
+		images/$(VALKEY_FAMILY)
+
+## Test valkey-server-glibc
+# Uses trap to ensure container cleanup on failure
+test-valkey-server-glibc:
+	@echo "Testing valkey-server-glibc..."
+	@CONTAINER_ID=$$(docker run --rm -d $(VALKEY_SERVER_GLIBC_TAG_LOCAL)) && \
+	trap "docker stop $$CONTAINER_ID >/dev/null 2>&1 || true" EXIT && \
+	sleep 2 && \
+	docker exec $$CONTAINER_ID valkey-cli ping | grep -q PONG && \
+	docker exec $$CONTAINER_ID sh -c '[ -d /licenses ] && [ -f /licenses/github/valkey-io/valkey/LICENSE ]' && \
+	docker exec $$CONTAINER_ID sh -c '[ -d /notices ]' && \
+	docker exec $$CONTAINER_ID sh -c 'id | grep -q valkey' && \
+	echo 'valkey-server-glibc OK!'
+
+# ─────────────────────────────────────────────────────────────────────────────
 
 ## Clean up local images
 clean:
@@ -360,7 +399,8 @@ clean:
 		$(GONEAT_GLIBC_TAG_LOCAL) $(GONEAT_GLIBC_TAG_LATEST) \
 		$(SBOM_RUNNER_TAG_LOCAL) $(SBOM_RUNNER_TAG_LATEST) \
 		$(SBOM_SLIM_TAG_LOCAL) $(SBOM_SLIM_TAG_LATEST) \
-		$(SBOM_GLIBC_TAG_LOCAL) $(SBOM_GLIBC_TAG_LATEST) || true
+		$(SBOM_GLIBC_TAG_LOCAL) $(SBOM_GLIBC_TAG_LATEST) \
+		$(VALKEY_SERVER_GLIBC_TAG_LOCAL) $(VALKEY_SERVER_GLIBC_TAG_LATEST) || true
 
 ## Show Docker image sizes
 size:
