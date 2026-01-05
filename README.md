@@ -48,6 +48,7 @@ Starting with v0.3.0, canonical tags include the libc dimension (e.g., `*-runner
 | `sbom-tools-runner-musl` | musl / Alpine | multi-arch (amd64, arm64) | SBOM/vuln scanning + CI runner baseline |
 | `sbom-tools-slim-musl` | musl / Alpine | multi-arch (amd64, arm64) | SBOM/vuln scanning tools only |
 | `sbom-tools-runner-glibc` | glibc / Debian | multi-arch (amd64, arm64) | SBOM/vuln scanning + glibc runner baseline |
+| `valkey-server-glibc` | glibc / Debian | multi-arch (amd64, arm64) | Valkey (Redis-compatible) key-value store |
 
 ## Alias Sets (Published)
 
@@ -78,11 +79,7 @@ Multi-arch tags pull native layers automatically (Apple Silicon/Graviton get arm
 >
 > **Note:** Slim variants aim to avoid adding the runner baseline; the base distro may still include copyleft components. Inspect `/licenses/` in the image for details.
 
-Pinned versions: see `manifests/tools.json` (validated via `make validate-manifest`).
-
-**goneat-tools**: Prettier `3.7.4`, Biome `2.3.8`, yamlfmt `v0.20.0`, shfmt `v3.12.0`, checkmake `0.2.2`, actionlint `v1.7.9`, goneat `v0.4.0`, sfetch `v0.2.9`, minisign `0.12-r0`, jq `1.8.1-r0`, yq-go `4.49.2-r1`, ripgrep `15.1.0-r0`, taplo `0.10.0-r0`, bash `5.3.3-r1`, git `2.52.0-r0`, curl `8.17.0-r1` (all pinned). Glibc runners use `node:22-bookworm-slim` and `golang:1.25-bookworm`.
-
-**sbom-tools**: syft `v1.18.1`, grype `v0.86.1`, trivy `v0.68.1`, jq `1.7.1-r0`, yq-go `4.44.5-r5`, git `2.47.3-r0`. Base: `alpine:3.21` (musl). Glibc runners use `debian:bookworm-slim`.
+Pinned versions: see [`manifests/tools.json`](manifests/tools.json) and [`manifests/apps.json`](manifests/apps.json) (validated via `make validate-manifest`).
 
 **Image Registry:** `ghcr.io/fulmenhq/{image}:{tag}`
 
