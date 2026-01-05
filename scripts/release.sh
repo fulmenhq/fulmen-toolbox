@@ -22,8 +22,11 @@
 set -eu
 
 VERSION_FILE=${VERSION_FILE:-VERSION}
-[ -f "$VERSION_FILE" ] || { echo "VERSION file missing at $VERSION_FILE" >&2; exit 1; }
-VERSION=$(tr -d ' \t\n\r' < "$VERSION_FILE")
+[ -f "$VERSION_FILE" ] || {
+	echo "VERSION file missing at $VERSION_FILE" >&2
+	exit 1
+}
+VERSION=$(tr -d ' \t\n\r' <"$VERSION_FILE")
 
 commands_required="docker cosign gpg minisign syft"
 
@@ -31,16 +34,16 @@ echo "Planned release for version: $VERSION"
 echo
 echo "Prereqs (install if missing):"
 for cmd in $commands_required; do
-  if command -v "$cmd" >/dev/null 2>&1; then
-    echo "  - $cmd: ok"
-  else
-    echo "  - $cmd: MISSING"
-  fi
+	if command -v "$cmd" >/dev/null 2>&1; then
+		echo "  - $cmd: ok"
+	else
+		echo "  - $cmd: MISSING"
+	fi
 done
 if docker buildx version >/dev/null 2>&1; then
-  echo "  - docker buildx: ok"
+	echo "  - docker buildx: ok"
 else
-  echo "  - docker buildx: MISSING"
+	echo "  - docker buildx: MISSING"
 fi
 echo
 cat <<EOF

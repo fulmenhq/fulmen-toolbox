@@ -4,6 +4,26 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-01-05
+
+### Added
+
+- **Canonical tag taxonomy (ADR-0006)**: Image names now include libc dimension (`-runner-musl`, `-slim-musl`, `-runner-glibc`). Short-name aliases remain for compatibility.
+- **Application image class**: New `manifests/apps.json` schema and `schemas/app-manifest.schema.json` for server/service images (distinct from tool images).
+- **valkey-server-glibc**: First application image — Valkey (Redis-compatible) key-value store as vendor-image repack.
+- **server_minimal_apt profile**: Minimal baseline for production server images (`ca-certificates`, `tzdata`).
+- **Image taxonomy standard**: `docs/standards/image-taxonomy.md` as normative reference for naming conventions.
+
+### Changed
+
+- Renamed tool images to canonical form: `goneat-tools-runner` → `goneat-tools-runner-musl`, etc.
+- Release and build workflows updated to publish canonical tags with alias mappings.
+- Marked `scripts/release.sh` as legacy (v0.2.x era); CI workflow is the canonical release path.
+
+### Fixed
+
+- Tool manifest schema now enforces valid image ID patterns (`^[a-z0-9][a-z0-9-]*$`).
+
 ## [0.2.4] - 2026-01-03
 
 - Bumped `goneat` to v0.4.2.
@@ -55,7 +75,8 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 For earlier history, see GitHub Releases: https://github.com/fulmenhq/fulmen-toolbox/releases
 
-[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.0
 [0.2.4]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.4
 [0.2.3]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.3
 [0.2.2]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.2
