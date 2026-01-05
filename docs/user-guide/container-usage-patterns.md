@@ -40,11 +40,11 @@ Each toolbox image comes in three variants:
 
 ```bash
 # CI job (runner) - has bash, make, git
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-runner:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-runner-musl:latest \
   bash -c "make lint && make format"
 
 # Local tool replacement (slim) - just the tools
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest \
   prettier --write "**/*.md"
 ```
 
@@ -72,7 +72,7 @@ docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:la
 ### Basic Structure
 
 ```bash
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest \
   <tool> <arguments>
 ```
 
@@ -86,31 +86,31 @@ docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:la
 
 **Format all Markdown/YAML files:**
 ```bash
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest \
   prettier --write "**/*.{md,json,yml,yaml}"
 ```
 
 **Check YAML formatting:**
 ```bash
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest \
   yamlfmt -lint .
 ```
 
 **Lint GitHub Actions workflows:**
 ```bash
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest \
   actionlint
 ```
 
 **Generate SBOM for a project:**
 ```bash
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim-musl:latest \
   syft dir:/work -o spdx-json
 ```
 
 **Scan for vulnerabilities:**
 ```bash
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim-musl:latest \
   grype dir:/work
 ```
 
@@ -120,16 +120,16 @@ Add to your `~/.bashrc` or `~/.zshrc`. Use `-slim` variants for local tool repla
 
 ```bash
 # goneat-tools-slim aliases (recommended for local use)
-alias prettier='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest prettier'
-alias yamlfmt='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest yamlfmt'
-alias biome='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest biome'
-alias actionlint='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest actionlint'
-alias shfmt='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest shfmt'
+alias prettier='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest prettier'
+alias yamlfmt='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest yamlfmt'
+alias biome='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest biome'
+alias actionlint='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest actionlint'
+alias shfmt='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest shfmt'
 
 # sbom-tools-slim aliases (recommended for local use)
-alias syft='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim:latest syft'
-alias grype='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim:latest grype'
-alias trivy='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim:latest trivy'
+alias syft='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim-musl:latest syft'
+alias grype='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim-musl:latest grype'
+alias trivy='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim-musl:latest trivy'
 ```
 
 Now you can run:
@@ -147,7 +147,7 @@ Your project's config files (`.prettierrc.json`, `.yamlfmt.yaml`, `biome.json`, 
 
 ```bash
 # This uses YOUR .prettierrc.json, not a default
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest \
   prettier --check .
 ```
 
@@ -164,7 +164,7 @@ For interactive shells and multi-step workflows, prefer `-runner` variants (they
 ### Basic Structure
 
 ```bash
-docker run --rm -it -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-runner:latest sh
+docker run --rm -it -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-runner-musl:latest sh
 ```
 
 | Flag | Purpose |
@@ -175,7 +175,7 @@ docker run --rm -it -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-run
 ### Example Session
 
 ```bash
-$ docker run --rm -it -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-runner:latest sh
+$ docker run --rm -it -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-runner-musl:latest sh
 
 /work $ prettier --version
 3.4.2
@@ -221,7 +221,7 @@ If you see `EACCES` or permission errors:
 ```bash
 # Run as your user ID
 docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/work" -w /work \
-  ghcr.io/fulmenhq/goneat-tools-slim:latest prettier --write .
+  ghcr.io/fulmenhq/goneat-tools-slim-musl:latest prettier --write .
 ```
 
 ### Files Not Found
@@ -230,7 +230,7 @@ Ensure you're in the correct directory and the volume mount is correct:
 
 ```bash
 # Verify mount
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-runner:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-runner-musl:latest \
   ls -la
 ```
 
@@ -244,7 +244,7 @@ docker run --rm \
   -v "$(pwd):/work" \
   -v "$HOME/.config/yamlfmt:/home/nonroot/.config/yamlfmt:ro" \
   -w /work \
-  ghcr.io/fulmenhq/goneat-tools-slim:latest yamlfmt -lint .
+  ghcr.io/fulmenhq/goneat-tools-slim-musl:latest yamlfmt -lint .
 ```
 
 ---
@@ -258,7 +258,7 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/fulmenhq/goneat-tools-runner:latest
+      image: ghcr.io/fulmenhq/goneat-tools-runner-musl:latest
       options: --user 1001  # Match GHA runner UID
     steps:
       - uses: actions/checkout@v4
@@ -275,17 +275,17 @@ This is essentially "Pattern 2" (working environment) managed by GitHub Actions.
 
 ```bash
 # Format markdown (tool replacement)
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest \
   prettier --write "**/*.md"
 
 # Interactive session
-docker run --rm -it -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-runner:latest sh
+docker run --rm -it -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-runner-musl:latest sh
 
 # Generate SBOM
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim-musl:latest \
   syft dir:/work -o spdx-json > sbom.json
 
 # Scan for vulnerabilities
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim-musl:latest \
   grype dir:/work
 ```

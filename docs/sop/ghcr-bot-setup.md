@@ -150,7 +150,7 @@ export FULMEN_TOOLBOX_GHCR_TOKEN=ghp_...
 # Username must match the PAT owner
 echo "$FULMEN_TOOLBOX_GHCR_TOKEN" | docker login ghcr.io -u fulmenhq-ghcr-bot --password-stdin
 
-docker manifest inspect ghcr.io/fulmenhq/goneat-tools-runner:latest >/dev/null
+docker manifest inspect ghcr.io/fulmenhq/goneat-tools-runner-musl:latest >/dev/null
 ```
 
 ### Confirm token scopes (API header)

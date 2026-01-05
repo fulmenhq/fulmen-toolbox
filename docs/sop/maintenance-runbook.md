@@ -75,15 +75,15 @@ Copyleft note:
 
 ### Variant packages vs alias packages
 
-In v0.2.x we publish explicit variant packages per family:
+In v0.3.x we publish libc-qualified canonical variant packages per family:
 
-- `goneat-tools-runner`, `goneat-tools-slim`
-- `sbom-tools-runner`, `sbom-tools-slim`
+- `goneat-tools-runner-musl`, `goneat-tools-slim-musl`, `goneat-tools-runner-glibc`
+- `sbom-tools-runner-musl`, `sbom-tools-slim-musl`, `sbom-tools-runner-glibc`
 
-We also publish compatibility aliases (bare names):
+We also publish compatibility aliases (time-boxed):
 
-- `goneat-tools:*` aliases to `goneat-tools-runner:*`
-- `sbom-tools:*` aliases to `sbom-tools-runner:*`
+- Shorthand packages (e.g., `goneat-tools-runner:*`) alias to `goneat-tools-runner-musl:*`
+- Bare packages (e.g., `goneat-tools:*`) alias to `goneat-tools-runner-musl:*`
 
 Operational implication:
 - GHCR will show multiple **packages** for the repo (variants + aliases).

@@ -21,8 +21,9 @@ REGISTRY := ghcr.io/fulmenhq
 
 # Image families and variants
 GONEAT_FAMILY := goneat-tools
-GONEAT_RUNNER_IMAGE := $(GONEAT_FAMILY)-runner
-GONEAT_SLIM_IMAGE := $(GONEAT_FAMILY)-slim
+# Canonical (v0.3.0+): musl images include libc in name
+GONEAT_RUNNER_IMAGE := $(GONEAT_FAMILY)-runner-musl
+GONEAT_SLIM_IMAGE := $(GONEAT_FAMILY)-slim-musl
 GONEAT_GLIBC_IMAGE := $(GONEAT_FAMILY)-runner-glibc
 GONEAT_RUNNER_TAG_LOCAL := $(REGISTRY)/$(GONEAT_RUNNER_IMAGE):local
 GONEAT_RUNNER_TAG_LATEST := $(REGISTRY)/$(GONEAT_RUNNER_IMAGE):latest
@@ -32,8 +33,9 @@ GONEAT_GLIBC_TAG_LOCAL := $(REGISTRY)/$(GONEAT_GLIBC_IMAGE):local
 GONEAT_GLIBC_TAG_LATEST := $(REGISTRY)/$(GONEAT_GLIBC_IMAGE):latest
 
 SBOM_FAMILY := sbom-tools
-SBOM_RUNNER_IMAGE := $(SBOM_FAMILY)-runner
-SBOM_SLIM_IMAGE := $(SBOM_FAMILY)-slim
+# Canonical (v0.3.0+): musl images include libc in name
+SBOM_RUNNER_IMAGE := $(SBOM_FAMILY)-runner-musl
+SBOM_SLIM_IMAGE := $(SBOM_FAMILY)-slim-musl
 SBOM_GLIBC_IMAGE := $(SBOM_FAMILY)-runner-glibc
 SBOM_RUNNER_TAG_LOCAL := $(REGISTRY)/$(SBOM_RUNNER_IMAGE):local
 SBOM_RUNNER_TAG_LATEST := $(REGISTRY)/$(SBOM_RUNNER_IMAGE):latest
@@ -41,6 +43,7 @@ SBOM_SLIM_TAG_LOCAL := $(REGISTRY)/$(SBOM_SLIM_IMAGE):local
 SBOM_SLIM_TAG_LATEST := $(REGISTRY)/$(SBOM_SLIM_IMAGE):latest
 SBOM_GLIBC_TAG_LOCAL := $(REGISTRY)/$(SBOM_GLIBC_IMAGE):local
 SBOM_GLIBC_TAG_LATEST := $(REGISTRY)/$(SBOM_GLIBC_IMAGE):latest
+
 VERSION_FILE := VERSION
 BUMP_SCRIPT := scripts/bump-version.sh
 
@@ -150,7 +153,7 @@ test-goneat-tools-runner:
 		pkg-config --version >/dev/null 2>&1 && \
 		[ -d /licenses ] && [ -d /licenses/alpine ] && [ -d /notices ] && \
 		[ -f /licenses/github/jedisct1/minisign/LICENSE ] && \
-		echo 'goneat-tools-runner OK!'"
+		echo 'goneat-tools-runner-musl OK!'"
 
 ## Test goneat-tools slim
 # Ensures tool payload works and runner baseline packages are absent.
@@ -173,7 +176,7 @@ test-goneat-tools-slim:
 		! command -v bash >/dev/null 2>&1 && \
 		! command -v git >/dev/null 2>&1 && \
 		! command -v curl >/dev/null 2>&1 && \
-		echo 'goneat-tools-slim OK!'"
+		echo 'goneat-tools-slim-musl OK!'"
 
 ## Back-compat alias target (runner)
 test-goneat-tools: test-goneat-tools-runner
@@ -287,7 +290,7 @@ test-sbom-tools-runner:
 		[ -f /licenses/github/anchore/syft/LICENSE ] && \
 		[ -f /licenses/github/anchore/grype/LICENSE ] && \
 		[ -f /licenses/github/aquasecurity/trivy/LICENSE ] && \
-		echo 'sbom-tools-runner OK!'"
+		echo 'sbom-tools-runner-musl OK!'"
 
 ## Test sbom-tools slim
 # NOTE:
@@ -314,7 +317,7 @@ test-sbom-tools-slim:
 		[ -f /licenses/github/anchore/syft/LICENSE ] && \
 		[ -f /licenses/github/anchore/grype/LICENSE ] && \
 		[ -f /licenses/github/aquasecurity/trivy/LICENSE ] && \
-		echo 'sbom-tools-slim OK!'"
+		echo 'sbom-tools-slim-musl OK!'"
 
 ## Back-compat alias target (runner)
 test-sbom-tools: test-sbom-tools-runner
@@ -405,7 +408,7 @@ validate-licenses:
 ## Generate local image catalog from manifests (gitignored)
 # Usage:
 #   make catalog
-#   make catalog IMAGE=goneat-tools-runner
+#   make catalog IMAGE=goneat-tools-runner-musl
 catalog:
 	@mkdir -p dist/catalog
 	@set -eu; \

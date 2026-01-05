@@ -38,31 +38,35 @@ See [Container Usage Patterns](docs/user-guide/container-usage-patterns.md) for 
 
 ## Available Images (Canonical)
 
+Starting with v0.3.0, canonical tags include the libc dimension (e.g., `*-runner-musl`). Short tags that omit libc (e.g., `*-runner`) remain compatibility aliases for a limited transition window.
+
 | Canonical Image | Libc/Distro | Arch | Purpose |
 |-----------------|-------------|------|---------|
-| `goneat-tools-runner` | musl / Alpine | multi-arch (amd64, arm64) | Code quality + CI runner baseline |
-| `goneat-tools-slim` | musl / Alpine | multi-arch (amd64, arm64) | Code quality tools only |
+| `goneat-tools-runner-musl` | musl / Alpine | multi-arch (amd64, arm64) | Code quality + CI runner baseline |
+| `goneat-tools-slim-musl` | musl / Alpine | multi-arch (amd64, arm64) | Code quality tools only |
 | `goneat-tools-runner-glibc` | glibc / Debian | multi-arch (amd64, arm64) | Code quality + glibc runner baseline |
-| `sbom-tools-runner` | musl / Alpine | multi-arch (amd64, arm64) | SBOM/vuln scanning + CI runner baseline |
-| `sbom-tools-slim` | musl / Alpine | multi-arch (amd64, arm64) | SBOM/vuln scanning tools only |
+| `sbom-tools-runner-musl` | musl / Alpine | multi-arch (amd64, arm64) | SBOM/vuln scanning + CI runner baseline |
+| `sbom-tools-slim-musl` | musl / Alpine | multi-arch (amd64, arm64) | SBOM/vuln scanning tools only |
 | `sbom-tools-runner-glibc` | glibc / Debian | multi-arch (amd64, arm64) | SBOM/vuln scanning + glibc runner baseline |
 
 ## Alias Sets (Published)
 
+See `docs/standards/image-taxonomy.md` and `docs/images/tag-taxonomy.md` for the full taxonomy and alias rules.
+
 | Canonical | Type | Alias Tags | Notes |
 |-----------|------|------------|-------|
-| `goneat-tools-runner` | multi-arch | `goneat-tools`, `goneat-tools-runner-musl`, `goneat-tools-runner-alpine` | `-runner` remains the musl/Alpine default. |
-| `goneat-tools-slim` | multi-arch | `goneat-tools-slim-musl`, `goneat-tools-slim-alpine` | Slim remains musl/Alpine. |
+| `goneat-tools-runner-musl` | multi-arch | `goneat-tools-runner`, `goneat-tools`, `goneat-tools-runner-alpine` | Musl runner canonical; shorthand remains a compatibility alias. |
+| `goneat-tools-slim-musl` | multi-arch | `goneat-tools-slim`, `goneat-tools-slim-alpine` | Musl slim canonical; shorthand remains a compatibility alias. |
 | `goneat-tools-runner-glibc` | multi-arch | `goneat-tools-runner-debian` | Glibc runner uses Debian bookworm-slim. |
-| `goneat-tools-runner-amd64` | single-arch (when published) | `goneat-tools-runner-musl-amd64`, `goneat-tools-runner-alpine-amd64` | Force amd64 in CI/debug. |
-| `goneat-tools-runner-arm64` | single-arch (when published) | `goneat-tools-runner-musl-arm64`, `goneat-tools-runner-alpine-arm64` | Force arm64 on Apple Silicon/Graviton. |
+| `goneat-tools-runner-musl-amd64` | single-arch (when published) | `goneat-tools-runner-amd64`, `goneat-tools-runner-alpine-amd64` | Force amd64 in CI/debug. |
+| `goneat-tools-runner-musl-arm64` | single-arch (when published) | `goneat-tools-runner-arm64`, `goneat-tools-runner-alpine-arm64` | Force arm64 on Apple Silicon/Graviton. |
 | `goneat-tools-runner-glibc-amd64` | single-arch (when published) | `goneat-tools-runner-debian-amd64` | Force amd64 glibc in CI/debug. |
 | `goneat-tools-runner-glibc-arm64` | single-arch (when published) | `goneat-tools-runner-debian-arm64` | Force arm64 glibc on Apple Silicon/Graviton. |
-| `sbom-tools-runner` | multi-arch | `sbom-tools`, `sbom-tools-runner-musl`, `sbom-tools-runner-alpine` | `-runner` remains the musl/Alpine default. |
-| `sbom-tools-slim` | multi-arch | `sbom-tools-slim-musl`, `sbom-tools-slim-alpine` | Slim remains musl/Alpine. |
+| `sbom-tools-runner-musl` | multi-arch | `sbom-tools-runner`, `sbom-tools`, `sbom-tools-runner-alpine` | Musl runner canonical; shorthand remains a compatibility alias. |
+| `sbom-tools-slim-musl` | multi-arch | `sbom-tools-slim`, `sbom-tools-slim-alpine` | Musl slim canonical; shorthand remains a compatibility alias. |
 | `sbom-tools-runner-glibc` | multi-arch | `sbom-tools-runner-debian` | Glibc runner uses Debian bookworm-slim. |
-| `sbom-tools-runner-amd64` | single-arch (when published) | `sbom-tools-runner-musl-amd64`, `sbom-tools-runner-alpine-amd64` | Force amd64 in CI/debug. |
-| `sbom-tools-runner-arm64` | single-arch (when published) | `sbom-tools-runner-musl-arm64`, `sbom-tools-runner-alpine-arm64` | Force arm64 on Apple Silicon/Graviton. |
+| `sbom-tools-runner-musl-amd64` | single-arch (when published) | `sbom-tools-runner-amd64`, `sbom-tools-runner-alpine-amd64` | Force amd64 in CI/debug. |
+| `sbom-tools-runner-musl-arm64` | single-arch (when published) | `sbom-tools-runner-arm64`, `sbom-tools-runner-alpine-arm64` | Force arm64 on Apple Silicon/Graviton. |
 | `sbom-tools-runner-glibc-amd64` | single-arch (when published) | `sbom-tools-runner-debian-amd64` | Force amd64 glibc in CI/debug. |
 | `sbom-tools-runner-glibc-arm64` | single-arch (when published) | `sbom-tools-runner-debian-arm64` | Force arm64 glibc on Apple Silicon/Graviton. |
 
@@ -91,7 +95,7 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/fulmenhq/goneat-tools:latest
+      image: ghcr.io/fulmenhq/goneat-tools-runner-musl:latest
       options: --user 1001  # Match GHA runner mount ownership
     steps:
       - uses: actions/checkout@v4
@@ -108,7 +112,7 @@ jobs:
 **Note**: Uses your **local configs** (.prettierrc.json, .yamlfmt.yaml, etc.) via volume mount – image provides tools only.
 
 ```bash
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest \
   sh -c "prettier --write '**/*.{md,json,yml,yaml}' && yamlfmt -w ."
 ```
 

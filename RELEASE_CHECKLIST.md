@@ -198,7 +198,7 @@ Repeat for each variant image:
 cosign verify \
   --certificate-oidc-issuer https://accounts.google.com \
   --certificate-identity-regexp ".*@.*" \
-  ghcr.io/fulmenhq/goneat-tools-runner@sha256:<digest>
+  ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest>
 ```
 
 ### Cosign SBOM (attestation, recommended)
@@ -211,10 +211,10 @@ cosign verify \
 ```bash
 cosign verify-attestation \
   --type spdxjson \
-  ghcr.io/fulmenhq/goneat-tools-runner@sha256:<digest>
+  ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest>
 
 # Extract the predicate JSON (SPDX) from the attestation:
-cosign verify-attestation --type spdxjson ghcr.io/fulmenhq/goneat-tools-runner@sha256:<digest> \
+cosign verify-attestation --type spdxjson ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest> \
   | jq -r '.payload' \
   | base64 -d \
   | jq -r '.predicate'
@@ -225,31 +225,31 @@ cosign verify-attestation --type spdxjson ghcr.io/fulmenhq/goneat-tools-runner@s
 OCI attachment is a discovery convenience but is deprecated upstream (`cosign attach sbom`).
 
 ```bash
-cosign download sbom ghcr.io/fulmenhq/goneat-tools-runner@sha256:<digest>
+cosign download sbom ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest>
 ```
 
 ### GPG
 
 ```bash
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner.asc
+curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner-musl
+curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner-musl.asc
 curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/fulmen-toolbox-release-signing-key.asc
 
 # Use temp keyring to avoid polluting user's GPG home
 GPG_TMPDIR=$(mktemp -d)
 gpg --homedir "$GPG_TMPDIR" --import fulmen-toolbox-release-signing-key.asc
-gpg --homedir "$GPG_TMPDIR" --verify SHA256SUMS-goneat-tools-runner.asc SHA256SUMS-goneat-tools-runner
+gpg --homedir "$GPG_TMPDIR" --verify SHA256SUMS-goneat-tools-runner-musl.asc SHA256SUMS-goneat-tools-runner-musl
 rm -rf "$GPG_TMPDIR"
 ```
 
 ### Minisign
 
 ```bash
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner.minisig
+curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner-musl
+curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner-musl.minisig
 curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/fulmenhq-release-signing.pub
 
-minisign -Vm SHA256SUMS-goneat-tools-runner -p fulmenhq-release-signing.pub
+minisign -Vm SHA256SUMS-goneat-tools-runner-musl -p fulmenhq-release-signing.pub
 ```
 
 ## Post-release

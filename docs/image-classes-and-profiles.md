@@ -17,20 +17,24 @@ graph TD
   end
 
   subgraph "Build Outputs"
-    I[Image family Dockerfile(s)] --> S[<family>-slim\nTools only]
-    S --> R[<family>-runner\nSlim + runner_baseline]
-    B[<app>-server\nServer profile + runtime + app]
+    I[Image family Dockerfile(s)] --> S[<tag-prefix>-slim-<libc>\nTools only]
+    S --> R[<tag-prefix>-runner-<libc>\nSlim + runner_baseline]
+    B[<tag-prefix>-server-<libc>\nServer profile + runtime + app]
+    H[<tag-prefix>-harness-<libc>\nHarness profile + app + optional deps]
   end
 
   subgraph "Profiles"
     RB[runner_baseline\nCI job container expectations]
     RBA[runner_baseline_apt\nCI job container + build tools]
-    SB[server_* (planned)\nProduction runtime expectations]
+    SB[server_*\nProduction runtime expectations]
+    HB[harness_*\nDev/test harness expectations]
   end
 
-  RB --> R
-  RBA --> R
-  SB --> B
+   RB --> R
+   RBA --> R
+   SB --> B
+   HB --> H
+
 ```
 
 ASCII view (same idea):
@@ -158,7 +162,7 @@ Recommendation:
 If you need extra packages or tools:
 
 ```dockerfile
-FROM ghcr.io/fulmenhq/goneat-tools-runner:latest
+FROM ghcr.io/fulmenhq/goneat-tools-runner-musl:latest
 USER root
 RUN apk add --no-cache <your-extra-packages>
 USER 65534:65534

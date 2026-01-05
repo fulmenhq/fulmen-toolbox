@@ -1,0 +1,5 @@
+{
+  "$schema": "https://schema.fulmenhq.dev/fulmen-toolbox/app-manifest.schema.json",
+  "version": 1,
+  "apps": {}
+}

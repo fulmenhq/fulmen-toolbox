@@ -97,10 +97,10 @@ Document these commands in release notes:
 cosign verify \
   --certificate-oidc-issuer https://accounts.google.com \
   --certificate-identity-regexp ".*@.*" \
-  ghcr.io/fulmenhq/goneat-tools-runner@sha256:<digest>
+  ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest>
 
 cosign verify-attestation --type spdxjson \
-  ghcr.io/fulmenhq/goneat-tools-runner@sha256:<digest>
+  ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest>
 ```
 
 ## Notes

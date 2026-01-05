@@ -1,0 +1,244 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.fulmenhq.dev/fulmen-toolbox/app-manifest.schema.json",
+  "title": "Fulmen Toolbox App Manifest",
+  "type": "object",
+  "required": ["version", "apps"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "integer", "minimum": 1 },
+    "apps": {
+      "type": "object",
+      "minProperties": 0,
+      "propertyNames": { "type": "string", "pattern": "^[a-z0-9]+$" },
+      "additionalProperties": { "$ref": "#/$defs/app" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "sha256Digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "tagPrefix": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "platform": {
+      "type": "object",
+      "required": ["os", "arch", "libc"],
+      "properties": {
+        "os": { "type": "string", "enum": ["linux"] },
+        "arch": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["amd64", "arm64"] },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "libc": { "type": "string", "enum": ["glibc", "musl"] }
+      },
+      "additionalProperties": false
+    },
+    "baseImage": {
+      "type": "object",
+      "required": ["ref", "digest"],
+      "properties": {
+        "ref": { "type": "string", "minLength": 1 },
+        "digest": { "$ref": "#/$defs/sha256Digest" }
+      },
+      "additionalProperties": false
+    },
+    "upstream": {
+      "type": "object",
+      "required": ["type"],
+      "oneOf": [
+        {
+          "title": "Upstream vendor image",
+          "required": ["type", "image", "version", "digest"],
+          "properties": {
+            "type": { "const": "vendor-image" },
+            "image": { "type": "string", "minLength": 1 },
+            "version": { "type": "string", "minLength": 1 },
+            "digest": { "$ref": "#/$defs/sha256Digest" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "title": "GitHub release asset",
+          "required": ["type", "repo", "tag", "asset"],
+          "properties": {
+            "type": { "const": "github-release" },
+            "repo": { "type": "string", "pattern": "^[^/]+/[^/]+$" },
+            "tag": { "type": "string", "minLength": 1 },
+            "asset": { "type": "string", "minLength": 1 },
+            "checksums": {
+              "type": "object",
+              "properties": {
+                "sha256": { "type": "string", "minLength": 1 },
+                "minisign": { "type": "string", "minLength": 1 },
+                "gpg": { "type": "string", "minLength": 1 }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "title": "Source build",
+          "required": ["type", "repo", "ref"],
+          "properties": {
+            "type": { "const": "source-build" },
+            "repo": { "type": "string", "pattern": "^[^/]+/[^/]+$" },
+            "ref": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "port": {
+      "type": "object",
+      "required": ["name", "port", "protocol"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "protocol": { "type": "string", "enum": ["tcp", "udp"] },
+        "expose": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "volume": {
+      "type": "object",
+      "required": ["path", "mode", "required"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/" },
+        "mode": { "type": "string", "enum": ["ro", "rw"] },
+        "required": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "healthcheck": {
+      "type": "object",
+      "required": ["type"],
+      "oneOf": [
+        {
+          "title": "HTTP healthcheck",
+          "required": ["type", "path", "port"],
+          "properties": {
+            "type": { "const": "http" },
+            "path": { "type": "string", "pattern": "^/" },
+            "port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+          },
+          "additionalProperties": false
+        },
+        {
+          "title": "TCP healthcheck",
+          "required": ["type", "port"],
+          "properties": {
+            "type": { "const": "tcp" },
+            "port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+          },
+          "additionalProperties": false
+        },
+        {
+          "title": "Command healthcheck",
+          "required": ["type", "cmd"],
+          "properties": {
+            "type": { "const": "cmd" },
+            "cmd": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "minItems": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contracts": {
+      "type": "object",
+      "required": ["ports", "volumes", "healthcheck"],
+      "properties": {
+        "ports": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/port" },
+          "minItems": 1
+        },
+        "volumes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/volume" }
+        },
+        "healthcheck": { "$ref": "#/$defs/healthcheck" }
+      },
+      "additionalProperties": false
+    },
+    "runtime": {
+      "type": "object",
+      "required": ["user", "entrypoint", "cmd"],
+      "properties": {
+        "user": { "type": "string", "minLength": 1 },
+        "entrypoint": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "cmd": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "bundled": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type", "mode"],
+        "properties": {
+          "type": { "type": "string", "minLength": 1 },
+          "mode": { "type": "string", "enum": ["in-image", "external"] },
+          "data_path": { "type": "string", "pattern": "^/" },
+          "contracts": { "$ref": "#/$defs/contracts" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "variant": {
+      "type": "object",
+      "required": [
+        "scope",
+        "platform",
+        "base_image",
+        "baseline_profile",
+        "contracts",
+        "runtime"
+      ],
+      "properties": {
+        "scope": { "type": "string", "enum": ["server", "harness"] },
+        "platform": { "$ref": "#/$defs/platform" },
+        "base_image": { "$ref": "#/$defs/baseImage" },
+        "baseline_profile": { "type": "string", "minLength": 1 },
+        "contracts": { "$ref": "#/$defs/contracts" },
+        "runtime": { "$ref": "#/$defs/runtime" },
+        "bundled": { "$ref": "#/$defs/bundled" }
+      },
+      "additionalProperties": false
+    },
+    "app": {
+      "type": "object",
+      "required": ["tag_prefix", "description", "upstream", "variants"],
+      "properties": {
+        "tag_prefix": { "$ref": "#/$defs/tagPrefix" },
+        "description": { "type": "string", "minLength": 1 },
+        "upstream": { "$ref": "#/$defs/upstream" },
+        "variants": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "type": "string", "pattern": "^[a-z0-9]+$" },
+          "additionalProperties": { "$ref": "#/$defs/variant" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -3,6 +3,21 @@
 # release.sh
 # Produce a repeatable release plan for the current VERSION.
 # This is intentionally conservative: it prints commands to run manually.
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# LEGACY SCRIPT — Reference Only (v0.2.x era)
+#
+# This script predates the v0.3.0 canonical naming model. It outputs commands
+# for the old `goneat-tools` alias, not the canonical `goneat-tools-runner-musl`.
+#
+# For v0.3.0+ releases:
+#   - CI workflow: .github/workflows/release.yml (handles all canonical + alias tags)
+#   - Manual signing: see docs/sop/maintenance-runbook.md and `make release-signing-help`
+#   - Tag taxonomy: docs/standards/image-taxonomy.md
+#
+# This script is retained for historical reference. A manifest-driven replacement
+# is tracked in .plans/backlog/dynamic-build-targets.md.
+# ══════════════════════════════════════════════════════════════════════════════
 
 set -eu
 

@@ -17,17 +17,17 @@ jobs:
       matrix:
         include:
           - family: goneat-tools
-            image: goneat-tools-runner
+            image: goneat-tools-runner-musl
             target: runner
             aliases: |
+              goneat-tools-runner
               goneat-tools
-              goneat-tools-runner-musl
               goneat-tools-runner-alpine
           - family: goneat-tools
-            image: goneat-tools-slim
+            image: goneat-tools-slim-musl
             target: slim
             aliases: |
-              goneat-tools-slim-musl
+              goneat-tools-slim
               goneat-tools-slim-alpine
           - family: goneat-tools-glibc
             image: goneat-tools-runner-glibc
@@ -35,17 +35,17 @@ jobs:
             aliases: |
               goneat-tools-runner-debian
           - family: sbom-tools
-            image: sbom-tools-runner
+            image: sbom-tools-runner-musl
             target: runner
             aliases: |
+              sbom-tools-runner
               sbom-tools
-              sbom-tools-runner-musl
               sbom-tools-runner-alpine
           - family: sbom-tools
-            image: sbom-tools-slim
+            image: sbom-tools-slim-musl
             target: slim
             aliases: |
-              sbom-tools-slim-musl
+              sbom-tools-slim
               sbom-tools-slim-alpine
           - family: sbom-tools-glibc
             image: sbom-tools-runner-glibc

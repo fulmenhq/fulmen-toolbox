@@ -9,10 +9,10 @@ This doc is intentionally conceptual. It does not enumerate pinned versions (to 
 
 ## Variants
 
-- `ghcr.io/fulmenhq/goneat-tools-slim` — tool payload only (no runner baseline)
-- `ghcr.io/fulmenhq/goneat-tools-runner` — tool payload + runner baseline utilities for CI
+- `ghcr.io/fulmenhq/goneat-tools-slim-musl` — tool payload only (no runner baseline)
+- `ghcr.io/fulmenhq/goneat-tools-runner-musl` — tool payload + runner baseline utilities for CI
 - `ghcr.io/fulmenhq/goneat-tools-runner-glibc` — glibc runner + build tools for CGO workloads
-- Compatibility alias: `ghcr.io/fulmenhq/goneat-tools:*` points to `goneat-tools-runner:*`
+- Compatibility alias: `ghcr.io/fulmenhq/goneat-tools:*` points to `goneat-tools-runner-musl:*`
 
 See `docs/images/tag-taxonomy.md` for canonical tags and alias mappings.
 
@@ -20,30 +20,31 @@ See `docs/images/tag-taxonomy.md` for canonical tags and alias mappings.
 
 ### Option A: Use the release SBOM (recommended)
 
-Each release publishes SBOM assets. For example (v0.2.1):
+Each release publishes SBOM assets. For v0.3.0+ releases, musl images include the libc dimension in the image name:
 
-- `sbom-goneat-tools-runner-0.2.1.json`
-- `sbom-goneat-tools-slim-0.2.1.json`
+- `sbom-goneat-tools-runner-musl-<version>.json`
+- `sbom-goneat-tools-slim-musl-<version>.json`
 
 Download and inspect:
 
 ```bash
-FULMEN_TOOLBOX_RELEASE_TAG=v0.2.1
-curl -LO "https://github.com/fulmenhq/fulmen-toolbox/releases/download/${FULMEN_TOOLBOX_RELEASE_TAG}/sbom-goneat-tools-runner-0.2.1.json"
+FULMEN_TOOLBOX_RELEASE_TAG=v<version>
+VERSION=<version>
+curl -LO "https://github.com/fulmenhq/fulmen-toolbox/releases/download/${FULMEN_TOOLBOX_RELEASE_TAG}/sbom-goneat-tools-runner-musl-${VERSION}.json"
 
-jq -r '.packages[]?.name' sbom-goneat-tools-runner-0.2.1.json | sort -u | head
+jq -r '.packages[]?.name' sbom-goneat-tools-runner-musl-${VERSION}.json | sort -u | head
 ```
 
 ### Option B: Generate an SBOM from the image you pulled
 
 ```bash
-syft ghcr.io/fulmenhq/goneat-tools-runner:v0.2.1 -o spdx-json > sbom.json
+syft ghcr.io/fulmenhq/goneat-tools-runner-musl:v<version> -o spdx-json > sbom.json
 ```
 
 ### Option C: Quick interactive spot-check
 
 ```bash
-docker run --rm ghcr.io/fulmenhq/goneat-tools-runner:v0.2.1 -c "prettier --version && biome --version && yamlfmt --version"
+docker run --rm ghcr.io/fulmenhq/goneat-tools-runner-musl:v<version> -c "prettier --version && biome --version && yamlfmt --version"
 ```
 
 ## Maintainer tooling: local manifest-derived catalog
@@ -52,7 +53,7 @@ For maintainers, `make catalog` generates a local markdown inventory from the ma
 
 ```bash
 make catalog
-make catalog IMAGE=goneat-tools-runner
+make catalog IMAGE=goneat-tools-runner-musl
 ```
 
 ## GitHub Actions runner permissions (container jobs)
@@ -67,7 +68,7 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/fulmenhq/goneat-tools-runner:latest
+      image: ghcr.io/fulmenhq/goneat-tools-runner-musl:latest
       options: --user 1001
     steps:
       - uses: actions/checkout@v4
@@ -78,6 +79,6 @@ Fallback (less secure):
 
 ```yaml
 container:
-  image: ghcr.io/fulmenhq/goneat-tools-runner:latest
+  image: ghcr.io/fulmenhq/goneat-tools-runner-musl:latest
   options: --user root
 ```

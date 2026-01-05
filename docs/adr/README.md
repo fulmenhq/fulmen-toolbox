@@ -15,3 +15,4 @@ Purpose: record decisions for fulmen-toolbox with clear status and discoverabili
 - ADR-0003-licenses-and-notices — Accepted — Standard /licenses and /notices layout in images.
 - ADR-0004-copyleft-and-runner-images — Proposed — Runner baselines may include copyleft tools; document and surface licenses.
 - ADR-0005-license-metadata-and-validation — Accepted — Tool manifest tracks license/notice expectations; CI validates in-image paths.
+- ADR-0006-image-taxonomy-and-governance — Proposed — Canonical tag format (incl. libc), alias transition, suffix governance, no arbitrary packages.

@@ -8,19 +8,19 @@ Practical guides for using Fulmen Toolbox images.
 
 | Variant | Use | Example |
 |---------|-----|---------|
-| `-runner` | CI jobs, needs bash/make/gcc | `ghcr.io/fulmenhq/goneat-tools-runner:latest` |
-| `-slim` | Local tool replacement | `ghcr.io/fulmenhq/goneat-tools-slim:latest` |
+| `-runner` | CI jobs, needs bash/make/gcc | `ghcr.io/fulmenhq/goneat-tools-runner-musl:latest` |
+| `-slim` | Local tool replacement | `ghcr.io/fulmenhq/goneat-tools-slim-musl:latest` |
 | `-runner-glibc` | CGO builds, glibc deps | `ghcr.io/fulmenhq/goneat-tools-runner-glibc:latest` |
 
 **Run a tool without installing it:**
 ```bash
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim:latest \
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest \
   prettier --write "**/*.md"
 ```
 
 **Start an interactive session:**
 ```bash
-docker run --rm -it -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-runner:latest sh
+docker run --rm -it -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-runner-musl:latest sh
 ```
 
 ## Contents

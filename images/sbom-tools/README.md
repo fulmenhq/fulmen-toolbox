@@ -25,7 +25,7 @@ This image bundles upstream license texts under `/licenses/` and upstream notice
 See `manifests/tools.json` for pinning details and `docs/user-guide/container-usage-patterns.md` for usage patterns.
 
 **Image Tags:**
-- `ghcr.io/fulmenhq/sbom-tools:latest`
+- `ghcr.io/fulmenhq/sbom-tools-runner-musl:latest`
 - `ghcr.io/fulmenhq/sbom-tools:v0.1.1` (semver tags)
 
 ## Usage
@@ -34,18 +34,18 @@ See `manifests/tools.json` for pinning details and `docs/user-guide/container-us
 
 ```bash
 # Scan a directory
-docker run --rm -v "$(pwd):/work" ghcr.io/fulmenhq/sbom-tools:latest \
+docker run --rm -v "$(pwd):/work" ghcr.io/fulmenhq/sbom-tools-runner-musl:latest \
   -c "syft /work -o cyclonedx-json > sbom.cdx.json"
 
 # Scan a container image
-docker run --rm ghcr.io/fulmenhq/sbom-tools:latest \
-  -c "syft ghcr.io/fulmenhq/goneat-tools:latest -o cyclonedx-json"
+docker run --rm ghcr.io/fulmenhq/sbom-tools-runner-musl:latest \
+  -c "syft ghcr.io/fulmenhq/goneat-tools-runner-musl:latest -o cyclonedx-json"
 ```
 
 ### Generate SBOM (SPDX JSON)
 
 ```bash
-docker run --rm -v "$(pwd):/work" ghcr.io/fulmenhq/sbom-tools:latest \
+docker run --rm -v "$(pwd):/work" ghcr.io/fulmenhq/sbom-tools-runner-musl:latest \
   -c "syft /work -o spdx-json > sbom.spdx.json"
 ```
 
@@ -53,16 +53,16 @@ docker run --rm -v "$(pwd):/work" ghcr.io/fulmenhq/sbom-tools:latest \
 
 ```bash
 # Scan a directory
-docker run --rm -v "$(pwd):/work" ghcr.io/fulmenhq/sbom-tools:latest \
+docker run --rm -v "$(pwd):/work" ghcr.io/fulmenhq/sbom-tools-runner-musl:latest \
   -c "grype /work"
 
 # Scan from SBOM
-docker run --rm -v "$(pwd):/work" ghcr.io/fulmenhq/sbom-tools:latest \
+docker run --rm -v "$(pwd):/work" ghcr.io/fulmenhq/sbom-tools-runner-musl:latest \
   -c "grype sbom:/work/sbom.cdx.json"
 
 # Scan a container image
-docker run --rm ghcr.io/fulmenhq/sbom-tools:latest \
-  -c "grype ghcr.io/fulmenhq/goneat-tools:latest"
+docker run --rm ghcr.io/fulmenhq/sbom-tools-runner-musl:latest \
+  -c "grype ghcr.io/fulmenhq/goneat-tools-runner-musl:latest"
 ```
 
 ### GitHub Actions
@@ -72,7 +72,7 @@ jobs:
   sbom:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/fulmenhq/sbom-tools:latest
+      image: ghcr.io/fulmenhq/sbom-tools-runner-musl:latest
     steps:
       - uses: actions/checkout@v4
       - name: Generate SBOM
@@ -97,7 +97,7 @@ Grype downloads its vulnerability database on first run (~150MB). For CI pipelin
 docker run --rm \
   -v "$(pwd):/work" \
   -v "${HOME}/.cache/grype:/root/.cache/grype" \
-  ghcr.io/fulmenhq/sbom-tools:latest \
+  ghcr.io/fulmenhq/sbom-tools-runner-musl:latest \
   -c "grype /work"
 ```
 

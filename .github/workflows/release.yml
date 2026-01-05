@@ -14,17 +14,17 @@ jobs:
       matrix:
         include:
           - family: goneat-tools
-            image: goneat-tools-runner
+            image: goneat-tools-runner-musl
             target: runner
             aliases: |
+              goneat-tools-runner
               goneat-tools
-              goneat-tools-runner-musl
               goneat-tools-runner-alpine
           - family: goneat-tools
-            image: goneat-tools-slim
+            image: goneat-tools-slim-musl
             target: slim
             aliases: |
-              goneat-tools-slim-musl
+              goneat-tools-slim
               goneat-tools-slim-alpine
           - family: goneat-tools-glibc
             image: goneat-tools-runner-glibc
@@ -32,17 +32,17 @@ jobs:
             aliases: |
               goneat-tools-runner-debian
           - family: sbom-tools
-            image: sbom-tools-runner
+            image: sbom-tools-runner-musl
             target: runner
             aliases: |
+              sbom-tools-runner
               sbom-tools
-              sbom-tools-runner-musl
               sbom-tools-runner-alpine
           - family: sbom-tools
-            image: sbom-tools-slim
+            image: sbom-tools-slim-musl
             target: slim
             aliases: |
-              sbom-tools-slim-musl
+              sbom-tools-slim
               sbom-tools-slim-alpine
           - family: sbom-tools-glibc
             image: sbom-tools-runner-glibc
@@ -145,6 +145,34 @@ jobs:
     needs: release
     runs-on: ubuntu-latest
     environment: release-signing
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: goneat-tools-runner-musl
+            aliases: |
+              goneat-tools-runner
+              goneat-tools
+              goneat-tools-runner-alpine
+          - image: goneat-tools-slim-musl
+            aliases: |
+              goneat-tools-slim
+              goneat-tools-slim-alpine
+          - image: goneat-tools-runner-glibc
+            aliases: |
+              goneat-tools-runner-debian
+          - image: sbom-tools-runner-musl
+            aliases: |
+              sbom-tools-runner
+              sbom-tools
+              sbom-tools-runner-alpine
+          - image: sbom-tools-slim-musl
+            aliases: |
+              sbom-tools-slim
+              sbom-tools-slim-alpine
+          - image: sbom-tools-runner-glibc
+            aliases: |
+              sbom-tools-runner-debian
     permissions:
       id-token: write
       packages: write
@@ -173,19 +201,31 @@ jobs:
         env:
           COSIGN_YES: "true"
           OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ matrix.image }}
+          ALIASES: ${{ matrix.aliases }}
         run: |
-          set -eu
-          IMAGES="$(bash scripts/list-images.sh --format space)"
-          for image in $IMAGES; do
-            ref="$REGISTRY/$OWNER/$image:v$VERSION"
+          set -euo pipefail
+
+          sbom="sbom-$IMAGE-$VERSION.json"
+          curl -fsSL "https://github.com/$OWNER/fulmen-toolbox/releases/download/v$VERSION/$sbom" -o "$sbom"
+
+          names=("$IMAGE")
+          if [ -n "${ALIASES}" ]; then
+            while IFS= read -r alias; do
+              [ -n "$alias" ] || continue
+              names+=("$alias")
+            done <<< "$ALIASES"
+          fi
+
+          for name in "${names[@]}"; do
+            ref="$REGISTRY/$OWNER/$name:v$VERSION"
             digest=$(docker manifest inspect "$ref" -v 2>/dev/null | \
               jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end') || true
             if [ -z "$digest" ] || [ "$digest" = "null" ]; then
               echo "❌ Unable to resolve digest for $ref" >&2
               exit 1
             fi
-            sbom="sbom-$image-$VERSION.json"
-            curl -fsSL "https://github.com/$OWNER/fulmen-toolbox/releases/download/v$VERSION/$sbom" -o "$sbom"
-            cosign sign "$REGISTRY/$OWNER/$image@$digest"
-            cosign attest --predicate "$sbom" --type spdxjson "$REGISTRY/$OWNER/$image@$digest"
+
+            cosign sign "$REGISTRY/$OWNER/$name@$digest"
+            cosign attest --predicate "$sbom" --type spdxjson "$REGISTRY/$OWNER/$name@$digest"
           done

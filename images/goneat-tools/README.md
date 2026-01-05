@@ -31,7 +31,7 @@ This image bundles upstream license texts under `/licenses/` and upstream notice
 See `docs/images/goneat-tools.md` and `manifests/tools.json` for pinning details.
 
 **Image Tags:**
-- `ghcr.io/fulmenhq/goneat-tools:latest`
+- `ghcr.io/fulmenhq/goneat-tools-runner-musl:latest`
 - `ghcr.io/fulmenhq/goneat-tools:v0.1.1` (semver tags)
 
 ## Usage
@@ -43,7 +43,7 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/fulmenhq/goneat-tools:latest
+      image: ghcr.io/fulmenhq/goneat-tools-runner-musl:latest
       options: --user 1001  # Match GHA runner mount ownership
     steps:
       - uses: actions/checkout@v4
@@ -62,7 +62,7 @@ This image runs as a non-root user by default. GitHub Actions mounts workspace d
 
 ```yaml
 container:
-  image: ghcr.io/fulmenhq/goneat-tools:latest
+  image: ghcr.io/fulmenhq/goneat-tools-runner-musl:latest
   options: --user 1001  # Required for GHA runner mounts
 ```
 
@@ -88,18 +88,18 @@ Mount your repo and run tools:
 ```bash
 # Format files
 docker run --rm -v "$(pwd):/work" -w /work \
-  ghcr.io/fulmenhq/goneat-tools:latest \
+  ghcr.io/fulmenhq/goneat-tools-runner-musl:latest \
   sh -c "prettier --write '**/*.{md,json,yml,yaml}' && yamlfmt -w ."
 
 # Lint/check only
 docker run --rm -v "$(pwd):/work" -w /work \
-  ghcr.io/fulmenhq/goneat-tools:latest \
+  ghcr.io/fulmenhq/goneat-tools-runner-musl:latest \
   sh -c "prettier --check '**/*.{md,json,yml,yaml}' && yamlfmt -lint ."
 
 # Preserve user/group ownership
 docker run --rm -v "$(pwd):/work" -w /work \
   --user $(id -u):$(id -g) \
-  ghcr.io/fulmenhq/goneat-tools:latest \
+  ghcr.io/fulmenhq/goneat-tools-runner-musl:latest \
   sh -c "prettier --write '**/*.{md,json,yml,yaml}'"
 ```
 
@@ -107,7 +107,7 @@ docker run --rm -v "$(pwd):/work" -w /work \
 
 ```bash
 make build-goneat-tools  # From repo root
-docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools:local sh -c "prettier --version; yamlfmt --version"
+docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-runner-musl:local sh -c "prettier --version; yamlfmt --version"
 ```
 
 ## Development
