@@ -19,8 +19,23 @@ on:
       - ".github/workflows/**"
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-m
     steps:
+      - name: Show initial disk usage
+        run: |
+          echo "=== Initial disk usage ==="
+          df -h /
+          echo "=== Docker images ==="
+          docker images 2>/dev/null || true
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          docker image prune -af || true
+          sudo apt-get clean || true
+      - name: Show disk usage after cleanup
+        run: |
+          echo "=== Disk usage after cleanup ==="
+          df -h /
       - name: Checkout
         uses: actions/checkout@v4
       - name: Resolve lint tool versions (from manifests)
