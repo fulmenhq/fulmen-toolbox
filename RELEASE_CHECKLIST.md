@@ -21,6 +21,7 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
 - [ ] Sync pins: update `manifests/tools.json`, Dockerfile ARGs, and `docs/images/goneat-tools.md`
 - [ ] If adding a new image, confirm `manifests/tools.json` includes it (release signing/digests derive from the manifest list)
 - [ ] Run local checks: `make precommit` (manifest + workflows lint) and `make prepush` (quality + build + test)
+- [ ] Run `make validate-licenses` (builds all images and validates license/notice paths; ~5-10min)
 - [ ] Validate docs reflect current tooling (inventory, architecture, ADRs)
 - [ ] Review CI cosign signing runbook: `docs/operations/ci-cosign-signing.md`
 
