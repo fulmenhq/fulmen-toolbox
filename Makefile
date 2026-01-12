@@ -10,10 +10,13 @@
 	test-sbom-tools test-sbom-tools-runner test-sbom-tools-slim \
 	test-sbom-tools-runner-glibc \
 	build-valkey-server-glibc build-valkey-server-glibc-multi test-valkey-server-glibc \
-	clean help bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap \
+	prove prove-goneat prove-sbom prove-runners prove-multi prove-goneat-multi prove-sbom-multi \
+	clean help bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap bootstrap-tools \
 	validate-manifest validate-apk-pins lint-workflows lint-dockerfiles quality precommit prepush check-clean check-quick \
 	catalog \
-	release-download release-notes release-sign release-upload verify-release-key release-digests
+	release-download release-notes release-sign release-upload verify-release-key release-digests \
+	validate-subsystems validate-subsystem-echo-proxy-fixture validate-subsystem-authentik-idp \
+	test-subsystem-echo-proxy-fixture test-subsystem-authentik-idp
 
 # Fulmen Toolbox - Local Development Makefile
 # Supports building/testing goneat-tools, sbom-tools, and application images (valkey, etc.)
@@ -66,10 +69,20 @@ VALIDATE_PINS ?= scripts/validate-pins.sh
 VALIDATE_APK_PINS ?= scripts/validate-apk-pins.sh
 VALIDATE_PROFILES ?= scripts/validate-profiles.sh
 VALIDATE_LICENSES ?= scripts/validate-licenses.sh
+VALIDATE_SUBSYSTEMS ?= scripts/validate-subsystems.sh
+TEST_SUBSYSTEM_ECHO_PROXY_FIXTURE ?= scripts/test-subsystem-echo-proxy-fixture.sh
+TEST_SUBSYSTEM_AUTHENTIK_IDP ?= scripts/test-subsystem-authentik-idp.sh
 YAMLFMT ?= yamlfmt
 YAMLFMT_PIN ?= v0.20.0
 MISSING_ACTION ?= "missing required tooling; install before proceeding"
 YAMLLINT ?= yamllint
+
+# Bootstrap tooling (sfetch -> goneat trust chain)
+# Note: GONEAT_VERSION is a minimum version; if goneat is already installed, it is used as-is.
+GONEAT_VERSION ?= v0.4.4
+BINDIR ?= $(HOME)/.local/bin
+SFETCH_BIN = $(shell command -v sfetch 2>/dev/null || echo "")
+GONEAT_BIN = $(shell command -v goneat 2>/dev/null || echo "")
 
 ## Build and test all images
 all: build-all test-all
@@ -79,6 +92,90 @@ build-all: build-goneat-tools-runner build-goneat-tools-slim build-goneat-tools-
 
 ## Test all images
 test-all: test-goneat-tools-runner test-goneat-tools-slim test-goneat-tools-runner-glibc test-sbom-tools-runner test-sbom-tools-slim test-sbom-tools-runner-glibc
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Parallel builds with buildx bake (prove targets)
+# ─────────────────────────────────────────────────────────────────────────────
+# These targets use docker-bake.hcl for parallel builds with shared cache.
+# Much faster than sequential `make build-*` for proving all images work.
+#
+# Usage:
+#   make prove              # All images, native arch, parallel
+#   make prove-multi        # All images, multi-arch (amd64+arm64), parallel
+#   make prove-goneat       # Just goneat images, native arch
+#   make prove-goneat-multi # Just goneat images, multi-arch
+#   make prove-sbom         # Just sbom images, native arch
+#   make prove-runners      # Just runner images (skip slim), native arch
+#
+# Cache options (faster subsequent builds):
+#   make prove CACHE=1      # Use local .buildcache directory
+#
+# Advanced:
+#   make prove TARGET=goneat-runner-musl  # Single target from bake file
+
+BAKE_FILE := docker-bake.hcl
+BUILDCACHE_DIR := .buildcache
+
+# Cache flags for buildx bake
+ifdef CACHE
+BAKE_CACHE_FLAGS := --set *.cache-from=type=local,src=$(BUILDCACHE_DIR) \
+                    --set *.cache-to=type=local,dest=$(BUILDCACHE_DIR),mode=max
+else
+BAKE_CACHE_FLAGS :=
+endif
+
+# Multi-arch platform flag
+BAKE_MULTI_PLATFORM := --set *.platform=linux/amd64,linux/arm64
+
+## Prove all images build (native arch, parallel via bake)
+prove:
+ifdef TARGET
+	docker buildx bake -f $(BAKE_FILE) $(BAKE_CACHE_FLAGS) $(TARGET)
+else
+	docker buildx bake -f $(BAKE_FILE) $(BAKE_CACHE_FLAGS)
+endif
+
+## Prove all images build (multi-arch: amd64+arm64, parallel via bake)
+prove-multi:
+ifdef TARGET
+	docker buildx bake -f $(BAKE_FILE) $(BAKE_CACHE_FLAGS) $(BAKE_MULTI_PLATFORM) $(TARGET)
+else
+	docker buildx bake -f $(BAKE_FILE) $(BAKE_CACHE_FLAGS) $(BAKE_MULTI_PLATFORM)
+endif
+
+## Prove goneat images (native arch)
+prove-goneat:
+	docker buildx bake -f $(BAKE_FILE) $(BAKE_CACHE_FLAGS) goneat
+
+## Prove goneat images (multi-arch)
+prove-goneat-multi:
+	docker buildx bake -f $(BAKE_FILE) $(BAKE_CACHE_FLAGS) $(BAKE_MULTI_PLATFORM) goneat
+
+## Prove sbom images (native arch)
+prove-sbom:
+	docker buildx bake -f $(BAKE_FILE) $(BAKE_CACHE_FLAGS) sbom
+
+## Prove sbom images (multi-arch)
+prove-sbom-multi:
+	docker buildx bake -f $(BAKE_FILE) $(BAKE_CACHE_FLAGS) $(BAKE_MULTI_PLATFORM) sbom
+
+## Prove runner images only (skip slim, native arch)
+prove-runners:
+	docker buildx bake -f $(BAKE_FILE) $(BAKE_CACHE_FLAGS) runners
+
+## Prove runner images only (skip slim, multi-arch)
+prove-runners-multi:
+	docker buildx bake -f $(BAKE_FILE) $(BAKE_CACHE_FLAGS) $(BAKE_MULTI_PLATFORM) runners
+
+## Initialize local build cache directory
+cache-init:
+	@mkdir -p $(BUILDCACHE_DIR)
+	@echo "Created $(BUILDCACHE_DIR) for buildx cache"
+
+## Clear local build cache
+cache-clear:
+	@rm -rf $(BUILDCACHE_DIR)
+	@echo "Cleared $(BUILDCACHE_DIR)"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # goneat-tools targets
@@ -137,6 +234,7 @@ build-goneat-tools-multi: build-goneat-tools-runner-multi
 
 ## Test goneat-tools runner
 # NOTE: validates runner baseline presence implicitly via common utilities.
+# NOTE: cargo-audit and cargo-nextest are skipped on arm64 musl (glibc binaries only).
 test-goneat-tools-runner:
 	docker run --rm $(GONEAT_RUNNER_TAG_LOCAL) -c "\
 		prettier --version && \
@@ -153,6 +251,25 @@ test-goneat-tools-runner:
 		minisign -v >/dev/null 2>&1 && \
 		goneat version >/dev/null 2>&1 && \
 		sfetch --help >/dev/null 2>&1 && \
+		shellsentry --version >/dev/null 2>&1 && \
+		syft version >/dev/null 2>&1 && \
+		grype version >/dev/null 2>&1 && \
+		rustc --version >/dev/null 2>&1 && \
+		cargo --version >/dev/null 2>&1 && \
+		rustfmt --version >/dev/null 2>&1 && \
+		cargo clippy --version >/dev/null 2>&1 && \
+		cargo deny --version >/dev/null 2>&1 && \
+		([ \$$(uname -m) = 'aarch64' ] || cargo audit --version >/dev/null 2>&1) && \
+		cargo-zigbuild --version >/dev/null 2>&1 && \
+		([ \$$(uname -m) = 'aarch64' ] || cargo nextest --version >/dev/null 2>&1) && \
+		cbindgen --version >/dev/null 2>&1 && \
+		go version >/dev/null 2>&1 && \
+		zig version >/dev/null 2>&1 && \
+		python3 --version >/dev/null 2>&1 && \
+		uv --version >/dev/null 2>&1 && \
+		maturin --version >/dev/null 2>&1 && \
+		pytest --version >/dev/null 2>&1 && \
+		command -v napi >/dev/null 2>&1 && \
 		bash --version >/dev/null 2>&1 && \
 		git --version >/dev/null 2>&1 && \
 		curl --version >/dev/null 2>&1 && \
@@ -160,6 +277,11 @@ test-goneat-tools-runner:
 		pkg-config --version >/dev/null 2>&1 && \
 		[ -d /licenses ] && [ -d /licenses/alpine ] && [ -d /notices ] && \
 		[ -f /licenses/github/jedisct1/minisign/LICENSE ] && \
+		[ -f /licenses/github/3leaps/shellsentry/LICENSE ] && \
+		[ -f /licenses/go/LICENSE ] && \
+		[ -f /licenses/zig/LICENSE ] && \
+		[ -f /licenses/rust/LICENSE-APACHE ] && \
+		[ -f /licenses/crates/cargo-deny/LICENSE-APACHE ] && \
 		echo 'goneat-tools-runner-musl OK!'"
 
 ## Test goneat-tools slim
@@ -180,6 +302,24 @@ test-goneat-tools-slim:
 		minisign -v >/dev/null 2>&1 && \
 		goneat version >/dev/null 2>&1 && \
 		sfetch --help >/dev/null 2>&1 && \
+		! command -v shellsentry >/dev/null 2>&1 && \
+		! command -v syft >/dev/null 2>&1 && \
+		! command -v grype >/dev/null 2>&1 && \
+		! command -v rustc >/dev/null 2>&1 && \
+		! command -v cargo >/dev/null 2>&1 && \
+		! command -v rustfmt >/dev/null 2>&1 && \
+		! command -v cargo-deny >/dev/null 2>&1 && \
+		! command -v cargo-audit >/dev/null 2>&1 && \
+		! command -v cargo-zigbuild >/dev/null 2>&1 && \
+		! command -v cargo-nextest >/dev/null 2>&1 && \
+		! command -v cbindgen >/dev/null 2>&1 && \
+		! command -v go >/dev/null 2>&1 && \
+		! command -v zig >/dev/null 2>&1 && \
+		! command -v python3 >/dev/null 2>&1 && \
+		! command -v uv >/dev/null 2>&1 && \
+		! command -v maturin >/dev/null 2>&1 && \
+		! command -v pytest >/dev/null 2>&1 && \
+		! command -v napi >/dev/null 2>&1 && \
 		! command -v bash >/dev/null 2>&1 && \
 		! command -v git >/dev/null 2>&1 && \
 		! command -v curl >/dev/null 2>&1 && \
@@ -205,6 +345,25 @@ test-goneat-tools-runner-glibc:
 		minisign -v >/dev/null 2>&1 && \
 		goneat version >/dev/null 2>&1 && \
 		sfetch --help >/dev/null 2>&1 && \
+		shellsentry --version >/dev/null 2>&1 && \
+		syft version >/dev/null 2>&1 && \
+		grype version >/dev/null 2>&1 && \
+		rustc --version >/dev/null 2>&1 && \
+		cargo --version >/dev/null 2>&1 && \
+		rustfmt --version >/dev/null 2>&1 && \
+		cargo clippy --version >/dev/null 2>&1 && \
+		cargo deny --version >/dev/null 2>&1 && \
+		cargo audit --version >/dev/null 2>&1 && \
+		cargo-zigbuild --version >/dev/null 2>&1 && \
+		cargo nextest --version >/dev/null 2>&1 && \
+		cbindgen --version >/dev/null 2>&1 && \
+		go version >/dev/null 2>&1 && \
+		zig version >/dev/null 2>&1 && \
+		python3 --version >/dev/null 2>&1 && \
+		uv --version >/dev/null 2>&1 && \
+		maturin --version >/dev/null 2>&1 && \
+		pytest --version >/dev/null 2>&1 && \
+		command -v napi >/dev/null 2>&1 && \
 		bash --version >/dev/null 2>&1 && \
 		git --version >/dev/null 2>&1 && \
 		curl --version >/dev/null 2>&1 && \
@@ -212,7 +371,68 @@ test-goneat-tools-runner-glibc:
 		pkg-config --version >/dev/null 2>&1 && \
 		[ -d /licenses ] && [ -d /licenses/debian ] && [ -d /notices ] && \
 		[ -f /licenses/github/jedisct1/minisign/LICENSE ] && \
+		[ -f /licenses/github/3leaps/shellsentry/LICENSE ] && \
+		[ -f /licenses/go/LICENSE ] && \
+		[ -f /licenses/zig/LICENSE ] && \
+		[ -f /licenses/rust/LICENSE-APACHE ] && \
+		[ -f /licenses/crates/cargo-deny/LICENSE-APACHE ] && \
 		echo 'goneat-tools-runner-glibc OK!'"
+
+## Inventory goneat-tools runner (musl)
+inventory-goneat-tools-runner:
+	docker run --rm $(GONEAT_RUNNER_TAG_LOCAL) -c "\
+		echo 'goneat-tools-runner-musl inventory' && \
+		node --version && \
+		npm --version && \
+		goneat version && \
+		sfetch --version && \
+		shellsentry --version && \
+		syft version && \
+		grype version && \
+		rustc --version && \
+		cargo --version && \
+		rustfmt --version && \
+		cargo clippy --version && \
+		cargo deny --version && \
+		cargo audit --version && \
+		cargo-zigbuild --version && \
+		cargo nextest --version && \
+		cbindgen --version && \
+		go version && \
+		zig version && \
+		python3 --version && \
+		uv --version && \
+		maturin --version && \
+		pytest --version && \
+		echo napi \$$(napi -h 2>&1 | head -1)"
+
+## Inventory goneat-tools runner (glibc)
+inventory-goneat-tools-runner-glibc:
+	docker run --rm $(GONEAT_GLIBC_TAG_LOCAL) -c "\
+		echo 'goneat-tools-runner-glibc inventory' && \
+		node --version && \
+		npm --version && \
+		goneat version && \
+		sfetch --version && \
+		shellsentry --version && \
+		syft version && \
+		grype version && \
+		rustc --version && \
+		cargo --version && \
+		rustfmt --version && \
+		cargo clippy --version && \
+		cargo deny --version && \
+		cargo audit --version && \
+		cargo-zigbuild --version && \
+		cargo nextest --version && \
+		cbindgen --version && \
+		go version && \
+		zig version && \
+		python3 --version && \
+		uv --version && \
+		maturin --version && \
+		pytest --version && \
+		echo napi \$$(napi -h 2>&1 | head -1)"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # sbom-tools targets
@@ -282,6 +502,7 @@ test-sbom-tools-runner:
 		syft version && \
 		grype version && \
 		trivy version && \
+		shellsentry --version >/dev/null 2>&1 && \
 		yamllint --version && \
 		jq --version && \
 		yq --version && \
@@ -297,6 +518,7 @@ test-sbom-tools-runner:
 		[ -f /licenses/github/anchore/syft/LICENSE ] && \
 		[ -f /licenses/github/anchore/grype/LICENSE ] && \
 		[ -f /licenses/github/aquasecurity/trivy/LICENSE ] && \
+		[ -f /licenses/github/3leaps/shellsentry/LICENSE ] && \
 		echo 'sbom-tools-runner-musl OK!'"
 
 ## Test sbom-tools slim
@@ -310,6 +532,7 @@ test-sbom-tools-slim:
 		syft version && \
 		grype version && \
 		trivy version && \
+		! command -v shellsentry >/dev/null 2>&1 && \
 		! command -v yamllint >/dev/null 2>&1 && \
 		jq --version && \
 		yq --version && \
@@ -340,6 +563,7 @@ test-sbom-tools-runner-glibc:
 		syft version && \
 		grype version && \
 		trivy version && \
+		shellsentry --version >/dev/null 2>&1 && \
 		yamllint --version && \
 		jq --version && \
 		yq --version && \
@@ -355,6 +579,7 @@ test-sbom-tools-runner-glibc:
 		[ -f /licenses/github/anchore/syft/LICENSE ] && \
 		[ -f /licenses/github/anchore/grype/LICENSE ] && \
 		[ -f /licenses/github/aquasecurity/trivy/LICENSE ] && \
+		[ -f /licenses/github/3leaps/shellsentry/LICENSE ] && \
 		echo 'sbom-tools-runner-glibc OK!'"
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -444,6 +669,24 @@ validate-profiles:
 ## Validate curated licenses/notices exist in built images
 validate-licenses:
 	@$(VALIDATE_LICENSES)
+
+## Validate subsystem manifests + compose config
+validate-subsystems:
+	@$(VALIDATE_SUBSYSTEMS)
+
+validate-subsystem-echo-proxy-fixture:
+	@$(VALIDATE_SUBSYSTEMS) echo-proxy-fixture
+
+validate-subsystem-authentik-idp:
+	@$(VALIDATE_SUBSYSTEMS) authentik-idp
+
+## Smoke test: evaluation-scale subsystem
+# Requires a local Docker daemon.
+test-subsystem-echo-proxy-fixture:
+	@$(TEST_SUBSYSTEM_ECHO_PROXY_FIXTURE)
+
+test-subsystem-authentik-idp:
+	@$(TEST_SUBSYSTEM_AUTHENTIK_IDP)
 
 ## Generate local image catalog from manifests (gitignored)
 # Usage:
@@ -693,8 +936,46 @@ release-signing-help:
 	@echo "   FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-upload"
 	@echo ""
 
-## Check required tooling is installed (tiered: core vs release)
-prereqs bootstrap:
+## Bootstrap repo tooling (trust-anchor: sfetch -> goneat -> doctor tools)
+# Installs foundation tools from .goneat/tools.yaml (jq, yamlfmt, trivy).
+# Checks container-dev scope (docker, colima) as advisory only (not installed).
+bootstrap:
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "Bootstrap: sfetch -> goneat -> doctor tools"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@if [ -z "$(SFETCH_BIN)" ]; then \
+		echo "❌ sfetch not found (required trust anchor)"; \
+		echo ""; \
+		echo "Install sfetch with:"; \
+		echo "  curl -sSfL https://github.com/3leaps/sfetch/releases/latest/download/install-sfetch.sh | bash"; \
+		echo ""; \
+		exit 1; \
+	else \
+		echo "✅ sfetch found: $$($(SFETCH_BIN) --version 2>&1 | head -n1)"; \
+		echo "→ sfetch self-verify (trust anchor):"; \
+		$(SFETCH_BIN) --self-verify; \
+	fi
+	@mkdir -p "$(BINDIR)"; \
+	if [ -x "$(BINDIR)/goneat" ] && "$(BINDIR)/goneat" --version 2>/dev/null | grep -q "$(GONEAT_VERSION)"; then \
+		echo "→ goneat $(GONEAT_VERSION) already available at $(BINDIR)/goneat"; \
+	else \
+		echo "→ Installing goneat $(GONEAT_VERSION) to $(BINDIR) via sfetch..."; \
+		$(SFETCH_BIN) --repo fulmenhq/goneat --tag $(GONEAT_VERSION) --dest-dir "$(BINDIR)"; \
+	fi
+	@echo "→ Installing foundation tools via goneat doctor..."
+	@$(GONEAT_BIN) doctor tools --config .goneat/tools.yaml --scope foundation --install --yes --no-cooling
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "Checking container runtime (advisory - not auto-installed)..."
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@$(GONEAT_BIN) doctor tools --config .goneat/tools.yaml --scope container-dev || true
+	@echo ""
+	@echo "✅ Bootstrap complete. Ensure $(BINDIR) is on PATH."
+	@echo "   Note: Docker/Colima must be installed manually."
+
+## Check required tooling is installed (advisory; tiered: core vs release)
+# Quick verification without installation. For full setup, use 'make bootstrap'.
+prereqs:
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo "Checking tooling (see CONTRIBUTING.md for full setup)"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

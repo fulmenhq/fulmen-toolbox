@@ -1,0 +1,37 @@
+$schema: ../../schemas/subsystem-manifest.schema.json
+name: authentik-idp
+version: 0.1.0
+description: Authentik identity provider fixture for OIDC-backed middleware development
+category: infrastructure
+status: prototype
+upstream:
+  project: goauthentik/authentik
+  version: "2024.12"
+  image: ghcr.io/goauthentik/server
+  docs_url: https://docs.goauthentik.io/
+provides:
+  - oidc-provider
+dependencies:
+  - image: postgres
+    pin: "16-alpine"
+    purpose: Database
+  - image: ghcr.io/fulmenhq/valkey-server-glibc
+    pin: "v0.3.0"
+    purpose: Redis-compatible cache (valkey)
+  - image: ghcr.io/goauthentik/server
+    pin: "2024.12"
+    purpose: Authentik server and worker
+presets:
+  dev-fixture:
+    description: Development fixture with known users and bootstrap token
+    env_file: presets/dev-fixture.env
+  small-scale-ops:
+    description: Single-node deployment preset (requires review and real secrets)
+    env_file: presets/small-scale-ops.env
+ports:
+  - port: 9000
+    protocol: http
+    purpose: Authentik web UI and API
+  - port: 9443
+    protocol: https
+    purpose: TLS endpoint

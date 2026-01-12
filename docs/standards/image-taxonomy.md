@@ -52,6 +52,13 @@ The SSOT for catalog metadata is stored in JSON manifests:
 - `manifests/profiles.json` — baseline profiles (apk/apt)
 - `manifests/apps.json` — application/service catalog (variants, contracts, upstream pins)
 
+## Subsystems
+
+Subsystems are coordinated **multi-container** deployments (Docker Compose + mounted config) stored in-repo under `subsystems/`.
+
+- Subsystems use a per-subsystem `MANIFEST.yaml` (SSOT) validated against `schemas/subsystem-manifest.schema.json`.
+- Subsystems are not published as single images; they primarily reference existing images (including fulmen-toolbox images) and provide compose-based fixtures.
+
 Internal IDs must be machine-friendly:
 
 - Manifest keys/IDs MUST match `^[a-z0-9]+$` (no hyphens/underscores).

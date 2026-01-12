@@ -210,7 +210,7 @@
     },
     {
       "name": "goneat",
-      "version": "v0.4.2",
+      "version": "v0.4.4",
       "source": "go",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "FulmenHQ DX CLI: wrap and orchestrate formatting/linting/assessment/hook workflows.",
@@ -222,7 +222,7 @@
     },
     {
       "name": "sfetch",
-      "version": "v0.3.2",
+      "version": "v0.4.0",
       "source": "go",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "Trust-anchor downloader: defaults to signature+checksum verification for GitHub release assets.",
@@ -231,10 +231,187 @@
       "license_path": "/licenses/github/3leaps/sfetch/LICENSE"
     },
     {
-      "name": "syft",
-      "version": "v1.18.1",
+      "name": "go",
+      "version": "1.25.5",
       "source": "binary",
-      "images": ["sbom-tools-slim-musl", "sbom-tools-runner-musl", "sbom-tools-runner-glibc"],
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "Pinned Go toolchain from go.dev archives.",
+      "license_spdx": "BSD-3-Clause",
+      "license_source": "manual",
+      "license_path": "/licenses/go/LICENSE"
+    },
+    {
+      "name": "zig",
+      "version": "0.15.2",
+      "source": "binary",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "Pinned Zig toolchain from ziglang.org.",
+      "license_spdx": "MIT",
+      "license_source": "manual",
+      "license_path": "/licenses/zig/LICENSE"
+    },
+    {
+      "name": "rustc",
+      "version": "1.92.0",
+      "source": "binary",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "Pinned Rust compiler via rustup.",
+      "license_spdx": "Apache-2.0 OR MIT",
+      "license_source": "manual",
+      "license_paths": [
+        "/licenses/rust/LICENSE-APACHE",
+        "/licenses/rust/LICENSE-MIT"
+      ]
+    },
+    {
+      "name": "cargo",
+      "version": "1.92.0",
+      "source": "binary",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "Pinned Cargo toolchain via rustup.",
+      "license_spdx": "Apache-2.0 OR MIT",
+      "license_source": "manual",
+      "license_paths": [
+        "/licenses/rust/LICENSE-APACHE",
+        "/licenses/rust/LICENSE-MIT"
+      ]
+    },
+    {
+      "name": "rustfmt",
+      "version": "1.92.0",
+      "source": "binary",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "Rust formatter component via rustup.",
+      "license_spdx": "Apache-2.0 OR MIT",
+      "license_source": "manual",
+      "license_paths": [
+        "/licenses/rust/LICENSE-APACHE",
+        "/licenses/rust/LICENSE-MIT"
+      ]
+    },
+    {
+      "name": "clippy",
+      "version": "1.92.0",
+      "source": "binary",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "Rust clippy component via rustup.",
+      "license_spdx": "Apache-2.0 OR MIT",
+      "license_source": "manual",
+      "license_paths": [
+        "/licenses/rust/LICENSE-APACHE",
+        "/licenses/rust/LICENSE-MIT"
+      ]
+    },
+    {
+      "name": "cargo-deny",
+      "version": "0.19.0",
+      "source": "binary",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "Cargo plugin for license/advisory/source auditing.",
+      "license_spdx": "MIT OR Apache-2.0",
+      "license_source": "manual",
+      "license_paths": [
+        "/licenses/crates/cargo-deny/LICENSE-APACHE",
+        "/licenses/crates/cargo-deny/LICENSE-MIT"
+      ]
+    },
+    {
+      "name": "cargo-audit",
+      "version": "0.22.0",
+      "source": "binary",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "Cargo plugin for RustSec vulnerability auditing.",
+      "license_spdx": "Apache-2.0 OR MIT",
+      "license_source": "manual",
+      "license_path": "/licenses/crates/cargo-audit/LICENSE"
+    },
+    {
+      "name": "cargo-zigbuild",
+      "version": "0.20.1",
+      "source": "binary",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "Cargo plugin for cross-compilation with Zig.",
+      "license_spdx": "MIT",
+      "license_source": "manual",
+      "license_path": "/licenses/crates/cargo-zigbuild/LICENSE"
+    },
+    {
+      "name": "cargo-nextest",
+      "version": "0.9.120",
+      "source": "binary",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "Cargo plugin for running tests with nextest.",
+      "license_spdx": "Apache-2.0 OR MIT",
+      "license_source": "manual",
+      "license_path": "/licenses/crates/cargo-nextest/LICENSE"
+    },
+    {
+      "name": "cbindgen",
+      "version": "0.29.0",
+      "source": "binary",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "Generates C/C++ headers from Rust code.",
+      "license_spdx": "MPL-2.0",
+      "license_source": "manual",
+      "license_path": "/licenses/crates/cbindgen/LICENSE"
+    },
+    {
+      "name": "uv",
+      "version": "0.9.24",
+      "source": "other",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "Fast Python package manager (installed via pip).",
+      "license_spdx": "MIT",
+      "license_source": "manual",
+      "license_path": "/licenses/pypi/uv/LICENSE"
+    },
+    {
+      "name": "maturin",
+      "version": "1.11.5",
+      "source": "other",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "PyO3/Rust-Python build tool (installed via pip).",
+      "license_spdx": "MIT",
+      "license_source": "manual",
+      "license_path": "/licenses/pypi/maturin/LICENSE"
+    },
+    {
+      "name": "pytest",
+      "version": "9.0.2",
+      "source": "other",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "Python test runner (installed via pip).",
+      "license_spdx": "MIT",
+      "license_source": "manual",
+      "license_path": "/licenses/pypi/pytest/LICENSE"
+    },
+    {
+      "name": "napi-rs-cli",
+      "version": "3.5.1",
+      "source": "npm",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "notes": "N-API tooling from @napi-rs/cli (installed via npm).",
+      "license_spdx": "MIT",
+      "license_source": "npm",
+      "license_path": "/licenses/npm/napi-rs/LICENSE"
+    },
+    {
+      "name": "shellsentry",
+      "version": "v0.1.1",
+      "source": "go",
+      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc", "sbom-tools-runner-musl", "sbom-tools-runner-glibc"],
+      "notes": "Static risk assessment for shell scripts before execution.",
+      "license_spdx": "Apache-2.0",
+      "license_source": "gomodcache",
+      "license_path": "/licenses/github/3leaps/shellsentry/LICENSE",
+      "notice_required": true,
+      "notice_path": "/notices/github/3leaps/shellsentry/NOTICE"
+    },
+    {
+      "name": "syft",
+      "version": "v1.39.0",
+      "source": "binary",
+      "images": ["sbom-tools-slim-musl", "sbom-tools-runner-musl", "sbom-tools-runner-glibc", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "SBOM generator from Anchore (GitHub release binary). Supports CycloneDX + SPDX output formats.",
       "license_spdx": "Apache-2.0",
       "license_source": "upstream-url",
@@ -243,9 +420,9 @@
     },
     {
       "name": "grype",
-      "version": "v0.86.1",
+      "version": "v0.104.3",
       "source": "binary",
-      "images": ["sbom-tools-slim-musl", "sbom-tools-runner-musl", "sbom-tools-runner-glibc"],
+      "images": ["sbom-tools-slim-musl", "sbom-tools-runner-musl", "sbom-tools-runner-glibc", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "Vulnerability scanner from Anchore (GitHub release binary). Pulls DB on first run (~150MB).",
       "license_spdx": "Apache-2.0",
       "license_source": "upstream-url",

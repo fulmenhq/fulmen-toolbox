@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.fulmenhq.dev/fulmen-toolbox/subsystem-manifest.schema.json",
+  "title": "Fulmen Toolbox Subsystem Manifest",
+  "description": "Schema for MANIFEST.yaml files in subsystems/",
+  "type": "object",
+  "required": [
+    "name",
+    "version",
+    "description",
+    "category",
+    "status",
+    "provides",
+    "dependencies",
+    "presets"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference for IDE validation"
+    },
+    "name": {
+      "$ref": "#/$defs/subsystemName",
+      "description": "Subsystem identifier; must match directory name"
+    },
+    "version": {
+      "$ref": "#/$defs/semver",
+      "description": "Subsystem version (independent of repo release)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500,
+      "description": "Brief description of subsystem purpose"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["infrastructure", "observability", "messaging", "other"],
+      "description": "Primary category for organization"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["prototype", "stable", "deprecated"],
+      "description": "Lifecycle status"
+    },
+    "provides": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/capability" },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Capabilities this subsystem offers"
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dependency" },
+      "minItems": 1,
+      "description": "External images required by this subsystem (at least one)"
+    },
+    "upstream": {
+      "$ref": "#/$defs/upstream",
+      "description": "Primary upstream project (if wrapping vendor software)"
+    },
+    "presets": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/presetName" },
+      "additionalProperties": { "$ref": "#/$defs/preset" },
+      "minProperties": 1,
+      "description": "Available configuration presets (at least one required)"
+    },
+    "ports": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/port" },
+      "description": "Default exposed ports (informational)"
+    },
+    "custom_images": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/customImage" },
+      "description": "Custom images built by this subsystem (rare)"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "subsystemName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "minLength": 2,
+      "maxLength": 50,
+      "description": "kebab-case identifier"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$",
+      "description": "Semantic version string"
+    },
+    "capability": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "minLength": 2,
+      "maxLength": 50,
+      "description": "Capability identifier (e.g., oidc-provider, forward-auth)",
+      "examples": [
+        "oidc-provider",
+        "saml-provider",
+        "ldap-directory",
+        "forward-auth",
+        "http-echo",
+        "key-value-store"
+      ]
+    },
+    "presetName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "minLength": 2,
+      "maxLength": 30
+    },
+    "imageRef": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Docker image reference (registry/image or image)"
+    },
+    "imagePin": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Pinned tag or sha256 digest"
+    },
+    "dependency": {
+      "type": "object",
+      "required": ["image", "pin", "purpose"],
+      "properties": {
+        "image": {
+          "$ref": "#/$defs/imageRef",
+          "description": "Image reference without tag"
+        },
+        "pin": {
+          "$ref": "#/$defs/imagePin",
+          "description": "Pinned version (tag or digest)"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Why this dependency is needed"
+        }
+      },
+      "additionalProperties": false
+    },
+    "upstream": {
+      "type": "object",
+      "required": ["project", "version"],
+      "properties": {
+        "project": {
+          "type": "string",
+          "pattern": "^[^/]+/[^/]+$",
+          "description": "GitHub org/repo or project identifier"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Upstream version being wrapped"
+        },
+        "image": {
+          "$ref": "#/$defs/imageRef",
+          "description": "Primary upstream image (if applicable)"
+        },
+        "docs_url": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Link to upstream documentation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "preset": {
+      "type": "object",
+      "required": ["description", "env_file"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 200,
+          "description": "What this preset is for"
+        },
+        "env_file": {
+          "type": "string",
+          "pattern": "^presets/[a-z][a-z0-9-]*\\.env$",
+          "description": "Path to .env file relative to subsystem root"
+        },
+        "compose_file": {
+          "type": "string",
+          "pattern": "^compose(\\.[a-z][a-z0-9-]*)?\\.yaml$",
+          "description": "Compose file to use (defaults to compose.yaml)"
+        },
+        "experimental": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, :latest tags are allowed"
+        }
+      },
+      "additionalProperties": false
+    },
+    "port": {
+      "type": "object",
+      "required": ["port", "protocol", "purpose"],
+      "properties": {
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Port number"
+        },
+        "protocol": {
+          "type": "string",
+          "enum": ["http", "https", "tcp", "udp"],
+          "description": "Protocol"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "What this port is used for"
+        }
+      },
+      "additionalProperties": false
+    },
+    "customImage": {
+      "type": "object",
+      "required": ["name", "dockerfile", "description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+          "description": "Image name (without registry prefix)"
+        },
+        "dockerfile": {
+          "type": "string",
+          "pattern": "^images/[^/]+/Dockerfile$",
+          "description": "Path to Dockerfile relative to subsystem root"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 200,
+          "description": "Purpose of this custom image"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

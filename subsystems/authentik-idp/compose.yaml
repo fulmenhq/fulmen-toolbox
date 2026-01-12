@@ -1,0 +1,106 @@
+name: authentik-idp
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: authentik
+      POSTGRES_USER: authentik
+      POSTGRES_PASSWORD: ${PG_PASS:?PG_PASS required}
+  valkey:
+    image: ghcr.io/fulmenhq/valkey-server-glibc:${VALKEY_VERSION:-v0.3.0}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - valkey_data:/data
+  authentik-server:
+    image: ghcr.io/goauthentik/server:${AUTHENTIK_VERSION:-2024.12}
+    restart: unless-stopped
+    command: server
+    environment:
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?AUTHENTIK_SECRET_KEY required}
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+      AUTHENTIK_REDIS__HOST: valkey
+      AUTHENTIK_DISABLE_STARTUP_ANALYTICS: "true"
+      AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD:-}
+      AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:-}
+      AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL:-admin@localhost}
+    ports:
+      - "${AUTHENTIK_HTTP_PORT:-9000}:9000"
+      - "${AUTHENTIK_HTTPS_PORT:-9443}:9443"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:${AUTHENTIK_VERSION:-2024.12}
+    restart: unless-stopped
+    command: worker
+    environment:
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+      AUTHENTIK_REDIS__HOST: valkey
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD:-}
+      AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:-}
+      AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL:-admin@localhost}
+      OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-Fulmen Test Provider}
+      OIDC_APP_NAME: ${OIDC_APP_NAME:-Fulmen Test Application}
+      OIDC_APP_SLUG: ${OIDC_APP_SLUG:-test-app}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-test-client}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-test-secret}
+      OIDC_REDIRECT_URIS: ${OIDC_REDIRECT_URIS:-http://localhost:8080/callback}
+      FIXTURE_USER_PASSWORD: ${FIXTURE_USER_PASSWORD:-fixture-password-not-for-prod}
+    volumes:
+      - ./config/blueprints/fulmen-fixture.yaml:/blueprints/custom/fulmen-fixture.yaml:ro
+      - ./secrets:/secrets:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+
+  authentik-blueprint:
+    image: ghcr.io/goauthentik/server:${AUTHENTIK_VERSION:-2024.12}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - "set -u; for i in $(seq 1 200); do if ak apply_blueprint custom/fulmen-fixture.yaml; then exit 0; fi; sleep 3; done; echo 'failed to apply blueprint' >&2; exit 1"
+    environment:
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+      AUTHENTIK_REDIS__HOST: valkey
+    volumes:
+      - ./config/blueprints/fulmen-fixture.yaml:/blueprints/custom/fulmen-fixture.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+      authentik-server:
+        condition: service_started
+      authentik-worker:
+        condition: service_started
+volumes:
+  postgres_data:
+  valkey_data:

@@ -8,9 +8,11 @@
 # - runner (default): slim + runner baseline + build tools
 
 ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c
-ARG SYFT_VERSION=v1.18.1
-ARG GRYPE_VERSION=v0.86.1
+ARG GO_IMAGE=golang:1.25-bookworm@sha256:2c7c65601b020ee79db4c1a32ebee0bf3d6b298969ec683e24fcbea29305f10e
+ARG SYFT_VERSION=v1.39.0
+ARG GRYPE_VERSION=v0.104.3
 ARG TRIVY_VERSION=v0.68.1
+ARG SHELLSENTRY_VERSION=v0.1.1
 ARG JQ_VERSION=1.8.1
 ARG YQ_VERSION=v4.49.2
 
@@ -66,6 +68,25 @@ RUN set -eux; \
     curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${ARCH}" -o /out/bin/jq; \
     curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${ARCH}" -o /out/bin/yq; \
     chmod +x /out/bin/syft /out/bin/grype /out/bin/trivy /out/bin/jq /out/bin/yq
+
+# Stage 1b: Build shellsentry (runner-only)
+FROM ${GO_IMAGE} AS shellsentry-builder
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+ARG SHELLSENTRY_VERSION
+RUN go install github.com/3leaps/shellsentry@${SHELLSENTRY_VERSION}
+RUN set -eux; \
+    mkdir -p \
+      /out/bin \
+      /out/licenses/github/3leaps/shellsentry \
+      /out/notices/github/3leaps/shellsentry; \
+    cp /go/bin/shellsentry /out/bin/shellsentry; \
+    GOMODCACHE="$(go env GOMODCACHE)"; \
+    cp "${GOMODCACHE}/github.com/3leaps/shellsentry@${SHELLSENTRY_VERSION}/LICENSE" \
+      /out/licenses/github/3leaps/shellsentry/LICENSE; \
+    cp "${GOMODCACHE}/github.com/3leaps/shellsentry@${SHELLSENTRY_VERSION}/NOTICE" \
+      /out/notices/github/3leaps/shellsentry/NOTICE; \
+    chmod -R a+rX /out
 
 # Stage 2: slim variant (tools only)
 FROM ${DEBIAN_IMAGE} AS slim
@@ -126,5 +147,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     yamllint && \
     rm -rf /var/lib/apt/lists/*
+
+COPY --from=shellsentry-builder /out/bin/shellsentry /usr/local/bin/shellsentry
+COPY --from=shellsentry-builder /out/licenses/github/3leaps/shellsentry/LICENSE /licenses/github/3leaps/shellsentry/LICENSE
+COPY --from=shellsentry-builder /out/notices/github/3leaps/shellsentry/NOTICE /notices/github/3leaps/shellsentry/NOTICE
 
 USER tooluser

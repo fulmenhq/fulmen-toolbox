@@ -115,7 +115,7 @@ docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-mu
 
 ## Local Development
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for full setup guide, Docker runtime options, and troubleshooting.
+See `docs/user-guide/preflight.md` for prerequisites, and [CONTRIBUTING.md](CONTRIBUTING.md) for the full setup guide, Docker runtime options, and troubleshooting.
 
 From repo root:
 ```bash

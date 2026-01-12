@@ -1,0 +1,24 @@
+$schema: ../../schemas/subsystem-manifest.schema.json
+name: echo-proxy-fixture
+version: 0.1.0
+description: Minimal reverse proxy + echo backend for testing proxy patterns
+category: other
+status: prototype
+provides:
+  - http-proxy
+  - http-echo
+dependencies:
+  - image: nginx
+    pin: "1.27-alpine"
+    purpose: Reverse proxy
+  - image: ealen/echo-server
+    pin: "0.9.2"
+    purpose: Echo HTTP requests
+presets:
+  dev-fixture:
+    description: Default proxy configuration
+    env_file: presets/dev-fixture.env
+ports:
+  - port: 8080
+    protocol: http
+    purpose: Proxy endpoint (routes to echo backend)

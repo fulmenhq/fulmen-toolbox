@@ -1,0 +1,12 @@
+services:
+  probe:
+    image: alpine:3.21
+    command: ["sh", "-c", "sleep 3600"]
+    depends_on:
+      - proxy
+      - echo
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://proxy/health && wget -q --spider http://echo:80/"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

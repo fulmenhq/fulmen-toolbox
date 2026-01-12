@@ -8,9 +8,11 @@
 # - runner (default): slim + runner baseline packages
 
 ARG ALPINE_IMAGE=alpine:3.21@sha256:5405e8f36ce1878720f71217d664aa3dea32e5e5df11acbf07fc78ef5661465b
-ARG SYFT_VERSION=v1.18.1
-ARG GRYPE_VERSION=v0.86.1
+ARG GO_IMAGE=golang:1.25-alpine@sha256:26111811bc967321e7b6f852e914d14bede324cd1accb7f81811929a6a57fea9
+ARG SYFT_VERSION=v1.39.0
+ARG GRYPE_VERSION=v0.104.3
 ARG TRIVY_VERSION=v0.68.1
+ARG SHELLSENTRY_VERSION=v0.1.1
 
 # Runner-baseline pinned packages (subset)
 ARG GIT_VERSION=2.47.3-r0
@@ -69,6 +71,24 @@ RUN set -eux; \
     tar -xzf /tmp/trivy.tar.gz -C /out/bin trivy; \
     rm /tmp/trivy.tar.gz; \
     chmod +x /out/bin/syft /out/bin/grype /out/bin/trivy
+
+# Stage 1b: Build shellsentry (runner-only)
+FROM ${GO_IMAGE} AS shellsentry-builder
+RUN apk add --no-cache git
+ARG SHELLSENTRY_VERSION
+RUN go install github.com/3leaps/shellsentry@${SHELLSENTRY_VERSION}
+RUN set -eux; \
+    mkdir -p \
+      /out/bin \
+      /out/licenses/github/3leaps/shellsentry \
+      /out/notices/github/3leaps/shellsentry; \
+    cp /go/bin/shellsentry /out/bin/shellsentry; \
+    GOMODCACHE="$(go env GOMODCACHE)"; \
+    cp "${GOMODCACHE}/github.com/3leaps/shellsentry@${SHELLSENTRY_VERSION}/LICENSE" \
+      /out/licenses/github/3leaps/shellsentry/LICENSE; \
+    cp "${GOMODCACHE}/github.com/3leaps/shellsentry@${SHELLSENTRY_VERSION}/NOTICE" \
+      /out/notices/github/3leaps/shellsentry/NOTICE; \
+    chmod -R a+rX /out
 
 # Stage 2: slim variant (tools only)
 FROM ${ALPINE_IMAGE} AS slim
@@ -131,5 +151,9 @@ RUN apk add --no-cache \
     xz \
     unzip \
     openssh-client
+
+COPY --from=shellsentry-builder /out/bin/shellsentry /usr/local/bin/shellsentry
+COPY --from=shellsentry-builder /out/licenses/github/3leaps/shellsentry/LICENSE /licenses/github/3leaps/shellsentry/LICENSE
+COPY --from=shellsentry-builder /out/notices/github/3leaps/shellsentry/NOTICE /notices/github/3leaps/shellsentry/NOTICE
 
 USER tooluser

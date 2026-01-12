@@ -1,0 +1,125 @@
+# goneat Tools Configuration (v1.0.0)
+#
+# This file is the SINGLE SOURCE OF TRUTH for tool definitions and scopes.
+# Validate changes with: goneat doctor tools validate
+#
+# Note: Docker/Compose runtimes are treated as REQUIRED prerequisites but are not
+# auto-installed by this repo's bootstrap flow. See docs/user-guide/preflight.md.
+scopes:
+  foundation:
+    description: Core tools for fulmen-toolbox development
+    tools:
+      - jq
+      - yamlfmt
+      - trivy
+      - shellsentry
+  container-dev:
+    description: Advisory scope for container runtime tooling (not auto-installed)
+    tools:
+      - docker
+      - docker-compose
+      - colima
+tools:
+  jq:
+    name: jq
+    description: JSON processor used by validation scripts
+    kind: system
+    detect_command: jq --version
+    platforms:
+      - darwin
+      - linux
+      - windows
+    installer_priority:
+      darwin:
+        - brew
+      linux:
+        - brew
+      windows:
+        - scoop
+        - winget
+  yamlfmt:
+    name: yamlfmt
+    description: YAML formatter and linter
+    kind: go
+    detect_command: yamlfmt --version
+    install_package: github.com/google/yamlfmt/cmd/yamlfmt@v0.20.0
+    version_args:
+      - --version
+    check_args:
+      - --help
+    installer_priority:
+      all:
+        - go-install
+  trivy:
+    name: trivy
+    description: Dockerfile linting and config scanning
+    kind: system
+    detect_command: trivy --version
+    platforms:
+      - darwin
+      - linux
+      - windows
+    installer_priority:
+      darwin:
+        - brew
+      linux:
+        - brew
+      windows:
+        - scoop
+        - winget
+  shellsentry:
+    name: shellsentry
+    description: Static risk assessment for shell scripts
+    kind: go
+    detect_command: shellsentry --version
+    install_package: github.com/3leaps/shellsentry@v0.1.1
+    version_args:
+      - --version
+    check_args:
+      - --help
+    installer_priority:
+      all:
+        - go-install
+  # Advisory-only definitions for runtime tooling (not installed by bootstrap)
+  docker:
+    name: docker
+    description: Docker CLI (runtime is required to build/test)
+    kind: system
+    detect_command: docker version
+    platforms:
+      - darwin
+      - linux
+      - windows
+    installer_priority:
+      darwin:
+        - brew
+      linux:
+        - brew
+      windows:
+        - winget
+  docker-compose:
+    name: docker-compose
+    description: Docker Compose v2 plugin (docker compose)
+    kind: system
+    detect_command: docker compose version
+    platforms:
+      - darwin
+      - linux
+      - windows
+    installer_priority:
+      darwin:
+        - brew
+      linux:
+        - brew
+      windows:
+        - winget
+  colima:
+    name: colima
+    description: Docker runtime for macOS (recommended)
+    kind: system
+    detect_command: colima version
+    platforms:
+      - darwin
+    installer_priority:
+      darwin:
+        - brew

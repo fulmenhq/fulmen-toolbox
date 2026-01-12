@@ -1,0 +1,92 @@
+version: 1
+metadata:
+  name: Fulmen Fixture - Complete Setup
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+entries:
+  - model: authentik_providers_oauth2.scopemapping
+    identifiers:
+      managed: fulmen.io/scope-openid
+    attrs:
+      name: "Fulmen: OpenID"
+      scope_name: openid
+      expression: |
+        return {}
+  - model: authentik_providers_oauth2.scopemapping
+    identifiers:
+      managed: fulmen.io/scope-email
+    attrs:
+      name: "Fulmen: Email"
+      scope_name: email
+      expression: |
+        return {
+            "email": request.user.email,
+            "email_verified": True
+        }
+  - model: authentik_providers_oauth2.scopemapping
+    identifiers:
+      managed: fulmen.io/scope-profile
+    attrs:
+      name: "Fulmen: Profile"
+      scope_name: profile
+      expression: |
+        return {
+            "name": request.user.name,
+            "preferred_username": request.user.username,
+            "given_name": request.user.name.split(" ")[0] if " " in request.user.name else request.user.name,
+            "family_name": request.user.name.split(" ")[-1] if " " in request.user.name else "",
+            "groups": [group.name for group in request.user.ak_groups.all()],
+        }
+  - model: authentik_core.group
+    id: group-developers
+    identifiers:
+      name: developers
+  - model: authentik_core.group
+    id: group-admins
+    identifiers:
+      name: admins
+    attrs:
+      is_superuser: true
+  - model: authentik_core.user
+    identifiers:
+      username: alice
+    attrs:
+      name: Alice Developer
+      email: alice@test.local
+      password: !Env [FIXTURE_USER_PASSWORD, "fixture-password-not-for-prod"]
+      is_active: true
+      groups:
+        - !KeyOf group-developers
+  - model: authentik_core.user
+    identifiers:
+      username: bob
+    attrs:
+      name: Bob Admin
+      email: bob@test.local
+      password: !Env [FIXTURE_USER_PASSWORD, "fixture-password-not-for-prod"]
+      is_active: true
+      groups:
+        - !KeyOf group-developers
+        - !KeyOf group-admins
+  - model: authentik_providers_oauth2.oauth2provider
+    id: oidc-provider
+    identifiers:
+      name: !Env [OIDC_PROVIDER_NAME, "Fulmen Test Provider"]
+    attrs:
+      authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+      client_type: confidential
+      client_id: !Env [OIDC_CLIENT_ID, "test-client"]
+      client_secret: !Env [OIDC_CLIENT_SECRET, "test-secret"]
+      redirect_uris:
+        - !Env [OIDC_REDIRECT_URIS, "http://localhost:8080/callback"]
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [managed, fulmen.io/scope-openid]]
+        - !Find [authentik_providers_oauth2.scopemapping, [managed, fulmen.io/scope-email]]
+        - !Find [authentik_providers_oauth2.scopemapping, [managed, fulmen.io/scope-profile]]
+  - model: authentik_core.application
+    identifiers:
+      slug: !Env [OIDC_APP_SLUG, "test-app"]
+    attrs:
+      name: !Env [OIDC_APP_NAME, "Fulmen Test Application"]
+      provider: !KeyOf oidc-provider
