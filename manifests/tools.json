@@ -323,7 +323,10 @@
       "notes": "Cargo plugin for RustSec vulnerability auditing.",
       "license_spdx": "Apache-2.0 OR MIT",
       "license_source": "manual",
-      "license_path": "/licenses/crates/cargo-audit/LICENSE"
+      "license_paths": [
+        "/licenses/crates/cargo-audit/LICENSE-APACHE",
+        "/licenses/crates/cargo-audit/LICENSE-MIT"
+      ]
     },
     {
       "name": "cargo-zigbuild",
@@ -343,7 +346,10 @@
       "notes": "Cargo plugin for running tests with nextest.",
       "license_spdx": "Apache-2.0 OR MIT",
       "license_source": "manual",
-      "license_path": "/licenses/crates/cargo-nextest/LICENSE"
+      "license_paths": [
+        "/licenses/crates/cargo-nextest/LICENSE-APACHE",
+        "/licenses/crates/cargo-nextest/LICENSE-MIT"
+      ]
     },
     {
       "name": "cbindgen",
