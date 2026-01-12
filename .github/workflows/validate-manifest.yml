@@ -38,6 +38,16 @@ jobs:
           df -h /
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Resolve Go version (from manifests)
+        id: go-version
+        run: |
+          GO_VERSION="$(jq -r '.tools[] | select(.name=="go") | .version' manifests/tools.json)"
+          test -n "$GO_VERSION"
+          echo "version=$GO_VERSION" >> "$GITHUB_OUTPUT"
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ steps.go-version.outputs.version }}
       - name: Resolve lint tool versions (from manifests)
         run: |
           YAMLFMT_VERSION="$(jq -r '.tools[] | select(.name=="yamlfmt") | .version' manifests/tools.json)"
