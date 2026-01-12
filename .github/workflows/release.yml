@@ -8,7 +8,7 @@ env:
   REGISTRY: ghcr.io
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-m
     strategy:
       fail-fast: false
       matrix:
@@ -156,7 +156,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
   cosign:
     needs: release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-m
     environment: release-signing
     strategy:
       fail-fast: false
