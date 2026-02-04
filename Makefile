@@ -73,13 +73,13 @@ VALIDATE_SUBSYSTEMS ?= scripts/validate-subsystems.sh
 TEST_SUBSYSTEM_ECHO_PROXY_FIXTURE ?= scripts/test-subsystem-echo-proxy-fixture.sh
 TEST_SUBSYSTEM_AUTHENTIK_IDP ?= scripts/test-subsystem-authentik-idp.sh
 YAMLFMT ?= yamlfmt
-YAMLFMT_PIN ?= v0.20.0
+YAMLFMT_PIN ?= v0.21.0
 MISSING_ACTION ?= "missing required tooling; install before proceeding"
 YAMLLINT ?= yamllint
 
 # Bootstrap tooling (sfetch -> goneat trust chain)
 # Note: GONEAT_VERSION is a minimum version; if goneat is already installed, it is used as-is.
-GONEAT_VERSION ?= v0.4.4
+GONEAT_VERSION ?= v0.5.1
 BINDIR ?= $(HOME)/.local/bin
 SFETCH_BIN = $(shell command -v sfetch 2>/dev/null || echo "")
 GONEAT_BIN = $(shell command -v goneat 2>/dev/null || echo "")

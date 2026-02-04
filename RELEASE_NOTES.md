@@ -1,5 +1,45 @@
 # Release Notes
 
+## v0.3.2 (2026-02-04)
+
+**Tool Updates + Bug Fixes**
+
+This release updates 13 packages across goneat-tools and sbom-tools images, including a critical bug fix for sfetch and security updates for uv.
+
+### Critical Fix
+
+- **sfetch v0.4.1**: Fixes 403 errors that occurred when downloading certain GitHub release assets.
+
+### Security Updates
+
+- **uv 0.9.28**: Includes OpenSSL 3.5.5 security fixes.
+
+### Tool Version Updates
+
+| Tool | Previous | Current | Notes |
+|------|----------|---------|-------|
+| sfetch | v0.4.0 | v0.4.1 | Bug fix: GitHub asset 403s |
+| goneat | v0.4.4 | v0.5.2 | Feature release |
+| prettier | 3.7.4 | 3.8.0 | Angular v21.1 support |
+| biome | 2.3.8 | 2.3.11 | Patch fixes |
+| yamlfmt | v0.20.0 | v0.21.0 | stdin reading fixes |
+| actionlint | v1.7.9 | v1.7.10 | ubuntu-slim runner support |
+| checkmake | 0.2.2 | v0.3.2 | Repo moved to checkmake/checkmake |
+| syft | v1.39.0 | v1.41.1 | CycloneDX bug fixes |
+| grype | v0.104.3 | v0.107.1 | DB schema v6 improvements |
+| trivy | v0.68.1 | v0.69.0 | Patch update |
+| cargo-nextest | 0.9.120 | 0.9.122 | Pager support |
+| uv | 0.9.24 | 0.9.28 | OpenSSL security fixes |
+| yq-go (apk) | 4.49.2-r1 | 4.49.2-r2 | Alpine package revision |
+
+### Breaking Changes
+
+None. Existing image references continue to work.
+
+### Migration Notes
+
+- **checkmake**: Upstream repository moved from `mrtazz/checkmake` to `checkmake/checkmake`. No action required for image users; the tool works identically.
+
 ## v0.3.1 (2026-01-12)
 
 **Polyglot Runner + Subsystems + Developer Tooling**
@@ -61,10 +101,3 @@ This release introduces a significant information-model evolution:
 **Migration**: Image references should migrate to canonical names (e.g., `goneat-tools-runner-musl` instead of `goneat-tools`). Aliases continue to work during the transition period.
 
 See `docs/standards/image-taxonomy.md` and `docs/adr/ADR-0006-image-taxonomy-and-governance.md` for details.
-
-## v0.2.4 (2026-01-03)
-
-**Tool Updates**
-
-- Bumped `goneat` to v0.4.2.
-- Bumped `sfetch` to v0.3.2.

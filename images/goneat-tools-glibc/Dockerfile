@@ -11,20 +11,20 @@
 ARG GO_IMAGE=golang:1.25-bookworm@sha256:2c7c65601b020ee79db4c1a32ebee0bf3d6b298969ec683e24fcbea29305f10e
 ARG NODE_IMAGE=node:22-bookworm-slim@sha256:7378f5a4830ef48eb36d1abf4ef398391db562b5c41a0bded83192fbcea21cc8
 ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c
-ARG YAMLFMT_VERSION=v0.20.0
+ARG YAMLFMT_VERSION=v0.21.0
 ARG SHFMT_VERSION=v3.12.0
-ARG CHECKMAKE_VERSION=0.2.2
-ARG ACTIONLINT_VERSION=v1.7.9
-ARG PRETTIER_VERSION=3.7.4
-ARG BIOME_VERSION=2.3.8
+ARG CHECKMAKE_VERSION=v0.3.2
+ARG ACTIONLINT_VERSION=v1.7.10
+ARG PRETTIER_VERSION=3.8.0
+ARG BIOME_VERSION=2.3.11
 ARG JQ_VERSION=1.8.1
 ARG YQ_VERSION=v4.49.2
 ARG RIPGREP_VERSION=15.1.0
 ARG TAPLO_VERSION=0.10.0
 
 # DX tools (Go)
-ARG GONEAT_VERSION=v0.4.4
-ARG SFETCH_VERSION=v0.4.0
+ARG GONEAT_VERSION=v0.5.2
+ARG SFETCH_VERSION=v0.4.1
 ARG SHELLSENTRY_VERSION=v0.1.1
 
 # Non-runner tool pins
@@ -40,14 +40,14 @@ ARG RUST_TARGETS="x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unk
 ARG ZIG_VERSION=0.15.2
 ARG ZIG_SHA256_AMD64=02aa270f183da276e5b5920b1dac44a63f1a49e55050ebde3aecc9eb82f93239
 ARG ZIG_SHA256_ARM64=958ed7d1e00d0ea76590d27666efbf7a932281b3d7ba0c6b01b0ff26498f667f
-ARG SYFT_VERSION=v1.39.0
-ARG GRYPE_VERSION=v0.104.3
+ARG SYFT_VERSION=v1.41.1
+ARG GRYPE_VERSION=v0.107.1
 ARG CARGO_DENY_VERSION=0.19.0
 ARG CARGO_AUDIT_VERSION=0.22.0
 ARG CARGO_ZIGBUILD_VERSION=0.20.1
-ARG CARGO_NEXTEST_VERSION=0.9.120
+ARG CARGO_NEXTEST_VERSION=0.9.122
 ARG CBINDGEN_VERSION=0.29.0
-ARG UV_VERSION=0.9.24
+ARG UV_VERSION=0.9.28
 ARG MATURIN_VERSION=1.11.5
 ARG PYTEST_VERSION=9.0.2
 ARG NAPI_RS_CLI_VERSION=3.5.1
@@ -67,7 +67,7 @@ ARG GONEAT_VERSION
 ARG SFETCH_VERSION
 RUN go install github.com/google/yamlfmt/cmd/yamlfmt@${YAMLFMT_VERSION} && \
     go install mvdan.cc/sh/v3/cmd/shfmt@${SHFMT_VERSION} && \
-    go install github.com/mrtazz/checkmake/cmd/checkmake@${CHECKMAKE_VERSION} && \
+    go install github.com/checkmake/checkmake/cmd/checkmake@${CHECKMAKE_VERSION} && \
     go install github.com/rhysd/actionlint/cmd/actionlint@${ACTIONLINT_VERSION} && \
     go install github.com/fulmenhq/goneat@${GONEAT_VERSION} && \
     go install github.com/3leaps/sfetch@${SFETCH_VERSION}
@@ -76,10 +76,10 @@ RUN go install github.com/google/yamlfmt/cmd/yamlfmt@${YAMLFMT_VERSION} && \
 # (Copied into final image under /licenses/github/*)
 RUN set -eux; \
     mkdir -p \
-      /licenses/github/google/yamlfmt /licenses/github/mvdan/sh /licenses/github/mrtazz/checkmake /licenses/github/rhysd/actionlint \
+      /licenses/github/google/yamlfmt /licenses/github/mvdan/sh /licenses/github/checkmake/checkmake /licenses/github/rhysd/actionlint \
       /licenses/github/fulmenhq/goneat /licenses/github/3leaps/sfetch; \
     mkdir -p \
-      /notices/github/google/yamlfmt /notices/github/mvdan/sh /notices/github/mrtazz/checkmake /notices/github/rhysd/actionlint \
+      /notices/github/google/yamlfmt /notices/github/mvdan/sh /notices/github/checkmake/checkmake /notices/github/rhysd/actionlint \
       /notices/github/fulmenhq/goneat /notices/github/3leaps/sfetch; \
     GOMODCACHE="$(go env GOMODCACHE)"; \
     copy_license() { pattern="$1" dest="$2"; \
@@ -96,13 +96,13 @@ RUN set -eux; \
     }; \
     copy_license "${GOMODCACHE}/github.com/google/yamlfmt@${YAMLFMT_VERSION}/LICENSE" /licenses/github/google/yamlfmt/LICENSE; \
     copy_license "${GOMODCACHE}/mvdan.cc/sh/v3@${SHFMT_VERSION}/LICENSE" /licenses/github/mvdan/sh/LICENSE; \
-    copy_license "${GOMODCACHE}/github.com/mrtazz/checkmake@*/LICENSE" /licenses/github/mrtazz/checkmake/LICENSE; \
+    copy_license "${GOMODCACHE}/github.com/checkmake/checkmake@*/LICENSE" /licenses/github/checkmake/checkmake/LICENSE; \
     copy_license "${GOMODCACHE}/github.com/rhysd/actionlint@${ACTIONLINT_VERSION}/LICENSE*" /licenses/github/rhysd/actionlint/LICENSE; \
     copy_license "${GOMODCACHE}/github.com/fulmenhq/goneat@${GONEAT_VERSION}/LICENSE" /licenses/github/fulmenhq/goneat/LICENSE; \
     copy_license "${GOMODCACHE}/github.com/3leaps/sfetch@${SFETCH_VERSION}/LICENSE" /licenses/github/3leaps/sfetch/LICENSE; \
     copy_notice "${GOMODCACHE}/github.com/google/yamlfmt@${YAMLFMT_VERSION}" /notices/github/google/yamlfmt; \
     copy_notice "${GOMODCACHE}/mvdan.cc/sh/v3@${SHFMT_VERSION}" /notices/github/mvdan/sh; \
-    copy_notice "${GOMODCACHE}/github.com/mrtazz/checkmake@*" /notices/github/mrtazz/checkmake; \
+    copy_notice "${GOMODCACHE}/github.com/checkmake/checkmake@*" /notices/github/checkmake/checkmake; \
     copy_notice "${GOMODCACHE}/github.com/rhysd/actionlint@${ACTIONLINT_VERSION}" /notices/github/rhysd/actionlint; \
     copy_notice "${GOMODCACHE}/github.com/fulmenhq/goneat@${GONEAT_VERSION}" /notices/github/fulmenhq/goneat; \
     copy_notice "${GOMODCACHE}/github.com/3leaps/sfetch@${SFETCH_VERSION}" /notices/github/3leaps/sfetch; \

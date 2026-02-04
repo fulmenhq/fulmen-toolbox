@@ -4,6 +4,29 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-02-04
+
+### Changed
+
+- **Tool updates (13 packages)**:
+  - `sfetch` v0.4.0 → v0.4.1 (bug fix: 403 errors on certain GitHub asset downloads)
+  - `goneat` v0.4.4 → v0.5.2
+  - `prettier` 3.7.4 → 3.8.0 (Angular v21.1 support)
+  - `biome` 2.3.8 → 2.3.11
+  - `yamlfmt` v0.20.0 → v0.21.0 (stdin reading fixes)
+  - `actionlint` v1.7.9 → v1.7.10 (ubuntu-slim runner support)
+  - `checkmake` 0.2.2 → v0.3.2 (repo moved to checkmake/checkmake)
+  - `syft` v1.39.0 → v1.41.1 (CycloneDX bug fixes)
+  - `grype` v0.104.3 → v0.107.1 (DB schema v6 improvements)
+  - `trivy` v0.68.1 → v0.69.0
+  - `cargo-nextest` 0.9.120 → 0.9.122 (pager support)
+  - `uv` 0.9.24 → 0.9.28 (OpenSSL 3.5.5 security fixes)
+  - `yq-go` (apk) 4.49.2-r1 → 4.49.2-r2
+
+### Fixed
+
+- Updated checkmake import path after upstream repo migration from `mrtazz/checkmake` to `checkmake/checkmake`.
+
 ## [0.3.1] - 2026-01-12
 
 ### Added
@@ -115,7 +138,8 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 For earlier history, see GitHub Releases: https://github.com/fulmenhq/fulmen-toolbox/releases
 
-[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.2
 [0.3.1]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.1
 [0.3.0]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.0
 [0.2.4]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.4

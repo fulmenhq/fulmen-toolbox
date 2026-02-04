@@ -3,7 +3,7 @@
   "tools": [
     {
       "name": "prettier",
-      "version": "3.7.4",
+      "version": "3.8.0",
       "source": "npm",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "Pinned npm global install for formatting.",
@@ -13,7 +13,7 @@
     },
     {
       "name": "biome",
-      "version": "2.3.8",
+      "version": "2.3.11",
       "source": "npm",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "Pinned npm global install; complements Prettier (JS/TS/JSON lint/format).",
@@ -26,7 +26,7 @@
     },
     {
       "name": "yamlfmt",
-      "version": "v0.20.0",
+      "version": "v0.21.0",
       "source": "go",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "Go install from github.com/google/yamlfmt/cmd/yamlfmt.",
@@ -57,7 +57,7 @@
     },
     {
       "name": "yq-go",
-      "version": "4.49.2-r1",
+      "version": "4.49.2-r2",
       "source": "apk",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl"],
       "notes": "Alpine 3.23 version (node:22-alpine base)"
@@ -190,17 +190,17 @@
     },
     {
       "name": "checkmake",
-      "version": "0.2.2",
+      "version": "v0.3.2",
       "source": "go",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
-      "notes": "Makefile linter (MIT license). Go install from github.com/mrtazz/checkmake/cmd/checkmake.",
+      "notes": "Makefile linter (MIT license). Go install from github.com/checkmake/checkmake/cmd/checkmake.",
       "license_spdx": "MIT",
       "license_source": "gomodcache",
-      "license_path": "/licenses/github/mrtazz/checkmake/LICENSE"
+      "license_path": "/licenses/github/checkmake/checkmake/LICENSE"
     },
     {
       "name": "actionlint",
-      "version": "v1.7.9",
+      "version": "v1.7.10",
       "source": "go",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "GitHub Actions workflow linter (MIT license). Go install from github.com/rhysd/actionlint/cmd/actionlint.",
@@ -210,7 +210,7 @@
     },
     {
       "name": "goneat",
-      "version": "v0.4.4",
+      "version": "v0.5.2",
       "source": "go",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "FulmenHQ DX CLI: wrap and orchestrate formatting/linting/assessment/hook workflows.",
@@ -222,7 +222,7 @@
     },
     {
       "name": "sfetch",
-      "version": "v0.4.0",
+      "version": "v0.4.1",
       "source": "go",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "Trust-anchor downloader: defaults to signature+checksum verification for GitHub release assets.",
@@ -340,7 +340,7 @@
     },
     {
       "name": "cargo-nextest",
-      "version": "0.9.120",
+      "version": "0.9.122",
       "source": "binary",
       "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "Cargo plugin for running tests with nextest.",
@@ -363,7 +363,7 @@
     },
     {
       "name": "uv",
-      "version": "0.9.24",
+      "version": "0.9.28",
       "source": "other",
       "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "Fast Python package manager (installed via pip).",
@@ -415,7 +415,7 @@
     },
     {
       "name": "syft",
-      "version": "v1.39.0",
+      "version": "v1.41.1",
       "source": "binary",
       "images": ["sbom-tools-slim-musl", "sbom-tools-runner-musl", "sbom-tools-runner-glibc", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "SBOM generator from Anchore (GitHub release binary). Supports CycloneDX + SPDX output formats.",
@@ -426,7 +426,7 @@
     },
     {
       "name": "grype",
-      "version": "v0.104.3",
+      "version": "v0.107.1",
       "source": "binary",
       "images": ["sbom-tools-slim-musl", "sbom-tools-runner-musl", "sbom-tools-runner-glibc", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "Vulnerability scanner from Anchore (GitHub release binary). Pulls DB on first run (~150MB).",
@@ -437,7 +437,7 @@
     },
     {
       "name": "trivy",
-      "version": "v0.68.1",
+      "version": "v0.69.0",
       "source": "binary",
       "images": ["sbom-tools-slim-musl", "sbom-tools-runner-musl", "sbom-tools-runner-glibc"],
       "notes": "SBOM/vuln scanner from Aqua Security (GitHub release binary). Alternative to Syft/Grype workflow. Also provides Dockerfile config scanning.",
