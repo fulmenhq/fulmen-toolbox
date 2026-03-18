@@ -1,5 +1,43 @@
 # Release Notes
 
+## v0.3.3 (2026-03-18)
+
+**Tool Updates + Go Builder Bump**
+
+This release updates 6 packages across goneat-tools and sbom-tools images and bumps the Go builder to 1.26.1.
+
+### Tool Version Updates
+
+| Tool | Previous | Current | Notes |
+|------|----------|---------|-------|
+| goneat | v0.5.2 | v0.5.8 | Feature release |
+| sfetch | v0.4.1 | v0.4.5 | Patch release |
+| shellsentry | v0.1.1 | v0.1.4 | Requires Go 1.26.1+ |
+| trivy | v0.69.0 | v0.69.3 | v0.69.0 ARM64 asset unavailable upstream |
+| yq-go (apk) | 4.49.2-r2 | 4.49.2-r4 | Alpine package revision |
+| Go builder | 1.25 | 1.26.1 | Required for shellsentry v0.1.4 |
+
+### Updated Images
+
+| Image | Updated Tools |
+|-------|---------------|
+| `goneat-tools-runner-musl` | goneat, sfetch, shellsentry, yq-go, Go builder |
+| `goneat-tools-slim-musl` | goneat, sfetch, yq-go, Go builder |
+| `goneat-tools-runner-glibc` | goneat, sfetch, shellsentry, Go builder |
+| `sbom-tools-runner-musl` | shellsentry, trivy, Go builder |
+| `sbom-tools-runner-glibc` | shellsentry, trivy, Go builder |
+
+### Breaking Changes
+
+None. Existing image references continue to work.
+
+### Verification
+
+```bash
+docker run --rm ghcr.io/fulmenhq/goneat-tools-runner-musl:v0.3.3 sh -c "goneat version && sfetch --version && shellsentry --version"
+docker run --rm ghcr.io/fulmenhq/sbom-tools-runner-musl:v0.3.3 sh -c "trivy version && shellsentry --version"
+```
+
 ## v0.3.2 (2026-02-04)
 
 **Tool Updates + Bug Fixes**

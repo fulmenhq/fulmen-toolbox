@@ -4,6 +4,19 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-03-18
+
+### Changed
+
+- **Tool updates (6 packages)**:
+  - `goneat` v0.5.2 → v0.5.8
+  - `sfetch` v0.4.1 → v0.4.5
+  - `shellsentry` v0.1.1 → v0.1.4
+  - `trivy` v0.69.0 → v0.69.3 (v0.69.0 ARM64 release asset unavailable upstream)
+  - `yq-go` (apk) 4.49.2-r2 → 4.49.2-r4 (Alpine package revision)
+  - Go builder 1.25 → 1.26.1 (required for shellsentry v0.1.4)
+- **AGENTS.md**: Tightened agentic attribution standard; added Default Role and Identity rows, required `noreply@3leaps.net` in `Co-Authored-By`, updated example to Claude Sonnet 4.6.
+
 ## [0.3.2] - 2026-02-04
 
 ### Changed
@@ -138,7 +151,8 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 For earlier history, see GitHub Releases: https://github.com/fulmenhq/fulmen-toolbox/releases
 
-[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.3
 [0.3.2]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.2
 [0.3.1]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.1
 [0.3.0]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.0
