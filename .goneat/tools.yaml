@@ -72,7 +72,7 @@ tools:
     description: Static risk assessment for shell scripts
     kind: go
     detect_command: shellsentry --version
-    install_package: github.com/3leaps/shellsentry@v0.1.1
+    install_package: github.com/3leaps/shellsentry@v0.1.4
     version_args:
       - --version
     check_args:

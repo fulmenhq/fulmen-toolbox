@@ -79,7 +79,7 @@ YAMLLINT ?= yamllint
 
 # Bootstrap tooling (sfetch -> goneat trust chain)
 # Note: GONEAT_VERSION is a minimum version; if goneat is already installed, it is used as-is.
-GONEAT_VERSION ?= v0.5.1
+GONEAT_VERSION ?= v0.5.8
 BINDIR ?= $(HOME)/.local/bin
 SFETCH_BIN = $(shell command -v sfetch 2>/dev/null || echo "")
 GONEAT_BIN = $(shell command -v goneat 2>/dev/null || echo "")

@@ -210,7 +210,7 @@
     },
     {
       "name": "goneat",
-      "version": "v0.5.2",
+      "version": "v0.5.8",
       "source": "go",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "FulmenHQ DX CLI: wrap and orchestrate formatting/linting/assessment/hook workflows.",
@@ -222,7 +222,7 @@
     },
     {
       "name": "sfetch",
-      "version": "v0.4.1",
+      "version": "v0.4.5",
       "source": "go",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "Trust-anchor downloader: defaults to signature+checksum verification for GitHub release assets.",
@@ -403,7 +403,7 @@
     },
     {
       "name": "shellsentry",
-      "version": "v0.1.1",
+      "version": "v0.1.4",
       "source": "go",
       "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc", "sbom-tools-runner-musl", "sbom-tools-runner-glibc"],
       "notes": "Static risk assessment for shell scripts before execution.",
