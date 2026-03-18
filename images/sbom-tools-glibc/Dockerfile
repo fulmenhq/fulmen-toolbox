@@ -8,7 +8,7 @@
 # - runner (default): slim + runner baseline + build tools
 
 ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c
-ARG GO_IMAGE=golang:1.25-bookworm@sha256:2c7c65601b020ee79db4c1a32ebee0bf3d6b298969ec683e24fcbea29305f10e
+ARG GO_IMAGE=golang:1.26-bookworm@sha256:8e8aa801e8417ef0b5c42b504dd34db3db911bb73dba933bd8bde75ed815fdbb
 ARG SYFT_VERSION=v1.41.1
 ARG GRYPE_VERSION=v0.107.1
 ARG TRIVY_VERSION=v0.69.0

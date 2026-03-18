@@ -8,7 +8,7 @@
 # - runner (default): slim + runner baseline packages
 
 # Version pins
-ARG GO_IMAGE=golang:1.25-alpine@sha256:26111811bc967321e7b6f852e914d14bede324cd1accb7f81811929a6a57fea9
+ARG GO_IMAGE=golang:1.26-alpine@sha256:2389ebfa5b7f43eeafbd6be0c3700cc46690ef842ad962f6c5bd6be49ed82039
 ARG NODE_IMAGE=node:22-alpine@sha256:9632533eda8061fc1e9960cfb3f8762781c07a00ee7317f5dc0e13c05e15166f
 ARG YAMLFMT_VERSION=v0.21.0
 ARG SHFMT_VERSION=v3.12.0
@@ -35,9 +35,9 @@ ARG CURL_VERSION=8.17.0-r1
 ARG MINISIGN_VERSION=0.12-r1
 
 # Toolchain pins (runner-only)
-ARG GO_VERSION=1.25.5
-ARG GO_SHA256_AMD64=9e9b755d63b36acf30c12a9a3fc379243714c1c6d3dd72861da637f336ebb35b
-ARG GO_SHA256_ARM64=b00b694903d126c588c378e72d3545549935d3982635ba3f7a964c9fa23fe3b9
+ARG GO_VERSION=1.26.1
+ARG GO_SHA256_AMD64=031f088e5d955bab8657ede27ad4e3bc5b7c1ba281f05f245bcc304f327c987a
+ARG GO_SHA256_ARM64=a290581cfe4fe28ddd737dde3095f3dbeb7f2e4065cab4eae44dfc53b760c2f7
 ARG RUST_VERSION=1.92.0
 ARG RUSTUP_VERSION=1.28.2
 ARG RUST_TARGETS="x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu aarch64-unknown-linux-musl x86_64-apple-darwin aarch64-apple-darwin x86_64-pc-windows-gnu"
