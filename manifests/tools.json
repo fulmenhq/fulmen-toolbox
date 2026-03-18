@@ -57,7 +57,7 @@
     },
     {
       "name": "yq-go",
-      "version": "4.49.2-r2",
+      "version": "4.49.2-r4",
       "source": "apk",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl"],
       "notes": "Alpine 3.23 version (node:22-alpine base)"
