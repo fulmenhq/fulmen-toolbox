@@ -437,7 +437,7 @@
     },
     {
       "name": "trivy",
-      "version": "v0.69.0",
+      "version": "v0.69.3",
       "source": "binary",
       "images": ["sbom-tools-slim-musl", "sbom-tools-runner-musl", "sbom-tools-runner-glibc"],
       "notes": "SBOM/vuln scanner from Aqua Security (GitHub release binary). Alternative to Syft/Grype workflow. Also provides Dockerfile config scanning.",
