@@ -1,5 +1,40 @@
 # Release Notes
 
+## v0.3.4 (2026-03-25)
+
+**Goneat Patch + Bootstrap Refactor**
+
+Bumps goneat to v0.5.9 for bug fixes, pins Go to 1.26.1 to clear dependency vulnerability noise, and refactors `bootstrap-tools.sh` to an arg-based interface.
+
+### Tool Version Updates
+
+| Tool | Previous | Current | Notes |
+|------|----------|---------|-------|
+| goneat | v0.5.8 | v0.5.9 | Bug fixes |
+| Go pin | 1.26 | 1.26.1 | Eliminates dep vulnerability noise |
+
+### Infrastructure
+
+- **`scripts/bootstrap-tools.sh`**: Refactored from env-only to arg-based interface with env var overrides for better ergonomics and discoverability.
+
+### Updated Images
+
+| Image | Updated Tools |
+|-------|---------------|
+| `goneat-tools-runner-musl` | goneat, Go pin |
+| `goneat-tools-slim-musl` | goneat, Go pin |
+| `goneat-tools-runner-glibc` | goneat, Go pin |
+
+### Breaking Changes
+
+None. Existing image references continue to work.
+
+### Verification
+
+```bash
+docker run --rm ghcr.io/fulmenhq/goneat-tools-runner-musl:v0.3.4 sh -c "goneat version"
+```
+
 ## v0.3.3 (2026-03-18)
 
 **Tool Updates + Go Builder Bump**

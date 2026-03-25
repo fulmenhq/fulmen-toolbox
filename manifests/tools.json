@@ -210,7 +210,7 @@
     },
     {
       "name": "goneat",
-      "version": "v0.5.8",
+      "version": "v0.5.9",
       "source": "go",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "FulmenHQ DX CLI: wrap and orchestrate formatting/linting/assessment/hook workflows.",

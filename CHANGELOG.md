@@ -4,6 +4,14 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 ## [Unreleased]
 
+## [0.3.4] - 2026-03-25
+
+### Changed
+
+- **goneat** v0.5.8 → v0.5.9 (bug fixes)
+- **Go pin** 1.26 → 1.26.1 (eliminate dependency vulnerability noise)
+- **bootstrap-tools.sh**: Refactored to arg-based interface with env var overrides
+
 ## [0.3.3] - 2026-03-18
 
 ### Changed
@@ -151,7 +159,8 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 For earlier history, see GitHub Releases: https://github.com/fulmenhq/fulmen-toolbox/releases
 
-[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.3.3...HEAD
+[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.3.4...HEAD
+[0.3.4]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.4
 [0.3.3]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.3
 [0.3.2]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.2
 [0.3.1]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.1
