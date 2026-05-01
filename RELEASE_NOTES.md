@@ -1,5 +1,37 @@
 # Release Notes
 
+## v0.3.5 (2026-05-02)
+
+**Go 1.26.2 Patch — CVE-2026-33810 Remediation**
+
+Bumps the runner Go toolchain from 1.26.1 to 1.26.2 to clear CVE-2026-33810 (high) and unblock downstream consumers whose `golangci-lint` configs target `go 1.26.2`. No behavior change beyond the toolchain bump.
+
+### Tool Version Updates
+
+| Tool | Previous | Current | Notes |
+|------|----------|---------|-------|
+| Go pin | 1.26.1 | 1.26.2 | Clears CVE-2026-33810 (high); unblocks `golangci-lint` configs targeting 1.26.2 |
+| yq-go (apk) | 4.49.2-r4 | 4.49.2-r5 | Alpine package revision; r4 no longer available upstream |
+
+### Updated Images
+
+| Image | Updated Tools |
+|-------|---------------|
+| `goneat-tools-runner-musl` | Go pin, builder digest |
+| `goneat-tools-slim-musl` | builder digest |
+| `goneat-tools-runner-glibc` | Go pin, builder digest |
+
+### Breaking Changes
+
+None. Existing image references continue to work. Consumers tracking `:v0` get the fix automatically; explicit pinners should bump to `:v0.3.5`.
+
+### Verification
+
+```bash
+docker run --rm ghcr.io/fulmenhq/goneat-tools-runner-glibc:v0.3.5 go version
+# expect: go version go1.26.2 linux/<arch>
+```
+
 ## v0.3.4 (2026-03-25)
 
 **Goneat Patch + Bootstrap Refactor**
