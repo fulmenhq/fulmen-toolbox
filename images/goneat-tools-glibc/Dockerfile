@@ -8,7 +8,7 @@
 # - runner (default): slim + runner baseline + build tools
 
 # Version pins
-ARG GO_IMAGE=golang:1.26-bookworm@sha256:8e8aa801e8417ef0b5c42b504dd34db3db911bb73dba933bd8bde75ed815fdbb
+ARG GO_IMAGE=golang:1.26-bookworm@sha256:47ce5636e9936b2c5cbf708925578ef386b4f8872aec74a67bd13a627d242b19
 ARG NODE_IMAGE=node:22-bookworm-slim@sha256:7378f5a4830ef48eb36d1abf4ef398391db562b5c41a0bded83192fbcea21cc8
 ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c
 ARG YAMLFMT_VERSION=v0.21.0
@@ -31,9 +31,9 @@ ARG SHELLSENTRY_VERSION=v0.1.4
 ARG MINISIGN_VERSION=0.12
 
 # Toolchain pins (runner-only)
-ARG GO_VERSION=1.26.1
-ARG GO_SHA256_AMD64=031f088e5d955bab8657ede27ad4e3bc5b7c1ba281f05f245bcc304f327c987a
-ARG GO_SHA256_ARM64=a290581cfe4fe28ddd737dde3095f3dbeb7f2e4065cab4eae44dfc53b760c2f7
+ARG GO_VERSION=1.26.2
+ARG GO_SHA256_AMD64=990e6b4bbba816dc3ee129eaeaf4b42f17c2800b88a2166c265ac1a200262282
+ARG GO_SHA256_ARM64=c958a1fe1b361391db163a485e21f5f228142d6f8b584f6bef89b26f66dc5b23
 ARG RUST_VERSION=1.92.0
 ARG RUSTUP_VERSION=1.28.2
 ARG RUST_TARGETS="x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu aarch64-unknown-linux-musl x86_64-apple-darwin aarch64-apple-darwin x86_64-pc-windows-gnu"

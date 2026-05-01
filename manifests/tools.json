@@ -57,7 +57,7 @@
     },
     {
       "name": "yq-go",
-      "version": "4.49.2-r4",
+      "version": "4.49.2-r5",
       "source": "apk",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl"],
       "notes": "Alpine 3.23 version (node:22-alpine base)"
@@ -166,14 +166,14 @@
     },
     {
       "name": "golang-builder",
-      "version": "golang:1.26-alpine@sha256:2389ebfa5b7f43eeafbd6be0c3700cc46690ef842ad962f6c5bd6be49ed82039",
+      "version": "golang:1.26-alpine@sha256:f85330846cde1e57ca9ec309382da3b8e6ae3ab943d2739500e08c86393a21b1",
       "source": "other",
       "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl"],
       "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint)."
     },
     {
       "name": "golang-builder-glibc",
-      "version": "golang:1.26-bookworm@sha256:8e8aa801e8417ef0b5c42b504dd34db3db911bb73dba933bd8bde75ed815fdbb",
+      "version": "golang:1.26-bookworm@sha256:47ce5636e9936b2c5cbf708925578ef386b4f8872aec74a67bd13a627d242b19",
       "source": "other",
       "images": ["goneat-tools-runner-glibc"],
       "notes": "Pinned builder image tag for Go tools in glibc runner."
@@ -232,7 +232,7 @@
     },
     {
       "name": "go",
-      "version": "1.26.1",
+      "version": "1.26.2",
       "source": "binary",
       "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
       "notes": "Pinned Go toolchain from go.dev archives.",
