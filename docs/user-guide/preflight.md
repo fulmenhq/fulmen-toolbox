@@ -24,6 +24,7 @@ You should be able to run:
 - `trivy` (Dockerfile linting)
 
 Notes:
+
 - Schema validation uses a Dockerized Node runtime, so you generally do **not** need Node.js installed locally.
 - Some targets require a running Docker daemon (see `CONTRIBUTING.md`).
 
@@ -31,19 +32,19 @@ Notes:
 
 ### Recommended: Colima
 
-1) Install core tooling:
+1. Install core tooling:
 
 ```bash
 brew install colima docker docker-compose docker-buildx jq trivy
 ```
 
-2) Start Colima:
+2. Start Colima:
 
 ```bash
 colima start
 ```
 
-3) Ensure Docker can find CLI plugins (buildx/compose)
+3. Ensure Docker can find CLI plugins (buildx/compose)
 
 With Homebrew, plugins typically live at `/opt/homebrew/lib/docker/cli-plugins`. Add that directory to Docker’s plugin search path:
 
@@ -53,7 +54,7 @@ jq '. + {"cliPluginsExtraDirs": ["/opt/homebrew/lib/docker/cli-plugins"]}' \
   mv ~/.docker/config.json.tmp ~/.docker/config.json
 ```
 
-4) Verify:
+4. Verify:
 
 ```bash
 docker compose version
@@ -72,6 +73,7 @@ Docker Desktop includes Compose v2 and buildx by default.
 Install Docker Engine + Compose v2 plugin using your distro packages.
 
 Typical requirements:
+
 - `docker` (Engine)
 - Compose plugin package (often `docker-compose-plugin`)
 - `jq`
@@ -98,6 +100,7 @@ docker buildx version
 Use WSL2 for the smoothest path (Make targets, shell scripts, curl/jq usage).
 
 Options:
+
 - Docker Desktop with WSL2 integration (Compose v2 included)
 - Rancher Desktop (configure for `dockerd` compatibility)
 

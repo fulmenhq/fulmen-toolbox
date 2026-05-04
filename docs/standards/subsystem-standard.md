@@ -52,12 +52,12 @@ subsystems/{name}/
 
 ### Required Files
 
-| File | Purpose |
-|------|---------|
+| File            | Purpose                                             |
+| --------------- | --------------------------------------------------- |
 | `MANIFEST.yaml` | Machine-readable metadata; validated against schema |
-| `README.md` | Usage documentation, prerequisites, quick start |
-| `compose.yaml` | Primary Docker Compose file |
-| `presets/*.env` | At least one preset (typically `dev-fixture.env`) |
+| `README.md`     | Usage documentation, prerequisites, quick start     |
+| `compose.yaml`  | Primary Docker Compose file                         |
+| `presets/*.env` | At least one preset (typically `dev-fixture.env`)   |
 
 ---
 
@@ -70,23 +70,23 @@ The manifest is the **single source of truth** for subsystem metadata. It must v
 ```yaml
 # MANIFEST.yaml
 $schema: ../../schemas/subsystem-manifest.schema.json
-name: authentik-idp                    # kebab-case, matches directory name
-version: 0.1.0                         # Subsystem version (semver)
+name: authentik-idp # kebab-case, matches directory name
+version: 0.1.0 # Subsystem version (semver)
 description: >
   Brief description of what this subsystem provides
-category: infrastructure               # infrastructure | observability | messaging | other
-status: prototype                      # prototype | stable | deprecated
+category: infrastructure # infrastructure | observability | messaging | other
+status: prototype # prototype | stable | deprecated
 
-provides:                              # Capabilities this subsystem offers
+provides: # Capabilities this subsystem offers
   - oidc-provider
   - forward-auth
 
-dependencies:                          # External images required (not built by this repo)
-  - image: postgres                    # Image reference without tag
-    pin: "16-alpine"                   # Required: pinned tag or digest
+dependencies: # External images required (not built by this repo)
+  - image: postgres # Image reference without tag
+    pin: "16-alpine" # Required: pinned tag or digest
     purpose: Database
 
-presets:                               # At least one preset is required
+presets: # At least one preset is required
   dev-fixture:
     description: Development testing with known credentials
     env_file: presets/dev-fixture.env
@@ -95,18 +95,18 @@ presets:                               # At least one preset is required
 ### Optional Fields
 
 ```yaml
-upstream:                              # Primary upstream project (if wrapping vendor software)
+upstream: # Primary upstream project (if wrapping vendor software)
   project: goauthentik/authentik
   version: "2024.12"
   image: ghcr.io/goauthentik/server
   docs_url: https://docs.goauthentik.io/
 
-ports:                                 # Default exposed ports (informational)
+ports: # Default exposed ports (informational)
   - port: 9000
     protocol: http
     purpose: Web UI and API
 
-custom_images: []                      # Custom images built by this subsystem (rare)
+custom_images: [] # Custom images built by this subsystem (rare)
 ```
 
 ---
@@ -169,11 +169,13 @@ environment:
 When you want to validate readiness/health semantics without relying on the contents of upstream images, add a small **probe** container in a compose variant overlay.
 
 Benefits:
+
 - Deterministic probing tooling (you pick the probe image)
 - Proves container-to-container networking works
 - Allows CI to validate “system ready” without browser automation
 
 Recommended approach:
+
 - Keep `compose.yaml` minimal (normal developer usage)
 - Add `compose.with-checks.yaml` that adds a `probe` service
 - Run with both files:
@@ -194,13 +196,18 @@ services:
       - proxy
       - echo
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://proxy/health && wget -q --spider http://echo:80/"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q --spider http://proxy/health && wget -q --spider http://echo:80/",
+        ]
       interval: 5s
       timeout: 3s
       retries: 10
 ```
 
 Notes:
+
 - This pattern keeps the “check tooling” responsibility in a dedicated container.
 - The subsystem smoke test can still use host-side `curl` for simplicity.
 
@@ -307,7 +314,11 @@ services:
     image: alpine:3.21
     command: ["sh", "-c", "sleep 3600"]
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://proxy/health && wget -q --spider http://echo:80/"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q --spider http://proxy/health && wget -q --spider http://echo:80/",
+        ]
       interval: 5s
       timeout: 3s
       retries: 10

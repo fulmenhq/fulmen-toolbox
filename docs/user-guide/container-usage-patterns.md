@@ -1,20 +1,21 @@
 # Container Usage Patterns
 
-This guide explains two ways to use Fulmen Toolbox images. Many developers are familiar with running tasks *inside* a container, but fewer realize containers can replace locally-installed tools entirely.
+This guide explains two ways to use Fulmen Toolbox images. Many developers are familiar with running tasks _inside_ a container, but fewer realize containers can replace locally-installed tools entirely.
 
 ## Choosing an Image Variant
 
 Each toolbox image comes in three variants:
 
-| Variant | Image Suffix | Best For | What's Included |
-|---------|--------------|----------|-----------------|
-| **Runner** | `-runner` | CI jobs, GitHub Actions, build tasks | Tools + runner baseline + build tools (gcc, pkg-config) |
-| **Slim** | `-slim` | Local tool replacement, shell aliases | Tools only, minimal footprint |
-| **Runner (glibc)** | `-runner-glibc` | CGO builds, glibc-only dependencies | Tools + runner baseline + build tools |
+| Variant            | Image Suffix    | Best For                              | What's Included                                         |
+| ------------------ | --------------- | ------------------------------------- | ------------------------------------------------------- |
+| **Runner**         | `-runner`       | CI jobs, GitHub Actions, build tasks  | Tools + runner baseline + build tools (gcc, pkg-config) |
+| **Slim**           | `-slim`         | Local tool replacement, shell aliases | Tools only, minimal footprint                           |
+| **Runner (glibc)** | `-runner-glibc` | CGO builds, glibc-only dependencies   | Tools + runner baseline + build tools                   |
 
 ### Decision Guide
 
 **Use `-runner` when:**
+
 - Running as a CI job container (GitHub Actions, GitLab CI, etc.)
 - Your scripts need `bash`, `make`, `gcc`, or GNU coreutils
 - You want `yamllint` for semantic YAML linting (beyond formatting)
@@ -22,17 +23,20 @@ Each toolbox image comes in three variants:
 - You need to fetch artifacts with `curl` or extract with `tar`
 
 **Use `-runner-glibc` when:**
+
 - You require `CGO_ENABLED=1` and a glibc toolchain
 - Your dependencies ship glibc-only prebuilt libraries (e.g., libsql)
 - You need `gcc`/`pkg-config` available at runtime
 
 **Use `-slim` when:**
+
 - Replacing locally-installed tools (via shell aliases)
 - Running a single tool command (e.g., `prettier --write .`)
 - You want a smaller image (and fewer baseline utilities)
 - You want to minimize copyleft surface area (best-effort; not a guarantee)
 
 **Why no `-slim-glibc`?**
+
 - Glibc variants are meant for CGO/system-library workflows that need the runner baseline.
 - `-slim` is optimized for minimal local tool use; glibc alone doesn’t add value without build tools.
 
@@ -56,10 +60,10 @@ docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-mu
 
 ## Usage Patterns
 
-| Pattern | Use Case | Command Style |
-|---------|----------|---------------|
-| **Tool Replacement** | Run a single command without installing anything | `docker run --rm -v "$(pwd):/work" <image> <tool> <args>` |
-| **Working Environment** | Interactive session inside container | `docker run --rm -it -v "$(pwd):/work" <image> sh` |
+| Pattern                 | Use Case                                         | Command Style                                             |
+| ----------------------- | ------------------------------------------------ | --------------------------------------------------------- |
+| **Tool Replacement**    | Run a single command without installing anything | `docker run --rm -v "$(pwd):/work" <image> <tool> <args>` |
+| **Working Environment** | Interactive session inside container             | `docker run --rm -it -v "$(pwd):/work" <image> sh`        |
 
 ---
 
@@ -76,39 +80,44 @@ docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-mu
   <tool> <arguments>
 ```
 
-| Flag | Purpose |
-|------|---------|
-| `--rm` | Remove container after exit (no clutter) |
+| Flag                | Purpose                                           |
+| ------------------- | ------------------------------------------------- |
+| `--rm`              | Remove container after exit (no clutter)          |
 | `-v "$(pwd):/work"` | Mount current directory into container at `/work` |
-| `-w /work` | Set working directory inside container |
+| `-w /work`          | Set working directory inside container            |
 
 ### Examples
 
 **Format all Markdown/YAML files:**
+
 ```bash
 docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest \
   prettier --write "**/*.{md,json,yml,yaml}"
 ```
 
 **Check YAML formatting:**
+
 ```bash
 docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest \
   yamlfmt -lint .
 ```
 
 **Lint GitHub Actions workflows:**
+
 ```bash
 docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-slim-musl:latest \
   actionlint
 ```
 
 **Generate SBOM for a project:**
+
 ```bash
 docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim-musl:latest \
   syft dir:/work -o spdx-json
 ```
 
 **Scan for vulnerabilities:**
+
 ```bash
 docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-tools-slim-musl:latest \
   grype dir:/work
@@ -133,6 +142,7 @@ alias trivy='docker run --rm -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/sbom-to
 ```
 
 Now you can run:
+
 ```bash
 prettier --write "**/*.md"
 yamlfmt -lint .
@@ -167,10 +177,10 @@ For interactive shells and multi-step workflows, prefer `-runner` variants (they
 docker run --rm -it -v "$(pwd):/work" -w /work ghcr.io/fulmenhq/goneat-tools-runner-musl:latest sh
 ```
 
-| Flag | Purpose |
-|------|---------|
+| Flag  | Purpose                                                 |
+| ----- | ------------------------------------------------------- |
 | `-it` | Interactive terminal (keeps stdin open + allocates TTY) |
-| `sh` | Start a shell instead of running a single command |
+| `sh`  | Start a shell instead of running a single command       |
 
 ### Example Session
 
@@ -203,12 +213,12 @@ All files formatted correctly
 
 ## Comparison
 
-| Aspect | Tool Replacement | Working Environment |
-|--------|------------------|---------------------|
-| **Invocation** | One command per `docker run` | Single `docker run`, many commands |
-| **Overhead** | Container starts/stops each time | Container stays running |
-| **Best for** | CI/CD, scripts, quick checks | Exploration, debugging |
-| **Shell aliases** | Works great | Not applicable |
+| Aspect            | Tool Replacement                 | Working Environment                |
+| ----------------- | -------------------------------- | ---------------------------------- |
+| **Invocation**    | One command per `docker run`     | Single `docker run`, many commands |
+| **Overhead**      | Container starts/stops each time | Container stays running            |
+| **Best for**      | CI/CD, scripts, quick checks     | Exploration, debugging             |
+| **Shell aliases** | Works great                      | Not applicable                     |
 
 ---
 
@@ -259,7 +269,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/fulmenhq/goneat-tools-runner-musl:latest
-      options: --user 1001  # Match GHA runner UID
+      options: --user 1001 # Match GHA runner UID
     steps:
       - uses: actions/checkout@v4
       - run: prettier --check "**/*.{md,json,yml,yaml}"

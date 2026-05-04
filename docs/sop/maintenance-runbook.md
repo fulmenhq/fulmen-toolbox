@@ -58,6 +58,7 @@ This runbook covers routine maintenance tasks for Fulmen Toolbox images: bumping
    - Full local build/test for runner + slim
 
 Copyleft note:
+
 - If the new baseline package is copyleft (especially GPLv3), record it in docs and get maintainer approval before merging.
 
 ### 4) Remove a tool or package
@@ -86,6 +87,7 @@ We also publish compatibility aliases (time-boxed):
 - Bare packages (e.g., `goneat-tools:*`) alias to `goneat-tools-runner-musl:*`
 
 Operational implication:
+
 - GHCR will show multiple **packages** for the repo (variants + aliases).
 - A release should apply tags to all intended package namespaces (canonical variants, plus aliases if we want them).
 

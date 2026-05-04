@@ -6,8 +6,8 @@ This doc covers the configuration surface and contracts. For definitive version 
 
 ## Variants
 
-| Canonical Tag | Base | Use Case |
-|---------------|------|----------|
+| Canonical Tag                          | Base            | Use Case                   |
+| -------------------------------------- | --------------- | -------------------------- |
 | `ghcr.io/fulmenhq/valkey-server-glibc` | Debian bookworm | Production server, sidecar |
 
 No shorthand canonicals are published for new application families. Use the fully-qualified tag.
@@ -46,21 +46,25 @@ This image inherits the upstream Valkey entrypoint without modification. Configu
 ### CLI Arguments (Primary Method)
 
 **Authentication:**
+
 ```bash
 valkey-server --requirepass "${VALKEY_PASSWORD}"
 ```
 
 **Persistence (AOF):**
+
 ```bash
 valkey-server --appendonly yes --dir /data
 ```
 
 **Persistence (RDB):**
+
 ```bash
 valkey-server --save 60 1 --dir /data
 ```
 
 **TLS:**
+
 ```bash
 valkey-server \
   --tls-port 6379 --port 0 \
@@ -84,16 +88,16 @@ docker run --rm -p 6379:6379 \
 
 ### Ports
 
-| Port | Protocol | Description |
-|------|----------|-------------|
-| 6379 | TCP | Valkey protocol (default) |
+| Port | Protocol | Description               |
+| ---- | -------- | ------------------------- |
+| 6379 | TCP      | Valkey protocol (default) |
 
 ### Volumes
 
-| Path | Mode | Required | Description |
-|------|------|----------|-------------|
-| `/data` | rw | No | Persistence directory (AOF/RDB files) |
-| `/certs` | ro | No | TLS certificates (when TLS enabled) |
+| Path     | Mode | Required | Description                           |
+| -------- | ---- | -------- | ------------------------------------- |
+| `/data`  | rw   | No       | Persistence directory (AOF/RDB files) |
+| `/certs` | ro   | No       | TLS certificates (when TLS enabled)   |
 
 ### Healthcheck
 

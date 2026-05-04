@@ -8,6 +8,7 @@
 Fulmen Toolbox images curate and distribute third-party tooling (apk packages, Go-built binaries, npm global tools, and GitHub release binaries). Consumers often need to audit licensing and required attributions without chasing upstream repositories or needing a network connection.
 
 Historically we relied on:
+
 - SBOMs generated in CI
 - The implicit license metadata inside package managers
 
@@ -28,6 +29,7 @@ All Fulmen Toolbox images MUST provide standardized, human-browsable locations f
 - npm global installs (best effort, top-level only): `/licenses/npm/<package>/LICENSE`
 
 Corresponding notice locations mirror the same structure:
+
 - `/notices/github/<owner>/<repo>/NOTICE`
 - `/notices/alpine/` (reserved)
 - `/notices/npm/` (reserved)

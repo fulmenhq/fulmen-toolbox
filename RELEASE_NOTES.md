@@ -8,17 +8,17 @@ Bumps the runner Go toolchain from 1.26.1 to 1.26.2 to clear CVE-2026-33810 (hig
 
 ### Tool Version Updates
 
-| Tool | Previous | Current | Notes |
-|------|----------|---------|-------|
-| Go pin | 1.26.1 | 1.26.2 | Clears CVE-2026-33810 (high); unblocks `golangci-lint` configs targeting 1.26.2 |
-| yq-go (apk) | 4.49.2-r4 | 4.49.2-r5 | Alpine package revision; r4 no longer available upstream |
+| Tool        | Previous  | Current   | Notes                                                                           |
+| ----------- | --------- | --------- | ------------------------------------------------------------------------------- |
+| Go pin      | 1.26.1    | 1.26.2    | Clears CVE-2026-33810 (high); unblocks `golangci-lint` configs targeting 1.26.2 |
+| yq-go (apk) | 4.49.2-r4 | 4.49.2-r5 | Alpine package revision; r4 no longer available upstream                        |
 
 ### Updated Images
 
-| Image | Updated Tools |
-|-------|---------------|
-| `goneat-tools-runner-musl` | Go pin, builder digest |
-| `goneat-tools-slim-musl` | builder digest |
+| Image                       | Updated Tools          |
+| --------------------------- | ---------------------- |
+| `goneat-tools-runner-musl`  | Go pin, builder digest |
+| `goneat-tools-slim-musl`    | builder digest         |
 | `goneat-tools-runner-glibc` | Go pin, builder digest |
 
 ### Breaking Changes
@@ -40,10 +40,10 @@ Bumps goneat to v0.5.9 for bug fixes, pins Go to 1.26.1 to clear dependency vuln
 
 ### Tool Version Updates
 
-| Tool | Previous | Current | Notes |
-|------|----------|---------|-------|
-| goneat | v0.5.8 | v0.5.9 | Bug fixes |
-| Go pin | 1.26 | 1.26.1 | Eliminates dep vulnerability noise |
+| Tool   | Previous | Current | Notes                              |
+| ------ | -------- | ------- | ---------------------------------- |
+| goneat | v0.5.8   | v0.5.9  | Bug fixes                          |
+| Go pin | 1.26     | 1.26.1  | Eliminates dep vulnerability noise |
 
 ### Infrastructure
 
@@ -51,10 +51,10 @@ Bumps goneat to v0.5.9 for bug fixes, pins Go to 1.26.1 to clear dependency vuln
 
 ### Updated Images
 
-| Image | Updated Tools |
-|-------|---------------|
-| `goneat-tools-runner-musl` | goneat, Go pin |
-| `goneat-tools-slim-musl` | goneat, Go pin |
+| Image                       | Updated Tools  |
+| --------------------------- | -------------- |
+| `goneat-tools-runner-musl`  | goneat, Go pin |
+| `goneat-tools-slim-musl`    | goneat, Go pin |
 | `goneat-tools-runner-glibc` | goneat, Go pin |
 
 ### Breaking Changes
@@ -75,24 +75,24 @@ This release updates 6 packages across goneat-tools and sbom-tools images and bu
 
 ### Tool Version Updates
 
-| Tool | Previous | Current | Notes |
-|------|----------|---------|-------|
-| goneat | v0.5.2 | v0.5.8 | Feature release |
-| sfetch | v0.4.1 | v0.4.5 | Patch release |
-| shellsentry | v0.1.1 | v0.1.4 | Requires Go 1.26.1+ |
-| trivy | v0.69.0 | v0.69.3 | v0.69.0 ARM64 asset unavailable upstream |
-| yq-go (apk) | 4.49.2-r2 | 4.49.2-r4 | Alpine package revision |
-| Go builder | 1.25 | 1.26.1 | Required for shellsentry v0.1.4 |
+| Tool        | Previous  | Current   | Notes                                    |
+| ----------- | --------- | --------- | ---------------------------------------- |
+| goneat      | v0.5.2    | v0.5.8    | Feature release                          |
+| sfetch      | v0.4.1    | v0.4.5    | Patch release                            |
+| shellsentry | v0.1.1    | v0.1.4    | Requires Go 1.26.1+                      |
+| trivy       | v0.69.0   | v0.69.3   | v0.69.0 ARM64 asset unavailable upstream |
+| yq-go (apk) | 4.49.2-r2 | 4.49.2-r4 | Alpine package revision                  |
+| Go builder  | 1.25      | 1.26.1    | Required for shellsentry v0.1.4          |
 
 ### Updated Images
 
-| Image | Updated Tools |
-|-------|---------------|
-| `goneat-tools-runner-musl` | goneat, sfetch, shellsentry, yq-go, Go builder |
-| `goneat-tools-slim-musl` | goneat, sfetch, yq-go, Go builder |
-| `goneat-tools-runner-glibc` | goneat, sfetch, shellsentry, Go builder |
-| `sbom-tools-runner-musl` | shellsentry, trivy, Go builder |
-| `sbom-tools-runner-glibc` | shellsentry, trivy, Go builder |
+| Image                       | Updated Tools                                  |
+| --------------------------- | ---------------------------------------------- |
+| `goneat-tools-runner-musl`  | goneat, sfetch, shellsentry, yq-go, Go builder |
+| `goneat-tools-slim-musl`    | goneat, sfetch, yq-go, Go builder              |
+| `goneat-tools-runner-glibc` | goneat, sfetch, shellsentry, Go builder        |
+| `sbom-tools-runner-musl`    | shellsentry, trivy, Go builder                 |
+| `sbom-tools-runner-glibc`   | shellsentry, trivy, Go builder                 |
 
 ### Breaking Changes
 
@@ -121,21 +121,21 @@ This release updates 13 packages across goneat-tools and sbom-tools images, incl
 
 ### Tool Version Updates
 
-| Tool | Previous | Current | Notes |
-|------|----------|---------|-------|
-| sfetch | v0.4.0 | v0.4.1 | Bug fix: GitHub asset 403s |
-| goneat | v0.4.4 | v0.5.2 | Feature release |
-| prettier | 3.7.4 | 3.8.0 | Angular v21.1 support |
-| biome | 2.3.8 | 2.3.11 | Patch fixes |
-| yamlfmt | v0.20.0 | v0.21.0 | stdin reading fixes |
-| actionlint | v1.7.9 | v1.7.10 | ubuntu-slim runner support |
-| checkmake | 0.2.2 | v0.3.2 | Repo moved to checkmake/checkmake |
-| syft | v1.39.0 | v1.41.1 | CycloneDX bug fixes |
-| grype | v0.104.3 | v0.107.1 | DB schema v6 improvements |
-| trivy | v0.68.1 | v0.69.0 | Patch update |
-| cargo-nextest | 0.9.120 | 0.9.122 | Pager support |
-| uv | 0.9.24 | 0.9.28 | OpenSSL security fixes |
-| yq-go (apk) | 4.49.2-r1 | 4.49.2-r2 | Alpine package revision |
+| Tool          | Previous  | Current   | Notes                             |
+| ------------- | --------- | --------- | --------------------------------- |
+| sfetch        | v0.4.0    | v0.4.1    | Bug fix: GitHub asset 403s        |
+| goneat        | v0.4.4    | v0.5.2    | Feature release                   |
+| prettier      | 3.7.4     | 3.8.0     | Angular v21.1 support             |
+| biome         | 2.3.8     | 2.3.11    | Patch fixes                       |
+| yamlfmt       | v0.20.0   | v0.21.0   | stdin reading fixes               |
+| actionlint    | v1.7.9    | v1.7.10   | ubuntu-slim runner support        |
+| checkmake     | 0.2.2     | v0.3.2    | Repo moved to checkmake/checkmake |
+| syft          | v1.39.0   | v1.41.1   | CycloneDX bug fixes               |
+| grype         | v0.104.3  | v0.107.1  | DB schema v6 improvements         |
+| trivy         | v0.68.1   | v0.69.0   | Patch update                      |
+| cargo-nextest | 0.9.120   | 0.9.122   | Pager support                     |
+| uv            | 0.9.24    | 0.9.28    | OpenSSL security fixes            |
+| yq-go (apk)   | 4.49.2-r1 | 4.49.2-r2 | Alpine package revision           |
 
 ### Breaking Changes
 
@@ -155,15 +155,15 @@ This release expands goneat-tools runners into full polyglot CI images, introduc
 
 The goneat-tools runner images now include complete build toolchains for multi-language projects:
 
-| Toolchain | Version | Capabilities |
-|-----------|---------|--------------|
-| **Rust** | 1.92.0 | rustup, rustfmt, clippy, 7 cross-compilation targets |
-| **Cargo tools** | — | cargo-deny, cargo-audit, cargo-zigbuild, cargo-nextest, cbindgen |
-| **Go** | 1.25.5 | CGO_ENABLED=1, full toolchain |
-| **Zig** | 0.15.2 | Cross-compilation backend for cargo-zigbuild |
-| **Python** | 3.11+ | uv, maturin (PyO3/Rust bindings), pytest |
-| **Node** | 22.x | npm, napi-rs CLI for native addon builds |
-| **SBOM** | — | syft 1.39.0, grype 0.104.3 |
+| Toolchain       | Version | Capabilities                                                     |
+| --------------- | ------- | ---------------------------------------------------------------- |
+| **Rust**        | 1.92.0  | rustup, rustfmt, clippy, 7 cross-compilation targets             |
+| **Cargo tools** | —       | cargo-deny, cargo-audit, cargo-zigbuild, cargo-nextest, cbindgen |
+| **Go**          | 1.25.5  | CGO_ENABLED=1, full toolchain                                    |
+| **Zig**         | 0.15.2  | Cross-compilation backend for cargo-zigbuild                     |
+| **Python**      | 3.11+   | uv, maturin (PyO3/Rust bindings), pytest                         |
+| **Node**        | 22.x    | npm, napi-rs CLI for native addon builds                         |
+| **SBOM**        | —       | syft 1.39.0, grype 0.104.3                                       |
 
 ### Subsystems Framework
 

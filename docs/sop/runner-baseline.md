@@ -17,25 +17,25 @@ The SSOT for the runner baseline is `manifests/profiles.json` (`profiles.runner_
 
 Recommended baseline packages (Alpine `apk` names):
 
-| Package | Why it’s needed | Typical license family | Copyleft? |
-|--------:|------------------|------------------------|----------:|
-| `bash` | Common CI shell; `set -euo pipefail` scripts | GPL-3.0 | Yes |
-| `build-base` | CGO toolchain meta-package (gcc/g++/make/libc-dev) | GPL/varies | Yes |
-| `git` | Repo operations in CI | GPL-2.0 | Yes |
-| `make` | Build orchestration, Makefile-based tooling | GPL-3.0 | Yes |
-| `curl` | Fetch release artifacts/installers | MIT-like | No |
-| `ca-certificates` | TLS trust store for HTTPS downloads | Mozilla/varies | No |
-| `tar` | Extract `.tar.*` assets | GPL-3.0 (GNU tar) | Yes |
-| `gzip` | Extract `.tar.gz` assets | GPL-3.0 | Yes |
-| `xz` | Extract `.tar.xz` assets | GPL-2.0+ (xz-utils CLI) | Yes |
-| `unzip` | Extract `.zip` assets | Info-ZIP (permissive) | No |
-| `coreutils` | Full-featured GNU userland (`sha256sum`, `date`, etc.) | GPL-3.0 | Yes |
-| `findutils` | `find`, `xargs` expectations in scripts | GPL-3.0 | Yes |
-| `diffutils` | `diff` behavior expected by many tools | GPL-3.0 | Yes |
-| `openssh-client` | Fetch private deps over SSH | BSD-style | No |
-| `pkgconf` | `pkg-config` for CGO builds | ISC-like | No |
-| `python3` | Runtime for Python-based tools (e.g., yamllint) | PSF | No |
-| `yamllint` | Semantic YAML linting (GPLv3) | GPL-3.0 | Yes |
+|           Package | Why it’s needed                                        | Typical license family  | Copyleft? |
+| ----------------: | ------------------------------------------------------ | ----------------------- | --------: |
+|            `bash` | Common CI shell; `set -euo pipefail` scripts           | GPL-3.0                 |       Yes |
+|      `build-base` | CGO toolchain meta-package (gcc/g++/make/libc-dev)     | GPL/varies              |       Yes |
+|             `git` | Repo operations in CI                                  | GPL-2.0                 |       Yes |
+|            `make` | Build orchestration, Makefile-based tooling            | GPL-3.0                 |       Yes |
+|            `curl` | Fetch release artifacts/installers                     | MIT-like                |        No |
+| `ca-certificates` | TLS trust store for HTTPS downloads                    | Mozilla/varies          |        No |
+|             `tar` | Extract `.tar.*` assets                                | GPL-3.0 (GNU tar)       |       Yes |
+|            `gzip` | Extract `.tar.gz` assets                               | GPL-3.0                 |       Yes |
+|              `xz` | Extract `.tar.xz` assets                               | GPL-2.0+ (xz-utils CLI) |       Yes |
+|           `unzip` | Extract `.zip` assets                                  | Info-ZIP (permissive)   |        No |
+|       `coreutils` | Full-featured GNU userland (`sha256sum`, `date`, etc.) | GPL-3.0                 |       Yes |
+|       `findutils` | `find`, `xargs` expectations in scripts                | GPL-3.0                 |       Yes |
+|       `diffutils` | `diff` behavior expected by many tools                 | GPL-3.0                 |       Yes |
+|  `openssh-client` | Fetch private deps over SSH                            | BSD-style               |        No |
+|         `pkgconf` | `pkg-config` for CGO builds                            | ISC-like                |        No |
+|         `python3` | Runtime for Python-based tools (e.g., yamllint)        | PSF                     |        No |
+|        `yamllint` | Semantic YAML linting (GPLv3)                          | GPL-3.0                 |       Yes |
 
 Optional additions (only if needed):
 

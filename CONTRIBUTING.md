@@ -6,15 +6,16 @@ This guide covers local development setup for maintainers and contributors.
 
 ### Core Tools (day-to-day development)
 
-| Tool | Purpose | Install |
-|------|---------|---------|
-| Docker runtime | Build/test images | See [Docker Runtime Setup](#docker-runtime-setup) |
-| docker-buildx | Multi-arch builds | `brew install docker-buildx` (separate with Colima) |
-| jq | JSON processing, pin validation | `brew install jq` |
-| yamlfmt | Workflow linting | `go install github.com/google/yamlfmt/cmd/yamlfmt@v0.20.0` |
-| trivy | Dockerfile linting | `brew install trivy` |
+| Tool           | Purpose                         | Install                                                    |
+| -------------- | ------------------------------- | ---------------------------------------------------------- |
+| Docker runtime | Build/test images               | See [Docker Runtime Setup](#docker-runtime-setup)          |
+| docker-buildx  | Multi-arch builds               | `brew install docker-buildx` (separate with Colima)        |
+| jq             | JSON processing, pin validation | `brew install jq`                                          |
+| yamlfmt        | Workflow linting                | `go install github.com/google/yamlfmt/cmd/yamlfmt@v0.20.0` |
+| trivy          | Dockerfile linting              | `brew install trivy`                                       |
 
 **Quick install:**
+
 ```bash
 brew install colima docker docker-buildx jq trivy
 go install github.com/google/yamlfmt/cmd/yamlfmt@v0.20.0
@@ -22,6 +23,7 @@ colima start
 ```
 
 **Configure docker-buildx plugin** (required for Colima):
+
 ```bash
 # Add plugin path to Docker config (one-time setup)
 jq '. + {"cliPluginsExtraDirs": ["/opt/homebrew/lib/docker/cli-plugins"]}' \
@@ -38,19 +40,19 @@ docker buildx version
 
 These are only needed when cutting releases, not for day-to-day development:
 
-| Tool | Purpose | Install |
-|------|---------|---------|
-| cosign | Image signing | `brew install cosign` |
-| gpg | Artifact signing | `brew install gnupg` |
+| Tool     | Purpose          | Install                 |
+| -------- | ---------------- | ----------------------- |
+| cosign   | Image signing    | `brew install cosign`   |
+| gpg      | Artifact signing | `brew install gnupg`    |
 | minisign | Artifact signing | `brew install minisign` |
-| syft | SBOM generation | `brew install syft` |
+| syft     | SBOM generation  | `brew install syft`     |
 
 ### Optional Tools
 
-| Tool | Purpose | Install |
-|------|---------|---------|
-| shellcheck | Shell script analysis (GPL) | `brew install shellcheck` |
-| shfmt | Shell formatting | `go install mvdan.cc/sh/v3/cmd/shfmt@latest` |
+| Tool       | Purpose                     | Install                                      |
+| ---------- | --------------------------- | -------------------------------------------- |
+| shellcheck | Shell script analysis (GPL) | `brew install shellcheck`                    |
+| shfmt      | Shell formatting            | `go install mvdan.cc/sh/v3/cmd/shfmt@latest` |
 
 Run `make bootstrap` to check your setup.
 
@@ -98,6 +100,7 @@ brew services stop colima
 ```
 
 **Colima tips:**
+
 - More resources: `colima start --cpu 4 --memory 8`
 - Stop manually: `colima stop`
 - Check status: `colima status`
@@ -146,6 +149,7 @@ make prepush                  # Pre-push checks (quality + build + test)
 **Cause:** Docker daemon not running.
 
 **Fix (Colima):**
+
 ```bash
 colima status        # Check if running
 colima start         # Start if stopped
@@ -158,6 +162,7 @@ colima start         # Start if stopped
 **Cause:** Docker socket not found or permission denied.
 
 **Fix (Colima):**
+
 ```bash
 # Ensure DOCKER_HOST is set (add to ~/.zshrc or ~/.bashrc)
 export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"
@@ -169,6 +174,7 @@ sudo ln -sf ~/.colima/default/docker.sock /var/run/docker.sock
 ### "colima: command not found"
 
 **Fix:**
+
 ```bash
 brew install colima docker
 colima start
@@ -179,6 +185,7 @@ colima start
 **Cause:** `validate-manifest` uses a Dockerized ajv validator; `validate-pins` is pure bash+jq.
 
 **Fix:** Start Docker, or skip manifest validation for quick local checks:
+
 ```bash
 make validate-pins      # Works without Docker
 make lint-workflows     # Works without Docker
@@ -189,6 +196,7 @@ make lint-workflows     # Works without Docker
 **Cause:** With Colima, `docker-buildx` is a separate brew package and Docker needs to be configured to find it.
 
 **Fix:**
+
 ```bash
 # Install if missing
 brew install docker-buildx
@@ -207,6 +215,7 @@ docker buildx version
 **Cause:** buildx not configured or QEMU not available.
 
 **Fix:**
+
 ```bash
 # Create buildx builder with QEMU support
 docker buildx create --use --name multiarch --driver docker-container

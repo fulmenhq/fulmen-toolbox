@@ -18,6 +18,7 @@ Before opening a PR that touches workflows, run:
 - `make lint-workflows`
 
 Notes:
+
 - `yamllint` and `actionlint` are optional locally (the Makefile will skip if missing).
 - CI runs `actionlint` as part of workflow validation, so installing it locally is recommended if you edit workflows.
 

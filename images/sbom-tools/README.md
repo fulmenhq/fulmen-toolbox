@@ -11,20 +11,21 @@ This image bundles upstream license texts under `/licenses/` and upstream notice
 
 ## Included Tools
 
-| Tool     | Purpose                          | Source     |
-|----------|----------------------------------|------------|
-| syft (v1.18.1) | SBOM generation (CycloneDX, SPDX) | GitHub release |
-| grype (v0.86.1) | Vulnerability scanning | GitHub release |
-| trivy (v0.68.1) | SBOM + vuln + config scanning | GitHub release |
-| jq (1.8.1-r0) | JSON shaping for SBOM outputs | apk |
-| yq-go (4.49.2-r1) | YAML/JSON filtering | apk |
-| git (2.52.0-r0) | Repo checkout inside containerized CI | apk |
+| Tool              | Purpose                               | Source         |
+| ----------------- | ------------------------------------- | -------------- |
+| syft (v1.18.1)    | SBOM generation (CycloneDX, SPDX)     | GitHub release |
+| grype (v0.86.1)   | Vulnerability scanning                | GitHub release |
+| trivy (v0.68.1)   | SBOM + vuln + config scanning         | GitHub release |
+| jq (1.8.1-r0)     | JSON shaping for SBOM outputs         | apk            |
+| yq-go (4.49.2-r1) | YAML/JSON filtering                   | apk            |
+| git (2.52.0-r0)   | Repo checkout inside containerized CI | apk            |
 
 **Base Image:** `alpine:3.21@sha256:5405e8f3...` (multi-arch digest pinned)
 
 See `manifests/tools.json` for pinning details and `docs/user-guide/container-usage-patterns.md` for usage patterns.
 
 **Image Tags:**
+
 - `ghcr.io/fulmenhq/sbom-tools-runner-musl:latest`
 - `ghcr.io/fulmenhq/sbom-tools:v0.1.1` (semver tags)
 
@@ -105,18 +106,18 @@ docker run --rm \
 
 ### syft
 
-| Format | Flag | Use Case |
-|--------|------|----------|
+| Format         | Flag                | Use Case                             |
+| -------------- | ------------------- | ------------------------------------ |
 | CycloneDX JSON | `-o cyclonedx-json` | Industry standard, CI/CD integration |
-| SPDX JSON | `-o spdx-json` | License compliance, legal |
-| Table | `-o table` | Human-readable (default) |
+| SPDX JSON      | `-o spdx-json`      | License compliance, legal            |
+| Table          | `-o table`          | Human-readable (default)             |
 
 ### grype
 
-| Format | Flag | Use Case |
-|--------|------|----------|
-| Table | (default) | Human-readable |
-| JSON | `-o json` | CI/CD integration |
+| Format    | Flag           | Use Case             |
+| --------- | -------------- | -------------------- |
+| Table     | (default)      | Human-readable       |
+| JSON      | `-o json`      | CI/CD integration    |
 | CycloneDX | `-o cyclonedx` | Attach vulns to SBOM |
 
 ## Local Build & Test
