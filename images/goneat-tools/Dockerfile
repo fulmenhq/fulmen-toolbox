@@ -25,6 +25,7 @@ ARG TAPLO_VERSION=0.10.0-r0
 ARG GONEAT_VERSION=v0.5.9
 ARG SFETCH_VERSION=v0.4.5
 ARG SHELLSENTRY_VERSION=v0.1.4
+ARG GOLANGCI_LINT_VERSION=v2.12.1
 
 # Runner-baseline pinned packages (subset)
 ARG BASH_VERSION=5.3.3-r1
@@ -127,6 +128,27 @@ RUN set -eux; \
       /out/licenses/github/3leaps/shellsentry/LICENSE; \
     cp "${GOMODCACHE}/github.com/3leaps/shellsentry@${SHELLSENTRY_VERSION}/NOTICE" \
       /out/notices/github/3leaps/shellsentry/NOTICE; \
+    chmod -R a+rX /out
+
+# Stage 1b2: Build golangci-lint v2 (runner-only)
+# Pinned against the runner's Go (${GO_VERSION}) so the resulting binary's
+# embedded Go version always matches the toolchain shipped in the runner.
+# This closes the "user `go install`s a Go-built linter and inherits an older
+# Go" failure pattern that produced the namelens issue against v0.3.5.
+# License: GPL-3.0-only (runner is copyleft-by-design per README).
+FROM ${GO_IMAGE} AS golangci-lint-builder
+RUN apk add --no-cache git
+ARG GOLANGCI_LINT_VERSION
+RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+RUN set -eux; \
+    mkdir -p \
+      /out/bin \
+      /out/licenses/github/golangci/golangci-lint; \
+    [ -f /go/bin/golangci-lint ] || { echo "golangci-lint binary not at /go/bin/golangci-lint" >&2; ls -la /go/bin >&2; exit 1; }; \
+    cp /go/bin/golangci-lint /out/bin/golangci-lint; \
+    GOMODCACHE="$(go env GOMODCACHE)"; \
+    cp "${GOMODCACHE}/github.com/golangci/golangci-lint/v2@${GOLANGCI_LINT_VERSION}/LICENSE" \
+      /out/licenses/github/golangci/golangci-lint/LICENSE; \
     chmod -R a+rX /out
 
 # Stage 1c: Fetch SBOM tools (runner-only)
@@ -494,6 +516,8 @@ COPY --from=sbom-fetcher /out/notices/github/anchore/ /notices/github/anchore/
 COPY --from=shellsentry-builder /out/bin/shellsentry /usr/local/bin/shellsentry
 COPY --from=shellsentry-builder /out/licenses/github/3leaps/shellsentry/LICENSE /licenses/github/3leaps/shellsentry/LICENSE
 COPY --from=shellsentry-builder /out/notices/github/3leaps/shellsentry/NOTICE /notices/github/3leaps/shellsentry/NOTICE
+COPY --from=golangci-lint-builder /out/bin/golangci-lint /usr/local/bin/golangci-lint
+COPY --from=golangci-lint-builder /out/licenses/github/golangci/golangci-lint/LICENSE /licenses/github/golangci/golangci-lint/LICENSE
 
 RUN set -eux; \
     ln -s /opt/zig/zig /usr/local/bin/zig; \

@@ -547,6 +547,19 @@
       "notice_path": "/notices/github/3leaps/shellsentry/NOTICE"
     },
     {
+      "name": "golangci-lint",
+      "version": "v2.12.1",
+      "source": "go",
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
+      "notes": "Go linter aggregator. Built in-runner against the runner's pinned Go (currently 1.26.2) so consumer configs targeting that Go version don't fail with 'language version too low'. Runner is copyleft-by-design; bundled GPL-3.0 binary aligns with that posture.",
+      "license_spdx": "GPL-3.0-only",
+      "license_source": "gomodcache",
+      "license_path": "/licenses/github/golangci/golangci-lint/LICENSE"
+    },
+    {
       "name": "syft",
       "version": "v1.41.1",
       "source": "binary",
