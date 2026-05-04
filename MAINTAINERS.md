@@ -6,8 +6,8 @@
 
 ## Human Maintainers
 
-| Name | GitHub | Email | Role |
-| --- | --- | --- | --- |
+| Name          | GitHub      | Email                    | Role            |
+| ------------- | ----------- | ------------------------ | --------------- |
 | Dave Thompson | @3leapsdave | dave.thompson@3leaps.net | Lead maintainer |
 
 ## Autonomous Agents

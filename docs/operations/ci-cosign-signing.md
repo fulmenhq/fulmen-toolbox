@@ -61,14 +61,14 @@ jobs:
 
 ## CI Signing Flow (Recommended)
 
-1) **Build & push images** (existing release workflow).
-2) **Collect digests** from the build outputs:
+1. **Build & push images** (existing release workflow).
+2. **Collect digests** from the build outputs:
    - Use the manifest-derived image list (from `manifests/tools.json`) to avoid per-variant hand edits.
    - For each image, record the pushed digest (`ghcr.io/...@sha256:...`).
-3) **Sign + attest in CI** using cosign keyless:
+3. **Sign + attest in CI** using cosign keyless:
    - Set `COSIGN_YES=true` to avoid prompts.
    - Use `cosign sign` and `cosign attest --type spdxjson` per digest.
-4) **(Optional) Attach SBOM** if legacy discovery is desired:
+4. **(Optional) Attach SBOM** if legacy discovery is desired:
    - Use `cosign attach sbom --sbom <file> --type spdx --input-format json`.
 
 ## Example CI Step (Skeleton)

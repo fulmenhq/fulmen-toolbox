@@ -1,0 +1,15 @@
+---
+extends: default
+
+rules:
+  # SOP-aligned with goneat's appnote on yaml-format-lint-alignment.
+  # Defaults below are tuned for GitHub Actions reality:
+  # - line-length: disabled. Workflow `run:` blocks routinely exceed 80 cols
+  #   for legibility; soft-wrapping breaks shell semantics.
+  # - truthy.check-keys: false. yamllint flags GHA's bare `on:` key as truthy;
+  #   quoting it (`"on":`) is GHA-legal but confuses every reader.
+  # - document-start: disabled. Most repo YAMLs don't open with `---`.
+  document-start: disable
+  line-length: disable
+  truthy:
+    check-keys: false

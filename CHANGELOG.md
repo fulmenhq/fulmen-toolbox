@@ -4,6 +4,20 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 ## [Unreleased]
 
+### Added
+
+- **golangci-lint v2.12.1** bundled in `goneat-tools-runner-{musl,glibc}`. Built in-runner against the pinned Go (1.26.2) so consumer configs targeting that Go version no longer hit "language version too low". License: GPL-3.0-only (runner is copyleft-by-design). NOT included in slim variants.
+- **YAML config triplet**: `.yamlfmt`, `.yamllint`, `.goneat/assess.yaml` aligned with the goneat appnote on yaml-format-lint-alignment. Sets `pad_line_comments: 2` explicitly to avoid yamlfmt-vs-yamllint oscillation.
+- **`make pr-final`**: strict local gate that runs `goneat format` then `goneat assess --check --categories format,lint,security --fail-on medium`.
+
+### Changed
+
+- Repo-wide cosmetic format normalization to the new yaml triplet baseline (markdown table padding, JSON array expansion). No semantic content changes.
+
+### Migration
+
+⚠ Consumers using `golangci/golangci-lint-action@v7` (or any separate `go install`/install-script step) inside the runner: **drop the separate install step** to use the bundled binary. The bundled binary is the only one built against the runner's pinned Go. Detailed migration guidance in v0.4.0 release notes.
+
 ## [0.3.5] - 2026-05-02
 
 ### Changed

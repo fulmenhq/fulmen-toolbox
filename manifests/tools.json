@@ -5,7 +5,11 @@
       "name": "prettier",
       "version": "3.8.0",
       "source": "npm",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Pinned npm global install for formatting.",
       "license_spdx": "MIT",
       "license_source": "npm",
@@ -15,7 +19,11 @@
       "name": "biome",
       "version": "2.3.11",
       "source": "npm",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Pinned npm global install; complements Prettier (JS/TS/JSON lint/format).",
       "license_spdx": "Apache-2.0 OR MIT",
       "license_source": "npm",
@@ -28,7 +36,11 @@
       "name": "yamlfmt",
       "version": "v0.21.0",
       "source": "go",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Go install from github.com/google/yamlfmt/cmd/yamlfmt.",
       "license_spdx": "Apache-2.0",
       "license_source": "gomodcache",
@@ -38,103 +50,142 @@
       "name": "jq",
       "version": "1.8.1-r0",
       "source": "apk",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl"],
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl"
+      ],
       "notes": "Alpine 3.23 version (node:22-alpine base)"
     },
     {
       "name": "jq",
       "version": "1.7.1-r0",
       "source": "apk",
-      "images": ["sbom-tools-slim-musl", "sbom-tools-runner-musl"],
+      "images": [
+        "sbom-tools-slim-musl",
+        "sbom-tools-runner-musl"
+      ],
       "notes": "Alpine 3.21 version"
     },
     {
       "name": "jq",
       "version": "1.8.1",
       "source": "binary",
-      "images": ["goneat-tools-runner-glibc", "sbom-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-glibc",
+        "sbom-tools-runner-glibc"
+      ],
       "notes": "GitHub release binary for glibc runners."
     },
     {
       "name": "yq-go",
       "version": "4.49.2-r5",
       "source": "apk",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl"],
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl"
+      ],
       "notes": "Alpine 3.23 version (node:22-alpine base)"
     },
     {
       "name": "yq-go",
       "version": "4.44.5-r5",
       "source": "apk",
-      "images": ["sbom-tools-slim-musl", "sbom-tools-runner-musl"],
+      "images": [
+        "sbom-tools-slim-musl",
+        "sbom-tools-runner-musl"
+      ],
       "notes": "Alpine 3.21 version"
     },
     {
       "name": "yq-go",
       "version": "v4.49.2",
       "source": "binary",
-      "images": ["goneat-tools-runner-glibc", "sbom-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-glibc",
+        "sbom-tools-runner-glibc"
+      ],
       "notes": "GitHub release binary for glibc runners."
     },
     {
       "name": "ripgrep",
       "version": "15.1.0-r0",
       "source": "apk",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl"]
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl"
+      ]
     },
     {
       "name": "ripgrep",
       "version": "15.1.0",
       "source": "binary",
-      "images": ["goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "GitHub release binary for glibc runners."
     },
     {
       "name": "taplo",
       "version": "0.10.0-r0",
       "source": "apk",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl"],
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl"
+      ],
       "notes": "TOML formatter/linter"
     },
     {
       "name": "taplo",
       "version": "0.10.0",
       "source": "binary",
-      "images": ["goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "GitHub release binary for glibc runners."
     },
     {
       "name": "bash",
       "version": "5.3.3-r1",
       "source": "apk",
-      "images": ["goneat-tools-runner-musl"]
+      "images": [
+        "goneat-tools-runner-musl"
+      ]
     },
     {
       "name": "git",
       "version": "2.52.0-r0",
       "source": "apk",
-      "images": ["goneat-tools-runner-musl"],
+      "images": [
+        "goneat-tools-runner-musl"
+      ],
       "notes": "Alpine 3.23 version (node:22-alpine base)"
     },
     {
       "name": "git",
       "version": "2.47.3-r0",
       "source": "apk",
-      "images": ["sbom-tools-runner-musl"],
+      "images": [
+        "sbom-tools-runner-musl"
+      ],
       "notes": "Alpine 3.21 version"
     },
     {
       "name": "curl",
       "version": "8.17.0-r1",
       "source": "apk",
-      "images": ["goneat-tools-runner-musl"],
+      "images": [
+        "goneat-tools-runner-musl"
+      ],
       "notes": "HTTP client for CI workflows (MIT-like license)"
     },
     {
       "name": "minisign",
       "version": "0.12-r1",
       "source": "apk",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl"],
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl"
+      ],
       "notes": "File signing/verification tool (ISC license).",
       "license_spdx": "ISC",
       "license_source": "upstream-url",
@@ -144,7 +195,9 @@
       "name": "minisign",
       "version": "0.12",
       "source": "binary",
-      "images": ["goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "GitHub release binary for glibc runners (ISC license).",
       "license_spdx": "ISC",
       "license_source": "upstream-url",
@@ -154,35 +207,49 @@
       "name": "node-base",
       "version": "node:22-alpine@sha256:9632533eda8061fc1e9960cfb3f8762781c07a00ee7317f5dc0e13c05e15166f",
       "source": "other",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl"],
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl"
+      ],
       "notes": "Pinned base image digest for multi-arch."
     },
     {
       "name": "node-base-glibc",
       "version": "node:22-bookworm-slim@sha256:7378f5a4830ef48eb36d1abf4ef398391db562b5c41a0bded83192fbcea21cc8",
       "source": "other",
-      "images": ["goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Pinned base image tag for glibc runner."
     },
     {
       "name": "golang-builder",
       "version": "golang:1.26-alpine@sha256:f85330846cde1e57ca9ec309382da3b8e6ae3ab943d2739500e08c86393a21b1",
       "source": "other",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl"],
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl"
+      ],
       "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint)."
     },
     {
       "name": "golang-builder-glibc",
       "version": "golang:1.26-bookworm@sha256:47ce5636e9936b2c5cbf708925578ef386b4f8872aec74a67bd13a627d242b19",
       "source": "other",
-      "images": ["goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Pinned builder image tag for Go tools in glibc runner."
     },
     {
       "name": "shfmt",
       "version": "v3.12.0",
       "source": "go",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Shell formatter (BSD-3 license). Go install from mvdan.cc/sh/v3/cmd/shfmt.",
       "license_spdx": "BSD-3-Clause",
       "license_source": "gomodcache",
@@ -192,7 +259,11 @@
       "name": "checkmake",
       "version": "v0.3.2",
       "source": "go",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Makefile linter (MIT license). Go install from github.com/checkmake/checkmake/cmd/checkmake.",
       "license_spdx": "MIT",
       "license_source": "gomodcache",
@@ -202,7 +273,11 @@
       "name": "actionlint",
       "version": "v1.7.10",
       "source": "go",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "GitHub Actions workflow linter (MIT license). Go install from github.com/rhysd/actionlint/cmd/actionlint.",
       "license_spdx": "MIT",
       "license_source": "gomodcache",
@@ -212,7 +287,11 @@
       "name": "goneat",
       "version": "v0.5.9",
       "source": "go",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "FulmenHQ DX CLI: wrap and orchestrate formatting/linting/assessment/hook workflows.",
       "license_spdx": "Apache-2.0",
       "license_source": "gomodcache",
@@ -224,7 +303,11 @@
       "name": "sfetch",
       "version": "v0.4.5",
       "source": "go",
-      "images": ["goneat-tools-slim-musl", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Trust-anchor downloader: defaults to signature+checksum verification for GitHub release assets.",
       "license_spdx": "MIT",
       "license_source": "gomodcache",
@@ -234,7 +317,10 @@
       "name": "go",
       "version": "1.26.2",
       "source": "binary",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Pinned Go toolchain from go.dev archives.",
       "license_spdx": "BSD-3-Clause",
       "license_source": "manual",
@@ -244,7 +330,10 @@
       "name": "zig",
       "version": "0.15.2",
       "source": "binary",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Pinned Zig toolchain from ziglang.org.",
       "license_spdx": "MIT",
       "license_source": "manual",
@@ -254,7 +343,10 @@
       "name": "rustc",
       "version": "1.92.0",
       "source": "binary",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Pinned Rust compiler via rustup.",
       "license_spdx": "Apache-2.0 OR MIT",
       "license_source": "manual",
@@ -267,7 +359,10 @@
       "name": "cargo",
       "version": "1.92.0",
       "source": "binary",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Pinned Cargo toolchain via rustup.",
       "license_spdx": "Apache-2.0 OR MIT",
       "license_source": "manual",
@@ -280,7 +375,10 @@
       "name": "rustfmt",
       "version": "1.92.0",
       "source": "binary",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Rust formatter component via rustup.",
       "license_spdx": "Apache-2.0 OR MIT",
       "license_source": "manual",
@@ -293,7 +391,10 @@
       "name": "clippy",
       "version": "1.92.0",
       "source": "binary",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Rust clippy component via rustup.",
       "license_spdx": "Apache-2.0 OR MIT",
       "license_source": "manual",
@@ -306,7 +407,10 @@
       "name": "cargo-deny",
       "version": "0.19.0",
       "source": "binary",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Cargo plugin for license/advisory/source auditing.",
       "license_spdx": "MIT OR Apache-2.0",
       "license_source": "manual",
@@ -319,7 +423,10 @@
       "name": "cargo-audit",
       "version": "0.22.0",
       "source": "binary",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Cargo plugin for RustSec vulnerability auditing.",
       "license_spdx": "Apache-2.0 OR MIT",
       "license_source": "manual",
@@ -332,7 +439,10 @@
       "name": "cargo-zigbuild",
       "version": "0.20.1",
       "source": "binary",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Cargo plugin for cross-compilation with Zig.",
       "license_spdx": "MIT",
       "license_source": "manual",
@@ -342,7 +452,10 @@
       "name": "cargo-nextest",
       "version": "0.9.122",
       "source": "binary",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Cargo plugin for running tests with nextest.",
       "license_spdx": "Apache-2.0 OR MIT",
       "license_source": "manual",
@@ -355,7 +468,10 @@
       "name": "cbindgen",
       "version": "0.29.0",
       "source": "binary",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Generates C/C++ headers from Rust code.",
       "license_spdx": "MPL-2.0",
       "license_source": "manual",
@@ -365,7 +481,10 @@
       "name": "uv",
       "version": "0.9.28",
       "source": "other",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Fast Python package manager (installed via pip).",
       "license_spdx": "MIT",
       "license_source": "manual",
@@ -375,7 +494,10 @@
       "name": "maturin",
       "version": "1.11.5",
       "source": "other",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "PyO3/Rust-Python build tool (installed via pip).",
       "license_spdx": "MIT",
       "license_source": "manual",
@@ -385,7 +507,10 @@
       "name": "pytest",
       "version": "9.0.2",
       "source": "other",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Python test runner (installed via pip).",
       "license_spdx": "MIT",
       "license_source": "manual",
@@ -395,7 +520,10 @@
       "name": "napi-rs-cli",
       "version": "3.5.1",
       "source": "npm",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "N-API tooling from @napi-rs/cli (installed via npm).",
       "license_spdx": "MIT",
       "license_source": "npm",
@@ -405,7 +533,12 @@
       "name": "shellsentry",
       "version": "v0.1.4",
       "source": "go",
-      "images": ["goneat-tools-runner-musl", "goneat-tools-runner-glibc", "sbom-tools-runner-musl", "sbom-tools-runner-glibc"],
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc",
+        "sbom-tools-runner-musl",
+        "sbom-tools-runner-glibc"
+      ],
       "notes": "Static risk assessment for shell scripts before execution.",
       "license_spdx": "Apache-2.0",
       "license_source": "gomodcache",
@@ -414,10 +547,29 @@
       "notice_path": "/notices/github/3leaps/shellsentry/NOTICE"
     },
     {
+      "name": "golangci-lint",
+      "version": "v2.12.1",
+      "source": "go",
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
+      "notes": "Go linter aggregator. Built in-runner against the runner's pinned Go (currently 1.26.2) so consumer configs targeting that Go version don't fail with 'language version too low'. Runner is copyleft-by-design; bundled GPL-3.0 binary aligns with that posture.",
+      "license_spdx": "GPL-3.0-only",
+      "license_source": "gomodcache",
+      "license_path": "/licenses/github/golangci/golangci-lint/LICENSE"
+    },
+    {
       "name": "syft",
       "version": "v1.41.1",
       "source": "binary",
-      "images": ["sbom-tools-slim-musl", "sbom-tools-runner-musl", "sbom-tools-runner-glibc", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "sbom-tools-slim-musl",
+        "sbom-tools-runner-musl",
+        "sbom-tools-runner-glibc",
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "SBOM generator from Anchore (GitHub release binary). Supports CycloneDX + SPDX output formats.",
       "license_spdx": "Apache-2.0",
       "license_source": "upstream-url",
@@ -428,7 +580,13 @@
       "name": "grype",
       "version": "v0.107.1",
       "source": "binary",
-      "images": ["sbom-tools-slim-musl", "sbom-tools-runner-musl", "sbom-tools-runner-glibc", "goneat-tools-runner-musl", "goneat-tools-runner-glibc"],
+      "images": [
+        "sbom-tools-slim-musl",
+        "sbom-tools-runner-musl",
+        "sbom-tools-runner-glibc",
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
       "notes": "Vulnerability scanner from Anchore (GitHub release binary). Pulls DB on first run (~150MB).",
       "license_spdx": "Apache-2.0",
       "license_source": "upstream-url",
@@ -439,7 +597,11 @@
       "name": "trivy",
       "version": "v0.69.3",
       "source": "binary",
-      "images": ["sbom-tools-slim-musl", "sbom-tools-runner-musl", "sbom-tools-runner-glibc"],
+      "images": [
+        "sbom-tools-slim-musl",
+        "sbom-tools-runner-musl",
+        "sbom-tools-runner-glibc"
+      ],
       "notes": "SBOM/vuln scanner from Aqua Security (GitHub release binary). Alternative to Syft/Grype workflow. Also provides Dockerfile config scanning.",
       "license_spdx": "Apache-2.0",
       "license_source": "upstream-url",
@@ -451,21 +613,28 @@
       "name": "alpine-base",
       "version": "alpine:3.21@sha256:5405e8f36ce1878720f71217d664aa3dea32e5e5df11acbf07fc78ef5661465b",
       "source": "other",
-      "images": ["sbom-tools-slim-musl", "sbom-tools-runner-musl"],
+      "images": [
+        "sbom-tools-slim-musl",
+        "sbom-tools-runner-musl"
+      ],
       "notes": "Pinned base image digest for sbom-tools."
     },
     {
       "name": "debian-base",
       "version": "debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c",
       "source": "other",
-      "images": ["sbom-tools-runner-glibc"],
+      "images": [
+        "sbom-tools-runner-glibc"
+      ],
       "notes": "Pinned base image tag for glibc runner."
     },
     {
       "name": "curl",
       "version": "8.14.1-r2",
       "source": "apk",
-      "images": ["sbom-tools-runner-musl"],
+      "images": [
+        "sbom-tools-runner-musl"
+      ],
       "notes": "HTTP client for CI workflows (MIT-like license)"
     }
   ]

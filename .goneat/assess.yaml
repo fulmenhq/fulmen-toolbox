@@ -1,0 +1,47 @@
+version: 1
+lint:
+  yamllint:
+    enabled: true
+    strict: true
+    paths:
+      - ".github/workflows/**/*.yml"
+      - ".github/workflows/**/*.yaml"
+      - ".github/*.yaml"
+      - ".github/*.yml"
+      - "subsystems/**/*.yaml"
+      - "subsystems/**/*.yml"
+    ignore: []
+  shell:
+    shfmt:
+      enabled: true
+      fix: true
+    shellcheck:
+      enabled: false
+      path: ""
+    paths:
+      - "**/*.sh"
+      - "scripts/**/*.sh"
+    ignore:
+      - "**/node_modules/**"
+      - "**/.git/**"
+      - "**/vendor/**"
+      - "**/*.orig"
+      - "**/testdata/**"
+      - ".plans/**"
+  github_actions:
+    actionlint:
+      enabled: true
+      paths:
+        - ".github/workflows/**/*.yml"
+        - ".github/workflows/**/*.yaml"
+      ignore: []
+  make:
+    # checkmake disabled for v0.4.0 — its `phonydeclared` rule does not parse
+    # our backslash-continuation `.PHONY: ...` block correctly and produces
+    # false positives across most build/test/prove targets. See followup:
+    # `.plans/active/v0.4.x/makefile-checkmake-hygiene.md` (TBD).
+    checkmake:
+      enabled: false
+    paths:
+      - "**/Makefile"
+    ignore: []

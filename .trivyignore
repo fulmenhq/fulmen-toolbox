@@ -1,0 +1,9 @@
+# Trivy ignore list for fulmen-toolbox runner / sbom-tools images.
+#
+# Add CVEs here only with rationale and a date. Format:
+#   <CVE-ID>  # YYYY-MM-DD: <rationale>; review by YYYY-MM-DD
+# Example:
+#   CVE-2026-00000  # 2026-05-04: false positive in trivy DB; upstream fixed in libfoo 1.2.3 already shipped; review 2026-08-04
+#
+# This file is read by the cve-scan workflow and by `make precommit` (trivy
+# scan of Dockerfile sources). Keep entries minimal and time-boxed.

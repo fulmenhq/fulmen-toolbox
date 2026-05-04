@@ -12,7 +12,7 @@
 	build-valkey-server-glibc build-valkey-server-glibc-multi test-valkey-server-glibc \
 	prove prove-goneat prove-sbom prove-runners prove-multi prove-goneat-multi prove-sbom-multi \
 	clean help bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap bootstrap-tools \
-	validate-manifest validate-apk-pins lint-workflows lint-dockerfiles quality precommit prepush check-clean check-quick \
+	validate-manifest validate-apk-pins lint-workflows lint-dockerfiles quality precommit prepush pr-final check-clean check-quick \
 	catalog \
 	release-download release-notes release-sign release-upload verify-release-key release-digests \
 	validate-subsystems validate-subsystem-echo-proxy-fixture validate-subsystem-authentik-idp \
@@ -775,6 +775,22 @@ prepush:
 	@$(MAKE) build-all
 	@$(MAKE) test-all
 	@echo "Prepush checks passed. Safe to push."
+
+## Strict local gate: auto-format then assess format/lint/security (fail-on medium).
+## Mirrors what we expect CI to enforce so maintainers can catch drift before pushing.
+pr-final:
+	@command -v goneat >/dev/null 2>&1 || { echo "goneat not found; install via 'make bootstrap-tools' or see docs/user-guide/preflight.md"; exit 1; }
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "Running goneat format (auto-fix)..."
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@goneat format
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "Running goneat assess (format + lint + security, fail-on medium)..."
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@goneat assess --check --categories format,lint,security --fail-on medium
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "✅ pr-final clean. Safe to commit + push."
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 ## Release plan helper (prints steps, does not push)
 release-plan:

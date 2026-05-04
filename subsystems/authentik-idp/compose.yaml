@@ -77,7 +77,6 @@ services:
         condition: service_healthy
       valkey:
         condition: service_healthy
-
   authentik-blueprint:
     image: ghcr.io/goauthentik/server:${AUTHENTIK_VERSION:-2024.12}
     entrypoint: ["/bin/sh", "-c"]

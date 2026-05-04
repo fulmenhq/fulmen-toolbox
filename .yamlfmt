@@ -1,0 +1,19 @@
+# yamlfmt configuration for fulmen-toolbox
+# Mirrors the goneat project triplet (see goneat appnote yaml-format-lint-alignment).
+# pad_line_comments is set explicitly to 2 to match yamllint's default and avoid
+# format/lint oscillation in CI (goneat pins 2; yamlfmt default is 1).
+
+formatter:
+  type: basic
+  indent: 2
+  line_ending: lf
+  pad_line_comments: 2
+
+# Exclude patterns
+exclude:
+  - node_modules/**
+  - vendor/**
+  - .git/**
+  - dist/**
+  - bin/**
+  - .plans/**

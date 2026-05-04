@@ -55,23 +55,23 @@ The source of truth is `manifests/profiles.json`.
 
 Current `runner_baseline` (apk packages):
 
-| Package |
-|--------:|
-| `bash` |
-| `build-base` |
+|           Package |
+| ----------------: |
+|            `bash` |
+|      `build-base` |
 | `ca-certificates` |
-| `coreutils` |
-| `curl` |
-| `diffutils` |
-| `findutils` |
-| `git` |
-| `gzip` |
-| `make` |
-| `openssh-client` |
-| `pkgconf` |
-| `tar` |
-| `unzip` |
-| `xz` |
+|       `coreutils` |
+|            `curl` |
+|       `diffutils` |
+|       `findutils` |
+|             `git` |
+|            `gzip` |
+|            `make` |
+|  `openssh-client` |
+|         `pkgconf` |
+|             `tar` |
+|           `unzip` |
+|              `xz` |
 
 ### `runner_baseline_apt` (SSOT)
 
@@ -79,28 +79,29 @@ Used by `*-runner-glibc` images (Debian/apt).
 
 Current `runner_baseline_apt` (apt packages):
 
-| Package |
-|--------:|
-| `bash` |
+|           Package |
+| ----------------: |
+|            `bash` |
 | `build-essential` |
 | `ca-certificates` |
-| `coreutils` |
-| `curl` |
-| `diffutils` |
-| `findutils` |
-| `g++` |
-| `gcc` |
-| `git` |
-| `gzip` |
-| `libc6-dev` |
-| `make` |
-| `openssh-client` |
-| `pkg-config` |
-| `tar` |
-| `unzip` |
-| `xz-utils` |
+|       `coreutils` |
+|            `curl` |
+|       `diffutils` |
+|       `findutils` |
+|             `g++` |
+|             `gcc` |
+|             `git` |
+|            `gzip` |
+|       `libc6-dev` |
+|            `make` |
+|  `openssh-client` |
+|      `pkg-config` |
+|             `tar` |
+|           `unzip` |
+|        `xz-utils` |
 
 Notes:
+
 - We intentionally include `openssh-client` in the runner baseline; appserver images should not inherit it by default.
 - Candidate additions seen in real CI workflows (not yet baseline): `grep` (GNU grep), `zstd`.
 
@@ -113,11 +114,11 @@ Server images are **production runtime containers**, not CI runners.
 
 Planned profiles (not yet in `manifests/profiles.json`):
 
-| Profile | Intended packages |
-|--------|-------------------|
-| `server_minimal` | `ca-certificates`, `tzdata` |
-| `server_standard` (optional) | `server_minimal` + `curl` (and possibly a minimal shell, if explicitly required) |
-| `server_debug` (non-production) | explicit debug tooling only |
+| Profile                         | Intended packages                                                                |
+| ------------------------------- | -------------------------------------------------------------------------------- |
+| `server_minimal`                | `ca-certificates`, `tzdata`                                                      |
+| `server_standard` (optional)    | `server_minimal` + `curl` (and possibly a minimal shell, if explicitly required) |
+| `server_debug` (non-production) | explicit debug tooling only                                                      |
 
 ## Image Classes
 
@@ -154,6 +155,7 @@ These tools serve different roles:
   - It has no runtime deps for minisign/raw-ed25519 modes; it requires `gpg` only for PGP verification.
 
 Recommendation:
+
 - Keep `curl` in `runner_baseline`.
 - Consider adding `sfetch` as a curated tool in specific runner-focused images (not a baseline package) once we decide on its pinning model and how we distribute/manage its trust anchors.
 

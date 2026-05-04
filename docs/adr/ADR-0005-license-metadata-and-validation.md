@@ -17,7 +17,6 @@ However, enforcement was largely manual and ad-hoc (tests asserted only a handfu
 ## Decision
 
 1. Extend `manifests/tools.json` (SSOT) with optional license metadata fields for curated, top-level tools:
-
    - `license_spdx`: SPDX expression (e.g. `MIT`, `Apache-2.0`, `Apache-2.0 OR MIT`)
    - `license_source`: where the license text is expected to come from (`apk`, `gomodcache`, `npm`, `upstream-url`, `manual`)
    - `license_path`: a single required in-image path for the license text
@@ -27,13 +26,11 @@ However, enforcement was largely manual and ad-hoc (tests asserted only a handfu
    - `copyleft`: optional boolean disclosure for curated tools (informational)
 
 2. Add automated verification:
-
    - `scripts/validate-licenses.sh` builds each supported image variant and asserts the declared license/notice paths exist.
    - The check is exposed as `make validate-licenses`.
    - CI runs `make validate-licenses` as part of the manifest validation workflow.
 
 3. Scope of enforcement:
-
    - We only enforce license/notice presence for tools that explicitly declare `license_path`/`license_paths`.
    - This is intentionally limited to curated, top-level tools we intentionally ship (not transitive dependencies).
 

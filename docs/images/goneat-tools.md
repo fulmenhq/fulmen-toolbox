@@ -26,26 +26,26 @@ See `docs/images/tag-taxonomy.md` for canonical tags and alias mappings.
 
 ### Polyglot Build Toolchains (runner variants only)
 
-| Toolchain | Capabilities |
-|-----------|--------------|
-| **Rust** | rustup, rustc, cargo, rustfmt, clippy, 7 cross-compilation targets |
-| **Cargo tools** | cargo-deny, cargo-audit, cargo-zigbuild, cargo-nextest, cbindgen |
-| **Go** | Full toolchain with CGO_ENABLED=1 |
-| **Zig** | Cross-compilation backend for cargo-zigbuild |
-| **Python** | python3, uv, maturin (PyO3/Rust bindings), pytest |
-| **Node** | npm, napi-rs CLI for native addon builds |
-| **SBOM** | syft, grype |
-| **Shell** | shellsentry |
+| Toolchain       | Capabilities                                                       |
+| --------------- | ------------------------------------------------------------------ |
+| **Rust**        | rustup, rustc, cargo, rustfmt, clippy, 7 cross-compilation targets |
+| **Cargo tools** | cargo-deny, cargo-audit, cargo-zigbuild, cargo-nextest, cbindgen   |
+| **Go**          | Full toolchain with CGO_ENABLED=1; `golangci-lint` v2 (bundled, built in-runner against the pinned Go) |
+| **Zig**         | Cross-compilation backend for cargo-zigbuild                       |
+| **Python**      | python3, uv, maturin (PyO3/Rust bindings), pytest                  |
+| **Node**        | npm, napi-rs CLI for native addon builds                           |
+| **SBOM**        | syft, grype                                                        |
+| **Shell**       | shellsentry                                                        |
 
 ### Runner Variant Comparison
 
-| Feature | `-runner-musl` | `-runner-glibc` |
-|---------|----------------|-----------------|
-| Base | Alpine 3.21 | Debian bookworm-slim |
-| libc | musl | glibc |
-| CGO | Yes (build-base) | Yes (build-essential) |
-| cargo-audit | amd64 only | amd64 + arm64 |
-| cargo-nextest | amd64 only | amd64 + arm64 |
+| Feature       | `-runner-musl`   | `-runner-glibc`       |
+| ------------- | ---------------- | --------------------- |
+| Base          | Alpine 3.21      | Debian bookworm-slim  |
+| libc          | musl             | glibc                 |
+| CGO           | Yes (build-base) | Yes (build-essential) |
+| cargo-audit   | amd64 only       | amd64 + arm64         |
+| cargo-nextest | amd64 only       | amd64 + arm64         |
 
 **Recommendation**: Use `-runner-glibc` for full toolchain support on arm64.
 

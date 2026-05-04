@@ -35,24 +35,37 @@
     },
     "category": {
       "type": "string",
-      "enum": ["infrastructure", "observability", "messaging", "other"],
+      "enum": [
+        "infrastructure",
+        "observability",
+        "messaging",
+        "other"
+      ],
       "description": "Primary category for organization"
     },
     "status": {
       "type": "string",
-      "enum": ["prototype", "stable", "deprecated"],
+      "enum": [
+        "prototype",
+        "stable",
+        "deprecated"
+      ],
       "description": "Lifecycle status"
     },
     "provides": {
       "type": "array",
-      "items": { "$ref": "#/$defs/capability" },
+      "items": {
+        "$ref": "#/$defs/capability"
+      },
       "minItems": 1,
       "uniqueItems": true,
       "description": "Capabilities this subsystem offers"
     },
     "dependencies": {
       "type": "array",
-      "items": { "$ref": "#/$defs/dependency" },
+      "items": {
+        "$ref": "#/$defs/dependency"
+      },
       "minItems": 1,
       "description": "External images required by this subsystem (at least one)"
     },
@@ -62,19 +75,27 @@
     },
     "presets": {
       "type": "object",
-      "propertyNames": { "$ref": "#/$defs/presetName" },
-      "additionalProperties": { "$ref": "#/$defs/preset" },
+      "propertyNames": {
+        "$ref": "#/$defs/presetName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/preset"
+      },
       "minProperties": 1,
       "description": "Available configuration presets (at least one required)"
     },
     "ports": {
       "type": "array",
-      "items": { "$ref": "#/$defs/port" },
+      "items": {
+        "$ref": "#/$defs/port"
+      },
       "description": "Default exposed ports (informational)"
     },
     "custom_images": {
       "type": "array",
-      "items": { "$ref": "#/$defs/customImage" },
+      "items": {
+        "$ref": "#/$defs/customImage"
+      },
       "description": "Custom images built by this subsystem (rare)"
     }
   },
@@ -125,7 +146,11 @@
     },
     "dependency": {
       "type": "object",
-      "required": ["image", "pin", "purpose"],
+      "required": [
+        "image",
+        "pin",
+        "purpose"
+      ],
       "properties": {
         "image": {
           "$ref": "#/$defs/imageRef",
@@ -146,7 +171,10 @@
     },
     "upstream": {
       "type": "object",
-      "required": ["project", "version"],
+      "required": [
+        "project",
+        "version"
+      ],
       "properties": {
         "project": {
           "type": "string",
@@ -172,7 +200,10 @@
     },
     "preset": {
       "type": "object",
-      "required": ["description", "env_file"],
+      "required": [
+        "description",
+        "env_file"
+      ],
       "properties": {
         "description": {
           "type": "string",
@@ -200,7 +231,11 @@
     },
     "port": {
       "type": "object",
-      "required": ["port", "protocol", "purpose"],
+      "required": [
+        "port",
+        "protocol",
+        "purpose"
+      ],
       "properties": {
         "port": {
           "type": "integer",
@@ -210,7 +245,12 @@
         },
         "protocol": {
           "type": "string",
-          "enum": ["http", "https", "tcp", "udp"],
+          "enum": [
+            "http",
+            "https",
+            "tcp",
+            "udp"
+          ],
           "description": "Protocol"
         },
         "purpose": {
@@ -224,7 +264,11 @@
     },
     "customImage": {
       "type": "object",
-      "required": ["name", "dockerfile", "description"],
+      "required": [
+        "name",
+        "dockerfile",
+        "description"
+      ],
       "properties": {
         "name": {
           "type": "string",
