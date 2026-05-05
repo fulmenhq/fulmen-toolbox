@@ -26,16 +26,16 @@ See `docs/images/tag-taxonomy.md` for canonical tags and alias mappings.
 
 ### Polyglot Build Toolchains (runner variants only)
 
-| Toolchain       | Capabilities                                                       |
-| --------------- | ------------------------------------------------------------------ |
-| **Rust**        | rustup, rustc, cargo, rustfmt, clippy, 7 cross-compilation targets |
-| **Cargo tools** | cargo-deny, cargo-audit, cargo-zigbuild, cargo-nextest, cbindgen   |
+| Toolchain       | Capabilities                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------ |
+| **Rust**        | rustup, rustc, cargo, rustfmt, clippy, 7 cross-compilation targets                                     |
+| **Cargo tools** | cargo-deny, cargo-audit, cargo-zigbuild, cargo-nextest, cbindgen                                       |
 | **Go**          | Full toolchain with CGO_ENABLED=1; `golangci-lint` v2 (bundled, built in-runner against the pinned Go) |
-| **Zig**         | Cross-compilation backend for cargo-zigbuild                       |
-| **Python**      | python3, uv, maturin (PyO3/Rust bindings), pytest                  |
-| **Node**        | npm, napi-rs CLI for native addon builds                           |
-| **SBOM**        | syft, grype                                                        |
-| **Shell**       | shellsentry                                                        |
+| **Zig**         | Cross-compilation backend for cargo-zigbuild                                                           |
+| **Python**      | python3, uv, maturin (PyO3/Rust bindings), pytest                                                      |
+| **Node**        | npm, napi-rs CLI for native addon builds                                                               |
+| **SBOM**        | syft, grype                                                                                            |
+| **Shell**       | shellsentry                                                                                            |
 
 ### Runner Variant Comparison
 
