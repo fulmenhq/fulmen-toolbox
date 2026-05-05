@@ -36,12 +36,23 @@ lint:
         - ".github/workflows/**/*.yaml"
       ignore: []
   make:
-    # checkmake disabled for v0.4.0 — its `phonydeclared` rule does not parse
-    # our backslash-continuation `.PHONY: ...` block correctly and produces
-    # false positives across most build/test/prove targets. See followup:
-    # `.plans/active/v0.4.x/makefile-checkmake-hygiene.md` (TBD).
+    # Re-enabled in v0.4.1 once the `.PHONY:` block was rewritten as multiple
+    # directives (checkmake's `phonydeclared` rule mis-parses backslash
+    # continuation; multi-directive form is parser-friendly and equivalent).
+    # max_body_length=55 accommodates the multi-image build/test fan-out
+    # targets which legitimately need long recipes; min_phony_targets omits
+    # `test` because this repo uses `test-all` (the matrix-driven aggregate)
+    # rather than a bare `test` target.
     checkmake:
-      enabled: false
+      enabled: true
+      config:
+        # 120 accommodates `prereqs` (114 lines of shell-style tool checks).
+        # Lower threshold would force extraction to scripts/, which is
+        # better-but-bigger refactor; defer to v0.5.x if appetite for it.
+        max_body_length: 120
+        min_phony_targets:
+          - all
+          - clean
     paths:
       - "**/Makefile"
     ignore: []

@@ -91,6 +91,29 @@ docker build .  # ❌ Use make
 
 **Level 1 (NEVER w/o approval)**: push, force-push, tags
 
+### Post-Mutation Tree Check (MANDATORY after mutating targets)
+
+Several `make` targets in this repo **mutate** the working tree as a side
+effect — most notably `make pr-final` (runs `goneat format` first) and
+parts of `make prepush`. After invoking any such target, **always run `git
+status` and inspect the diff** before claiming success or moving on. New
+formatter drift discovered this way must either be (a) committed in the
+same branch as a small `style:`-prefixed follow-up, or (b) explicitly
+discussed with the human reviewer if the diff exceeds the agent's brief.
+
+Failure mode: agent runs `make pr-final`, sees `✅ pr-final clean`, commits
+their intended changes, pushes — and silently leaves a dirty tree of
+formatter-touched files for the next agent or PR. The CI gate may not
+catch it (path-filtered workflows skip docs-only drift), so the discovery
+loop is only the next maintainer. Cheap to prevent; expensive to clean
+up retroactively.
+
+Targets known to mutate:
+
+- `make pr-final` — runs `goneat format` (touches md/json/yaml repo-wide)
+- `make fmt-sh` — runs shfmt with `-w` (touches scripts/\*.sh)
+- Any future `make fmt-*` or `goneat format`-wrapping target
+
 ## Commit Attribution Standard
 
 Follow the [3leaps commit style](https://crucible.3leaps.dev/repository/commit-style).

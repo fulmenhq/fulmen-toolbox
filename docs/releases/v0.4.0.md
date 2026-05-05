@@ -14,7 +14,7 @@
 
 ### ⚠ Migration: drop separate `golangci-lint` install steps
 
-If your CI workflow installs `golangci-lint` *inside* this runner via any of the patterns below, **the bundled binary is bypassed and you may continue to hit the "language version too low" error** that v0.3.5 was meant to solve:
+If your CI workflow installs `golangci-lint` _inside_ this runner via any of the patterns below, **the bundled binary is bypassed and you may continue to hit the "language version too low" error** that v0.3.5 was meant to solve:
 
 - `golangci/golangci-lint-action@v7` (or any `golangci-lint-action` version)
 - `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@<ver>`

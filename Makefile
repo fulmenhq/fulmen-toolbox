@@ -1,22 +1,31 @@
-.PHONY: all build-all test-all \
-	build-goneat-tools build-goneat-tools-runner build-goneat-tools-slim \
-	build-goneat-tools-runner-glibc \
-	build-goneat-tools-multi build-goneat-tools-runner-multi build-goneat-tools-slim-multi build-goneat-tools-runner-glibc-multi \
-	test-goneat-tools test-goneat-tools-runner test-goneat-tools-slim \
-	test-goneat-tools-runner-glibc \
-	build-sbom-tools build-sbom-tools-runner build-sbom-tools-slim \
-	build-sbom-tools-runner-glibc \
-	build-sbom-tools-multi build-sbom-tools-runner-multi build-sbom-tools-slim-multi build-sbom-tools-runner-glibc-multi \
-	test-sbom-tools test-sbom-tools-runner test-sbom-tools-slim \
-	test-sbom-tools-runner-glibc \
-	build-valkey-server-glibc build-valkey-server-glibc-multi test-valkey-server-glibc \
-	prove prove-goneat prove-sbom prove-runners prove-multi prove-goneat-multi prove-sbom-multi \
-	clean help bump-major bump-minor bump-patch lint-sh fmt-sh release-plan prereqs bootstrap bootstrap-tools \
-	validate-manifest validate-apk-pins lint-workflows lint-dockerfiles quality precommit prepush pr-final check-clean check-quick \
-	catalog \
-	release-download release-notes release-sign release-upload verify-release-key release-digests \
-	validate-subsystems validate-subsystem-echo-proxy-fixture validate-subsystem-authentik-idp \
-	test-subsystem-echo-proxy-fixture test-subsystem-authentik-idp
+# PHONY declarations grouped by responsibility. NOTE: declared as separate
+# `.PHONY:` directives rather than one backslash-continuation block because
+# checkmake's `phonydeclared` rule does not parse line-continuation `.PHONY:`
+# directives correctly (it only sees the first physical line and reports
+# every other PHONY target as "should be declared PHONY"). Multiple
+# directives accumulate in make per the spec, so this is fully equivalent
+# to the previous single block while also being checkmake-clean.
+.PHONY: all build-all test-all
+.PHONY: build-goneat-tools build-goneat-tools-runner build-goneat-tools-slim build-goneat-tools-runner-glibc
+.PHONY: build-goneat-tools-multi build-goneat-tools-runner-multi build-goneat-tools-slim-multi build-goneat-tools-runner-glibc-multi
+.PHONY: test-goneat-tools test-goneat-tools-runner test-goneat-tools-slim test-goneat-tools-runner-glibc
+.PHONY: build-sbom-tools build-sbom-tools-runner build-sbom-tools-slim build-sbom-tools-runner-glibc
+.PHONY: build-sbom-tools-multi build-sbom-tools-runner-multi build-sbom-tools-slim-multi build-sbom-tools-runner-glibc-multi
+.PHONY: test-sbom-tools test-sbom-tools-runner test-sbom-tools-slim test-sbom-tools-runner-glibc
+.PHONY: build-valkey-server-glibc build-valkey-server-glibc-multi test-valkey-server-glibc
+.PHONY: prove prove-goneat prove-sbom prove-runners prove-multi prove-goneat-multi prove-sbom-multi prove-runners-multi
+.PHONY: cache-init cache-clear
+.PHONY: inventory-goneat-tools-runner inventory-goneat-tools-runner-glibc
+.PHONY: clean help bump-major bump-minor bump-patch lint-sh fmt-sh prereqs bootstrap bootstrap-tools size
+.PHONY: validate-manifest validate-apk-pins validate-pins validate-profiles validate-licenses
+.PHONY: lint-workflows lint-dockerfiles
+.PHONY: quality precommit prepush pr-final check-clean check-quick
+.PHONY: catalog
+.PHONY: release-plan release-clean release-download release-notes release-sign release-upload release-digests release-signing-help
+.PHONY: release-export-keys release-export-gpg-key release-export-minisign-key
+.PHONY: verify-release-key verify-minisign-key verify-release-digests
+.PHONY: validate-subsystems validate-subsystem-echo-proxy-fixture validate-subsystem-authentik-idp
+.PHONY: test-subsystem-echo-proxy-fixture test-subsystem-authentik-idp
 
 # Fulmen Toolbox - Local Development Makefile
 # Supports building/testing goneat-tools, sbom-tools, and application images (valkey, etc.)

@@ -8,6 +8,12 @@
 # - runner (default): slim + runner baseline packages
 
 # Version pins
+#
+# GO_IMAGE ↔ GO_VERSION coupling: bumping GO_VERSION (the toolchain extracted
+# to /opt/go for runner consumers) requires re-pinning GO_IMAGE digest to a
+# golang:1.X-alpine tag containing the same Go patch version. The two ARGs
+# must stay in sync — a mismatch silently ships a runner whose builder Go
+# differs from its runtime Go, defeating the consumer fix landed in v0.4.0.
 ARG GO_IMAGE=golang:1.26-alpine@sha256:f85330846cde1e57ca9ec309382da3b8e6ae3ab943d2739500e08c86393a21b1
 ARG NODE_IMAGE=node:22-alpine@sha256:9632533eda8061fc1e9960cfb3f8762781c07a00ee7317f5dc0e13c05e15166f
 ARG YAMLFMT_VERSION=v0.21.0

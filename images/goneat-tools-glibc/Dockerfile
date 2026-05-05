@@ -8,6 +8,12 @@
 # - runner (default): slim + runner baseline + build tools
 
 # Version pins
+#
+# GO_IMAGE ↔ GO_VERSION coupling: bumping GO_VERSION (the toolchain extracted
+# to /opt/go for runner consumers) requires re-pinning GO_IMAGE digest to a
+# golang:1.X-bookworm tag containing the same Go patch version. The two ARGs
+# must stay in sync — a mismatch silently ships a runner whose builder Go
+# differs from its runtime Go, defeating the consumer fix landed in v0.4.0.
 ARG GO_IMAGE=golang:1.26-bookworm@sha256:47ce5636e9936b2c5cbf708925578ef386b4f8872aec74a67bd13a627d242b19
 ARG NODE_IMAGE=node:22-bookworm-slim@sha256:7378f5a4830ef48eb36d1abf4ef398391db562b5c41a0bded83192fbcea21cc8
 ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c
