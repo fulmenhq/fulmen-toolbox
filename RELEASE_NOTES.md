@@ -1,5 +1,32 @@
 # Release Notes
 
+## v0.4.1 (2026-05-05)
+
+**Hygiene Patch — namelens Review Nits + Makefile checkmake Re-Enable**
+
+No image-content changes. Consumers tracking `:v0` see no functional delta vs v0.4.0; this release is repo hygiene driven by the namelens devlead's v0.4.0 PR review plus our own v0.4.0-deferred Makefile cleanup.
+
+### Changes
+
+| Area                | Change                                                                                                                                                                                                     |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cve-scan` workflow | Tracker now reports `**Total findings:** N (M unique CVE IDs)` so readers don't have to dedup mentally. New `include_prereleases` `workflow_dispatch` input for one-shot RC scans (cron unchanged).        |
+| `Makefile`          | `.PHONY:` block rewritten as multiple grouped directives so `checkmake` parses correctly; 16 previously-missing targets added. `checkmake` re-enabled in `.goneat/assess.yaml` with `max_body_length=120`. |
+| `Dockerfile` ARGs   | Comment block above `ARG GO_IMAGE` documents the `GO_IMAGE` ↔ `GO_VERSION` coupling so future Go bumps don't desync builder Go vs runtime Go.                                                              |
+| `AGENTS.md`         | New "Post-Mutation Tree Check" mandatory section: agents must `git status` after running mutating make targets (`pr-final`, `fmt-sh`).                                                                     |
+
+### Updated Images
+
+None. Image content identical to v0.4.0.
+
+### Verification
+
+```bash
+docker run --rm ghcr.io/fulmenhq/goneat-tools-runner-glibc:v0.4.1 \
+  golangci-lint --version
+# expect: golangci-lint has version 2.12.1 built with go1.26.2
+```
+
 ## v0.4.0 (2026-05-04)
 
 **Runner Self-Sufficiency — golangci-lint Bundled, Plus Scheduled CVE Scan + YAML Hygiene**

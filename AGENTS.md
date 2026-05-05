@@ -109,8 +109,9 @@ loop is only the next maintainer. Cheap to prevent; expensive to clean
 up retroactively.
 
 Targets known to mutate:
+
 - `make pr-final` — runs `goneat format` (touches md/json/yaml repo-wide)
-- `make fmt-sh` — runs shfmt with `-w` (touches scripts/*.sh)
+- `make fmt-sh` — runs shfmt with `-w` (touches scripts/\*.sh)
 - Any future `make fmt-*` or `goneat format`-wrapping target
 
 ## Commit Attribution Standard
