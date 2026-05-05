@@ -4,19 +4,23 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-04
+
 ### Added
 
 - **golangci-lint v2.12.1** bundled in `goneat-tools-runner-{musl,glibc}`. Built in-runner against the pinned Go (1.26.2) so consumer configs targeting that Go version no longer hit "language version too low". License: GPL-3.0-only (runner is copyleft-by-design). NOT included in slim variants.
+- **Scheduled trivy CVE-scan workflow** (`.github/workflows/cve-scan.yml`). Twice-weekly (Mon/Thu 06:00 UTC) scan of all 6 published image variants × 3 tags (`:latest` + 2 most recent pinned semver) = 18 cells. Aggregates findings into a single rolling tracker issue labeled `cve-watch`. `workflow_dispatch` supports severity override + dry-run for synthetic tests.
 - **YAML config triplet**: `.yamlfmt`, `.yamllint`, `.goneat/assess.yaml` aligned with the goneat appnote on yaml-format-lint-alignment. Sets `pad_line_comments: 2` explicitly to avoid yamlfmt-vs-yamllint oscillation.
 - **`make pr-final`**: strict local gate that runs `goneat format` then `goneat assess --check --categories format,lint,security --fail-on medium`.
+- `.trivyignore` placeholder for CVE allowlist with rationale + review-by date format.
 
 ### Changed
 
-- Repo-wide cosmetic format normalization to the new yaml triplet baseline (markdown table padding, JSON array expansion). No semantic content changes.
+- Repo-wide cosmetic format normalization to the new yaml triplet baseline (markdown table padding, JSON array expansion). No semantic content changes; suitable for `.git-blame-ignore-revs` if desired.
 
 ### Migration
 
-⚠ Consumers using `golangci/golangci-lint-action@v7` (or any separate `go install`/install-script step) inside the runner: **drop the separate install step** to use the bundled binary. The bundled binary is the only one built against the runner's pinned Go. Detailed migration guidance in v0.4.0 release notes.
+⚠ Consumers using `golangci/golangci-lint-action@v7` (or any separate `go install`/install-script step) inside the runner: **drop the separate install step** to use the bundled binary. The bundled binary is the only one built against the runner's pinned Go. See `docs/releases/v0.4.0.md` for migration guidance.
 
 ## [0.3.5] - 2026-05-02
 
@@ -156,7 +160,8 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 For earlier history, see GitHub Releases: https://github.com/fulmenhq/fulmen-toolbox/releases
 
-[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.3.5...HEAD
+[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.4.0
 [0.3.5]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.5
 [0.3.4]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.4
 [0.3.3]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.3
