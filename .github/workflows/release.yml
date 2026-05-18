@@ -7,54 +7,44 @@ on:
 env:
   REGISTRY: ghcr.io
 jobs:
-  release:
-    runs-on: ubuntu-latest-m
+  build:
+    # Per-arch build on a native runner. Each cell pushes by digest only;
+    # the manifest job composes the multi-arch manifest at the public tags.
+    runs-on: ${{ matrix.platform.runner }}
     strategy:
       fail-fast: false
       matrix:
-        include:
+        image:
           - family: goneat-tools
             image: goneat-tools-runner-musl
             target: runner
-            aliases: |
-              goneat-tools-runner
-              goneat-tools
-              goneat-tools-runner-alpine
           - family: goneat-tools
             image: goneat-tools-slim-musl
             target: slim
-            aliases: |
-              goneat-tools-slim
-              goneat-tools-slim-alpine
           - family: goneat-tools-glibc
             image: goneat-tools-runner-glibc
             target: runner
-            aliases: |
-              goneat-tools-runner-debian
           - family: sbom-tools
             image: sbom-tools-runner-musl
             target: runner
-            aliases: |
-              sbom-tools-runner
-              sbom-tools
-              sbom-tools-runner-alpine
           - family: sbom-tools
             image: sbom-tools-slim-musl
             target: slim
-            aliases: |
-              sbom-tools-slim
-              sbom-tools-slim-alpine
           - family: sbom-tools-glibc
             image: sbom-tools-runner-glibc
             target: runner
-            aliases: |
-              sbom-tools-runner-debian
           - family: valkey
             image: valkey-server-glibc
             target: server
-            aliases: ""
+        platform:
+          - name: linux/amd64
+            arch: amd64
+            runner: ubuntu-latest-m
+          - name: linux/arm64
+            arch: arm64
+            runner: ubuntu-latest-arm64-s
     permissions:
-      contents: write
+      contents: read
       packages: write
     steps:
       - name: Free disk space
@@ -66,6 +56,88 @@ jobs:
           sudo apt-get clean || true
           echo "=== Disk usage after cleanup ==="
           df -h /
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: images/${{ matrix.image.family }}/Dockerfile
+          target: ${{ matrix.image.target }}
+          platforms: ${{ matrix.platform.name }}
+          outputs: |
+            type=image,name=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image.image }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.image.image }}-${{ matrix.platform.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image.image }}-${{ matrix.platform.arch }}
+      - name: Export digest
+        run: |
+          set -eu
+          mkdir -p "/tmp/digests/${{ matrix.image.image }}"
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${{ matrix.image.image }}/${digest#sha256:}"
+      - name: Upload digest artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.image.image }}-${{ matrix.platform.arch }}
+          path: /tmp/digests/${{ matrix.image.image }}/*
+          if-no-files-found: error
+          retention-days: 1
+  manifest:
+    # Compose per-arch digests into a multi-arch manifest at every public
+    # tag (canonical + aliases). Generate SBOM and SHA256SUMS against the
+    # composed manifest digest; upload to the GitHub release page.
+    needs: build
+    runs-on: ubuntu-latest-m
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - family: goneat-tools
+            image: goneat-tools-runner-musl
+            aliases: |
+              goneat-tools-runner
+              goneat-tools
+              goneat-tools-runner-alpine
+          - family: goneat-tools
+            image: goneat-tools-slim-musl
+            aliases: |
+              goneat-tools-slim
+              goneat-tools-slim-alpine
+          - family: goneat-tools-glibc
+            image: goneat-tools-runner-glibc
+            aliases: |
+              goneat-tools-runner-debian
+          - family: sbom-tools
+            image: sbom-tools-runner-musl
+            aliases: |
+              sbom-tools-runner
+              sbom-tools
+              sbom-tools-runner-alpine
+          - family: sbom-tools
+            image: sbom-tools-slim-musl
+            aliases: |
+              sbom-tools-slim
+              sbom-tools-slim-alpine
+          - family: sbom-tools-glibc
+            image: sbom-tools-runner-glibc
+            aliases: |
+              sbom-tools-runner-debian
+          - family: valkey
+            image: valkey-server-glibc
+            aliases: ""
+    permissions:
+      contents: write
+      packages: write
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set version env
@@ -89,15 +161,30 @@ jobs:
           ALIASES: ${{ matrix.aliases }}
         run: |
           set -eu
-          CANON_TAGS=$(printf '%s\n' \
-            "$REGISTRY/$OWNER/$IMAGE:latest" \
-            "$REGISTRY/$OWNER/$IMAGE:v$MAJOR" \
-            "$REGISTRY/$OWNER/$IMAGE:v$VERSION")
+          # Pre-release versions (e.g. v0.4.2-rc.1) publish only the exact
+          # :v<version> tag — :latest and :v<major> stay pinned to the last
+          # stable release. Detected by presence of "-" in VERSION.
+          case "$VERSION" in
+            *-*) PRERELEASE=1 ;;
+            *) PRERELEASE=0 ;;
+          esac
+          if [ "$PRERELEASE" = "1" ]; then
+            CANON_TAGS="$REGISTRY/$OWNER/$IMAGE:v$VERSION"
+          else
+            CANON_TAGS=$(printf '%s\n' \
+              "$REGISTRY/$OWNER/$IMAGE:latest" \
+              "$REGISTRY/$OWNER/$IMAGE:v$MAJOR" \
+              "$REGISTRY/$OWNER/$IMAGE:v$VERSION")
+          fi
           TAGS="$CANON_TAGS"
           if [ -n "${ALIASES}" ]; then
             while IFS= read -r alias; do
               [ -n "$alias" ] || continue
-              TAGS="${TAGS}"$'\n'"$REGISTRY/$OWNER/$alias:latest"$'\n'"$REGISTRY/$OWNER/$alias:v$MAJOR"$'\n'"$REGISTRY/$OWNER/$alias:v$VERSION"
+              if [ "$PRERELEASE" = "1" ]; then
+                TAGS="${TAGS}"$'\n'"$REGISTRY/$OWNER/$alias:v$VERSION"
+              else
+                TAGS="${TAGS}"$'\n'"$REGISTRY/$OWNER/$alias:latest"$'\n'"$REGISTRY/$OWNER/$alias:v$MAJOR"$'\n'"$REGISTRY/$OWNER/$alias:v$VERSION"
+              fi
             done <<< "$ALIASES"
           fi
           {
@@ -105,8 +192,12 @@ jobs:
             echo "$TAGS"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - name: Download digest artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digest-${{ matrix.image }}-*
+          merge-multiple: true
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Log in to GHCR
@@ -115,21 +206,44 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ github.token }}
-      - name: Build and push multi-arch image
-        id: build
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: images/${{ matrix.family }}/Dockerfile
-          target: ${{ matrix.target }}
-          push: true
-          platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.tags.outputs.tags }}
-          cache-from: type=gha,scope=${{ matrix.image }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
-      - name: Capture digest
-        id: digest
-        run: echo "DIGEST=${{ steps.build.outputs.digest }}" >> "$GITHUB_ENV"
+      - name: Compose multi-arch manifest
+        id: compose
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ matrix.image }}
+          TAGS: ${{ steps.tags.outputs.tags }}
+        run: |
+          set -eu
+          # Build digest refs from the per-arch digest filenames.
+          DIGEST_REFS=""
+          for f in /tmp/digests/*; do
+            [ -e "$f" ] || continue
+            sha="$(basename "$f")"
+            DIGEST_REFS="$DIGEST_REFS $REGISTRY/$OWNER/$IMAGE@sha256:$sha"
+          done
+          if [ -z "$DIGEST_REFS" ]; then
+            echo "❌ no per-arch digests found for $IMAGE" >&2
+            exit 1
+          fi
+          # Build tag args (-t per public tag).
+          TAG_ARGS=""
+          while IFS= read -r tag; do
+            [ -n "$tag" ] || continue
+            TAG_ARGS="$TAG_ARGS -t $tag"
+          done <<< "$TAGS"
+          echo "Composing manifest for $IMAGE"
+          echo "  sources:$DIGEST_REFS"
+          echo "  tags:$TAG_ARGS"
+          # shellcheck disable=SC2086
+          docker buildx imagetools create $TAG_ARGS $DIGEST_REFS
+          # Resolve composed manifest digest from canonical :v<version> tag.
+          CANON_REF="$REGISTRY/$OWNER/$IMAGE:v$VERSION"
+          DIGEST=$(docker buildx imagetools inspect "$CANON_REF" --format '{{json .Manifest}}' | jq -r '.digest')
+          if [ -z "$DIGEST" ] || [ "$DIGEST" = "null" ]; then
+            echo "❌ unable to resolve composed manifest digest for $CANON_REF" >&2
+            exit 1
+          fi
+          echo "DIGEST=$DIGEST" >> "$GITHUB_ENV"
       - name: Generate SBOM (syft)
         uses: anchore/sbom-action@v0
         with:
@@ -152,10 +266,12 @@ jobs:
             SHA256SUMS-${{ matrix.image }}
           tag_name: v${{ steps.meta.outputs.version }}
           name: v${{ steps.meta.outputs.version }}
+          prerelease: ${{ contains(steps.meta.outputs.version, '-') }}
+          make_latest: ${{ contains(steps.meta.outputs.version, '-') && 'false' || 'true' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
   cosign:
-    needs: release
+    needs: manifest
     runs-on: ubuntu-latest-m
     environment: release-signing
     strategy:

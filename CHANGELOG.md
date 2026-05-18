@@ -4,6 +4,28 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-05-18
+
+### Changed
+
+- **`.github/workflows/release.yml`** — split the previous single `release` job into three jobs (`build` → `manifest` → `cosign`). Per-arch builds now run on **native runners** (`ubuntu-latest-m` for amd64, `ubuntu-latest-arm64-s` for arm64) and push by digest only; a new `manifest` aggregator job composes the multi-arch manifest at every canonical and alias tag via `docker buildx imagetools create`. Removes QEMU emulation from the release path entirely. Motivated by v0.4.1's `goneat-tools-runner-musl` arm64 build failing with exit-132 (SIGILL) during qemu-user aarch64 emulation — Azure VM physical-host placement lottery that re-runs could not reliably escape.
+- **`images/goneat-tools/Dockerfile`** — `CURL_VERSION` 8.17.0-r1 → 8.19.0-r0, `YQ_VERSION` 4.49.2-r5 → 4.49.2-r6. Forced by alpine 3.23 (`node:22-alpine` base) package-repo rotation between v0.4.1 (2026-05-05) and now; the older pins are no longer available upstream. Caught and fixed deterministically thanks to the rc.1 dry-run of the workflow change.
+- **`manifests/tools.json`** — corresponding canonical `curl` and `yq-go` version entries bumped to match.
+
+### Added
+
+- **Pre-release tag guard** in the release workflow's tag-computation step: when `$VERSION` contains a `-` (e.g. `v0.4.2-rc.1`), publish only the exact `:v$VERSION` tag and skip `:latest` / `:v<major>`; mark the GitHub release as prerelease and non-latest. Removes a long-standing foot-gun where any pre-release tag would have moved consumer-visible floating tags.
+
+### Removed
+
+- **v0.4.1 GitHub Release page** — deleted to avoid showing a partial release (the `goneat-tools-runner-musl:v0.4.1` image was never published due to the SIGILL). The `v0.4.1` git tag remains in history for traceability. Consumers should resolve to `:v0.4.2` (or `:v0` / `:latest`) for the full image set.
+
+### Notes
+
+- Image content for the 5 successfully-published v0.4.1 image variants is functionally identical to v0.4.2 modulo the two apk pin bumps in `goneat-tools-runner-musl`. Consumers tracking `:v0` see no functional delta beyond those package revisions.
+- The `:v0` and `:latest` floating tags for `goneat-tools-runner-musl` were stuck on the v0.4.0 digest since v0.4.1's partial-release; v0.4.2 unblocks them.
+- arm64 release wall-clock dropped from ≈1h+ (per-image QEMU emulation) to ≈12 min native at the largest image (`goneat-tools-runner-glibc`). Per-arch jobs run in parallel; net release wall-clock substantially reduced.
+
 ## [0.4.1] - 2026-05-05
 
 ### Added
@@ -158,19 +180,12 @@ No image-content changes. Consumers tracking `:v0` see no functional delta vs v0
 - Bumped `goneat` to v0.4.2.
 - Bumped `sfetch` to v0.3.2.
 
-## [0.2.3] - 2026-01-01
-
-- Added `yamllint` (and `python3`) to all runner baselines for semantic YAML linting.
-- Updated runner tests to validate `yamllint` presence (and absence in slim variants).
-- Documented `yamllint` rationale and runner-baseline guidance updates.
-- Wired CI cosign signing to a manifest-derived image list to avoid hardcoded catalog drift.
-- Updated agentic docs to use supervised, role-based attribution (no named identities).
-
 ## Older Releases
 
 For earlier history, see GitHub Releases: https://github.com/fulmenhq/fulmen-toolbox/releases
 
-[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/fulmenhq/fulmen-toolbox/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.4.2
 [0.4.1]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.4.1
 [0.4.0]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.4.0
 [0.3.5]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.5
@@ -180,4 +195,3 @@ For earlier history, see GitHub Releases: https://github.com/fulmenhq/fulmen-too
 [0.3.1]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.1
 [0.3.0]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.3.0
 [0.2.4]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.4
-[0.2.3]: https://github.com/fulmenhq/fulmen-toolbox/releases/tag/v0.2.3

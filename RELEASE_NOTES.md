@@ -1,5 +1,52 @@
 # Release Notes
 
+## v0.4.2 (2026-05-18)
+
+**Release-Pipeline Hygiene — Native arm64 Runners + Forced apk Pin Refresh**
+
+CI plumbing release. No new tools, no Dockerfile architecture changes, no API or interface delta for consumers — but the release pipeline itself was rebuilt: per-arch builds now run on native runners instead of QEMU-emulated amd64, eliminating the qemu-user aarch64 SIGILL roulette that left v0.4.1 partially published. Two tightly-scoped apk pin bumps were also forced by alpine 3.23 upstream rotation between v0.4.1 and now.
+
+### Changes
+
+| Area                             | Change                                                                                                                                                                                                                                                                                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `.github/workflows/release.yml`  | Single `release` job → three jobs (`build` per-arch × 14 cells / `manifest` aggregator × 7 / `cosign` × 7). amd64 cells on `ubuntu-latest-m`, arm64 cells on `ubuntu-latest-arm64-s`. Per-arch push-by-digest; `docker buildx imagetools create` composes the multi-arch manifest at every canonical and alias tag. No QEMU in the release path. |
+| Pre-release tag guard            | New: when `$VERSION` contains `-` (e.g. `v0.4.2-rc.1`), publish only `:v$VERSION` and skip `:latest` / `:v<major>`; mark release as prerelease + non-latest. Removes a long-standing foot-gun.                                                                                                                                                   |
+| `images/goneat-tools/Dockerfile` | `CURL_VERSION` 8.17.0-r1 → 8.19.0-r0; `YQ_VERSION` 4.49.2-r5 → 4.49.2-r6. Forced by alpine upstream rotation.                                                                                                                                                                                                                                    |
+| `manifests/tools.json`           | Canonical `curl` and `yq-go` entries bumped to match.                                                                                                                                                                                                                                                                                            |
+| **v0.4.1 release page**          | Deleted. Tag remains in git history; consumers should resolve to `:v0.4.2`.                                                                                                                                                                                                                                                                      |
+
+### Updated Images
+
+- `goneat-tools-runner-musl` — curl 8.17.0-r1 → 8.19.0-r0, yq-go 4.49.2-r5 → 4.49.2-r6 (alpine 3.23 forced bumps). **Re-publishes the image that v0.4.1 failed to ship**; `:v0` and `:latest` floats unstick from the v0.4.0 digest.
+- `goneat-tools-slim-musl` — same yq-go bump (no curl in slim variant).
+- All 7 other image variants: no content change vs v0.4.1.
+
+### Verification
+
+```bash
+# Confirm goneat-tools-runner-musl is now published at v0.4.2 (was missing on v0.4.1):
+docker pull ghcr.io/fulmenhq/goneat-tools-runner-musl:v0.4.2
+
+# Confirm multi-arch manifest contains both amd64 and arm64:
+docker buildx imagetools inspect ghcr.io/fulmenhq/goneat-tools-runner-musl:v0.4.2
+
+# Confirm bumped pin versions inside the image:
+docker run --rm ghcr.io/fulmenhq/goneat-tools-runner-musl:v0.4.2 curl --version | head -1
+# expect: curl 8.19.0 ...
+docker run --rm ghcr.io/fulmenhq/goneat-tools-runner-musl:v0.4.2 yq --version
+# expect: yq (https://github.com/mikefarah/yq/) version v4.49.2
+```
+
+### Breaking Changes
+
+None.
+
+### Operational Notes
+
+- Release wall-clock is substantially shorter under native runners. Reference data point: the largest image (`goneat-tools-runner-glibc`) arm64 build took ~1h+ under QEMU on v0.4.0; native took ~12 min on the rc.1 dry-run.
+- The rc.1 dry-run (since deleted) successfully validated 12 of 14 build cells before surfacing the alpine pin drift; the manifest aggregator was separately validated locally before tagging v0.4.2.
+
 ## v0.4.1 (2026-05-05)
 
 **Hygiene Patch — namelens Review Nits + Makefile checkmake Re-Enable**
