@@ -114,6 +114,19 @@ Targets known to mutate:
 - `make fmt-sh` — runs shfmt with `-w` (touches scripts/\*.sh)
 - Any future `make fmt-*` or `goneat format`-wrapping target
 
+## Release Operations
+
+Any tag-cutting work — pushing `vX.Y.Z`, recovering from a partial release, changing the release workflow itself — must follow `RELEASE_CHECKLIST.md`. **Read it in full before starting**; it is non-trivial and has been hardened by real incidents (v0.4.1 SIGILL partial-release, scheduled-workflow drift). Skim-reading misses critical gates.
+
+Two gate categories the checklist enforces that an agent might otherwise miss:
+
+- **Pre-PR**: working-tree cleanliness, pin validation, doc updates, local checks (`make pr-final`, `make validate-licenses`).
+- **Pre-release-push**: full main CI green across **all** workflows, not just PR status. Scheduled workflows (`cve-scan`) and path-filtered ones (`validate-manifest`) can be silently broken on main while PRs pass. The checklist has a concrete `gh run list` command for this; run it immediately before tagging.
+
+If superseding a previous partial release (e.g. v0.4.1 → v0.4.2): delete the prior GitHub release page **immediately before** tagging the new release. Minimizes the consumer-confusion window where the old page is gone but the new release isn't yet published. The git tag of the partial release stays in history for traceability.
+
+Release planning artifacts live in `.plans/active/v<x.y.z>/brief.md` (gitignored — local-only per-version context for fresh-conversation agents). Predecessor briefs are kept under the same path for cross-release diagnosis traceability.
+
 ## Commit Attribution Standard
 
 Follow the [3leaps commit style](https://crucible.3leaps.dev/repository/commit-style).
