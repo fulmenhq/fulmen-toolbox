@@ -4,7 +4,25 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
 
 ## Pre-flight
 
-- [ ] Confirm working tree clean and CI green
+- [ ] Working tree clean: `git status` shows no untracked or modified files
+- [ ] **All** recent main CI is green — not just PR status checks. Scheduled workflows (`cve-scan`) and path-filtered ones (`validate-manifest`) can be silently broken on main while PRs report green. Required commands:
+
+  ```bash
+  # Last 20 runs on main across all workflows. Triage any failure or
+  # cancelled within ~14 days before tagging.
+  gh run list --branch main --limit 20
+
+  # Specifically inspect the most recent cve-scan run state:
+  gh run list --workflow=cve-scan.yml --branch main --limit 3
+  ```
+
+  cve-scan failures have happened from upstream action drift that PR
+  status does not catch (e.g. `aquasecurity/trivy-action@0.28.0` was
+  yanked from the marketplace 2026-03-20; the scheduled scan was
+  silently red for ~8 cron runs before v0.4.2 surfaced it during a
+  release post-mortem). Any non-success in this window must be
+  understood and either resolved or explicitly accepted before tagging.
+
 - [ ] Ensure `VERSION` reflects the intended semver (`make bump-*` to adjust)
 - [ ] Set release env vars (avoid cross-repo collisions):
   - `FULMEN_TOOLBOX_RELEASE_TAG` (must be `v<semver>`, e.g. `v0.2.2`)
@@ -26,6 +44,29 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
   - **Timing note**: **~5-10 min cold**, **~1-2 min** if `make prepush` already populated the BuildKit cache. Same 45-min timeout guidance applies for cold runs.
 - [ ] Validate docs reflect current tooling (inventory, architecture, ADRs)
 - [ ] Review CI cosign signing runbook: `docs/operations/ci-cosign-signing.md`
+
+## Pre-release-push sanity (mandatory immediately before `git push origin v*`)
+
+These gates catch issues that PR status does not. Even if all pre-flight items were green earlier, **re-run before tagging** — main moves, upstream actions get yanked, and scheduled workflows fire in between.
+
+- [ ] Re-run the main CI sanity check from pre-flight:
+
+  ```bash
+  gh run list --branch main --limit 20
+  gh run list --workflow=cve-scan.yml --branch main --limit 3
+  ```
+
+  Any non-success since the last release tag must be triaged or explicitly accepted.
+
+- [ ] If a dry-run RC tag was used to validate workflow changes, confirm cleanup:
+  - [ ] RC tag is deleted from origin: `git push origin :refs/tags/<rc-tag>`
+  - [ ] RC GitHub Release page is deleted (if one was created): `gh release delete <rc-tag> --yes`
+  - [ ] No leftover `:<rc-tag>` tags on GHCR are visible to consumers (the pre-release tag guard in `release.yml` prevents publishing pre-release tags to `:latest` / `:v<major>`, but per-image RC tags can linger if they were explicitly written)
+
+- [ ] If superseding a previous partial release (e.g. v0.4.1 → v0.4.2 after a build failure left v0.4.1 incomplete), execute in this order:
+  1. Delete the prior GitHub Release page **immediately before** the new tag push: `gh release delete <prior-tag> --yes` (keep the git tag in history)
+  2. Then tag and push the new release
+  3. This minimizes the consumer-visible window where the prior release page is missing but the new one is not yet published
 
 ## Build & Publish (CI-driven)
 
