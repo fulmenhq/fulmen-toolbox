@@ -36,6 +36,7 @@ family_for_image() {
 	sbom-tools-slim-musl | sbom-tools-runner-musl) echo "sbom-tools" ;;
 	goneat-tools-runner-glibc) echo "goneat-tools-glibc" ;;
 	sbom-tools-runner-glibc) echo "sbom-tools-glibc" ;;
+	valkey-server-glibc) echo "valkey" ;;
 	*) return 1 ;;
 	esac
 }
@@ -43,6 +44,7 @@ family_for_image() {
 target_for_image() {
 	case "$1" in
 	*-slim-*) echo "slim" ;;
+	*-server-*) echo "server" ;;
 	*-runner-*) echo "runner" ;;
 	*) return 1 ;;
 	esac
@@ -87,7 +89,7 @@ validate_image() {
 	fi
 
 	# Always require base dirs
-	docker run --rm "$tag" -c "test -d /licenses && test -d /notices" >/dev/null
+	docker run --rm --entrypoint sh "$tag" -c "test -d /licenses && test -d /notices" >/dev/null
 
 	while IFS= read -r item; do
 		local name license_path notice_required notice_path
@@ -97,13 +99,13 @@ validate_image() {
 		notice_path=$(jq -r '.notice_path' <<<"$item")
 
 		if [ -n "$license_path" ]; then
-			docker run --rm "$tag" -c "test -f '$license_path'" >/dev/null || {
+			docker run --rm --entrypoint sh "$tag" -c "test -f '$license_path'" >/dev/null || {
 				echo "❌ missing license for ${image}: ${name} (${license_path})" >&2
 				return 1
 			}
 		else
 			while IFS= read -r lp; do
-				docker run --rm "$tag" -c "test -f '$lp'" >/dev/null || {
+				docker run --rm --entrypoint sh "$tag" -c "test -f '$lp'" >/dev/null || {
 					echo "❌ missing license for ${image}: ${name} (${lp})" >&2
 					return 1
 				}
@@ -115,7 +117,7 @@ validate_image() {
 				echo "❌ notice_required=true but notice_path empty for ${image}: ${name}" >&2
 				return 1
 			fi
-			docker run --rm "$tag" -c "test -f '$notice_path'" >/dev/null || {
+			docker run --rm --entrypoint sh "$tag" -c "test -f '$notice_path'" >/dev/null || {
 				echo "❌ missing NOTICE for ${image}: ${name} (${notice_path})" >&2
 				return 1
 			}

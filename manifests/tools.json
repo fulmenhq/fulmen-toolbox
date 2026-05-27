@@ -636,6 +636,18 @@
         "sbom-tools-runner-musl"
       ],
       "notes": "HTTP client for CI workflows (MIT-like license)"
+    },
+    {
+      "name": "valkey",
+      "version": "valkey/valkey:8.1-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571",
+      "source": "other",
+      "images": [
+        "valkey-server-glibc"
+      ],
+      "notes": "Vendor-image repack of upstream Valkey (Redis-compatible key-value store). BSD-3-Clause license curated into the image at build time and enforced by validate-licenses.sh.",
+      "license_spdx": "BSD-3-Clause",
+      "license_source": "upstream-url",
+      "license_path": "/licenses/github/valkey-io/valkey/LICENSE"
     }
   ]
 }
