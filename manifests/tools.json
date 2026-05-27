@@ -644,8 +644,10 @@
       "images": [
         "valkey-server-glibc"
       ],
-      "notes": "Vendor-image repack of upstream Valkey (Redis-compatible key-value store). License (BSD-3-Clause) is curated into /licenses/github/valkey-io/valkey/LICENSE by the image build. Not enforced by validate-licenses.sh, which only covers goneat-tools/sbom-tools families.",
-      "license_spdx": "BSD-3-Clause"
+      "notes": "Vendor-image repack of upstream Valkey (Redis-compatible key-value store). BSD-3-Clause license curated into the image at build time and enforced by validate-licenses.sh.",
+      "license_spdx": "BSD-3-Clause",
+      "license_source": "upstream-url",
+      "license_path": "/licenses/github/valkey-io/valkey/LICENSE"
     }
   ]
 }
