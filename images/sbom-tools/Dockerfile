@@ -7,11 +7,11 @@
 # - slim: tool payload only (no runner baseline)
 # - runner (default): slim + runner baseline packages
 
-ARG ALPINE_IMAGE=alpine:3.21@sha256:5405e8f36ce1878720f71217d664aa3dea32e5e5df11acbf07fc78ef5661465b
-ARG GO_IMAGE=golang:1.26-alpine@sha256:2389ebfa5b7f43eeafbd6be0c3700cc46690ef842ad962f6c5bd6be49ed82039
-ARG SYFT_VERSION=v1.41.1
-ARG GRYPE_VERSION=v0.107.1
-ARG TRIVY_VERSION=v0.69.3
+ARG ALPINE_IMAGE=alpine:3.21@sha256:48b0309ca019d89d40f670aa1bc06e426dc0931948452e8491e3d65087abc07d
+ARG GO_IMAGE=golang:1.26-alpine@sha256:f23e8b227fb4493eabe03bede4d5a32d04092da71962f1fb79b5f7d1e6c2a17f
+ARG SYFT_VERSION=v1.45.0
+ARG GRYPE_VERSION=v0.113.0
+ARG TRIVY_VERSION=v0.71.0
 ARG SHELLSENTRY_VERSION=v0.1.4
 
 # Runner-baseline pinned packages (subset)

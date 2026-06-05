@@ -174,6 +174,16 @@ check_pin "$goneat_glibc_df" "goneat-tools-glibc minisign" "ARG MINISIGN_VERSION
 check_pin "$goneat_glibc_df" "goneat-tools-glibc goneat" "ARG GONEAT_VERSION=${goneat_glibc_goneat}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc sfetch" "ARG SFETCH_VERSION=${goneat_glibc_sfetch}" || fail=1
 
+# apt security pins (glibc runners) — inline-pinned in the apt install line,
+# not an ARG. Presence enforced here; availability enforced by validate-apt-pins.sh.
+libgnutls30_ver=$(get_version "libgnutls30" "goneat-tools-runner-glibc")
+if [ -z "${libgnutls30_ver:-}" ]; then
+	echo "❌ Missing manifest entry for libgnutls30"
+	fail=1
+fi
+check_pin "$goneat_glibc_df" "goneat-tools-glibc libgnutls30 security pin" "libgnutls30=${libgnutls30_ver}" || fail=1
+check_pin "$sbom_glibc_df" "sbom-tools-glibc libgnutls30 security pin" "libgnutls30=${libgnutls30_ver}" || fail=1
+
 if [ "$fail" -ne 0 ]; then
 	echo "Pin validation failed."
 	exit 1

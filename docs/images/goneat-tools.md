@@ -49,6 +49,15 @@ See `docs/images/tag-taxonomy.md` for canonical tags and alias mappings.
 
 **Recommendation**: Use `-runner-glibc` for full toolchain support on arm64.
 
+> **Go build environment — `CGO_ENABLED=1` is preset.** The runner images set
+> `CGO_ENABLED=1` so native cgo builds work out of the box. This overrides Go's
+> per-target default of `0`, so a plain `go build` for a non-native
+> `GOOS`/`GOARCH` fails (`gcc: error: unrecognized command-line option '-m64'`).
+> When building static or cross-compiled binaries, set `CGO_ENABLED=0`
+> explicitly (and use `:=`/`override`, not `?=`, in Makefiles — the image env
+> otherwise silently wins). See
+> [Container Usage Patterns → Troubleshooting](../user-guide/container-usage-patterns.md#go-cross-compilation-fails-with-gcc-error-unrecognized-command-line-option--m64).
+
 ## How to see what's included (definitively)
 
 ### Option A: Use the release SBOM (recommended)

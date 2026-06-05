@@ -1,5 +1,38 @@
 # Release Notes
 
+## v0.5.0 (2026-06-XX)
+
+**Runner content delta + full fixable-CVE sweep — `zip`, `CGO_ENABLED` docs, deterministic OS-security pins, Go 1.26.4, scanner/tool currency**
+
+First image-content rebuild since v0.4.x. Started as a downstream ask (add `zip`, document `CGO_ENABLED`) and was deliberately widened — since any image touch forces a full rebuild + downstream adoption cascade — to sweep every **fixable** HIGH/CRITICAL CVE on the runners. All four runners scan to **0 fixable HIGH/CRITICAL** (trivy `--ignore-unfixed`, with documented `.trivyignore` exceptions). Versioned minor: `zip` is a new tool consumers can rely on.
+
+### Changes
+
+| Area                                                      | Change                                                                                                                                                                                              |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `goneat-tools-runner-{glibc,musl}`                        | **`zip` CLI added** (beside `unzip`). Closes a Windows-`.zip` packaging gap.                                                                                                                        |
+| Docs (`container-usage-patterns.md`, `goneat-tools.md`)   | **`CGO_ENABLED=1` documented** — preset is intentional (CGO-capable runner); set `CGO_ENABLED=0` (use `:=`/`override`) for static/cross builds. Revisiting the preset tracked in #14.               |
+| `goneat-tools-glibc`, `sbom-tools-glibc`                  | **`libgnutls30` pinned to `3.7.9-2+deb12u7`** (CRITICAL CVE-2026-33845/42010 + 3 HIGH). Base lags the security repo; explicit apt pin forces the patched build.                                     |
+| `scripts/validate-apt-pins.sh` + `make validate-apt-pins` | **New** deterministic apt-security-pin validator (apt analog of `validate-apk-pins`); wired into `make quality`. `validate-pins` enforces pin presence. First `source:"apt"` entry in `tools.json`. |
+| Go toolchain                                              | **`1.26.2 → 1.26.4`** (version + checksums + coupled `GO_IMAGE`); clears Go-stdlib CVEs in the in-house tools + shipped `/opt/go`.                                                                  |
+| `goneat`                                                  | **`v0.5.9 → v0.5.13`** — patched go-git/go-billy/OpenTelemetry deps.                                                                                                                                |
+| `syft`/`grype`/`trivy`/`yq`                               | **`v1.41.1→v1.45.0` / `v0.107.1→v0.113.0` / `v0.69.3→v0.71.0` / `v4.49.2→v4.53.2`** (glibc yq); clear vendored-dependency CVEs.                                                                     |
+| Final-stage base digests                                  | Refreshed (`node:22-alpine`, `node:22-bookworm-slim`, `alpine:3.21`, `debian:bookworm-slim`) — rebuild on patched OS package sets.                                                                  |
+
+### Updated Images
+
+All six tool images rebuilt; `valkey-server-glibc` unchanged (base already current). No interface change beyond the new `zip` binary and patched package/tool versions.
+
+### CVE posture
+
+All four runners scan to **0 fixable HIGH/CRITICAL**. Residuals: (1) no-fix class gate-excluded by `ignore-unfixed: true` (`linux-libc-dev` kernel headers not-applicable, Debian won't-fix, unfixed-upstream python/perl); (2) fixes that exist in a dependency but ship in no upstream tool release yet (`yq` stdlib, one `grype` dep, node-base npm `picomatch`) — we are on latest upstream for each; tracked via time-boxed `.trivyignore` (review by 2026-09-05), to be dropped as upstream rebuilds land.
+
+### Verification
+
+`make quality` green (incl. new `validate-apt-pins`); all six images built; `make test-all` green; trivy `--ignore-unfixed` = 0 HIGH/CRITICAL on all runners. Validated via a `v0.5.0-rc.1` prerelease (pilot: `forge-microtool-gimlet`) before GA.
+
+Full detail: `docs/releases/v0.5.0.md`.
+
 ## v0.4.2 (2026-05-18)
 
 **Release-Pipeline Hygiene — Native arm64 Runners + Forced apk Pin Refresh**

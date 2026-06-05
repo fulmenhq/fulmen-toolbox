@@ -7,3 +7,33 @@
 #
 # This file is read by the cve-scan workflow and by `make precommit` (trivy
 # scan of Dockerfile sources). Keep entries minimal and time-boxed.
+
+# --- v0.5.0 residuals: fixable upstream, but no fixed RELEASE of the shipped
+# tool exists yet. We are on the latest upstream version of each; the fix lands
+# in the tool's stdlib/deps only on an upstream rebuild. Planning item: re-check
+# at the next fulmen-toolbox build and drop entries whose upstream has rebuilt
+# (see .plans/active/v0.5.0/brief.md "follow-ups"). Not flaming upstream — these
+# are very fresh 2026 CVEs and rebuilds lag normally.
+
+# yq v4.53.2 (latest) prebuilt binary embeds go1.26.2 stdlib; fixed in go1.26.3+.
+# We ship the official upstream binary; clears when mikefarah/yq rebuilds on a
+# patched Go. (Building yq from source with our go1.26.4 would fix it but would
+# diverge glibc from musl's apk yq-go and drop the official binary — declined.)
+CVE-2026-33811  # 2026-06-05: yq v4.53.2 stdlib (go1.26.2); fixed in go1.26.3+; on-latest-upstream; review by 2026-09-05
+CVE-2026-33814  # 2026-06-05: yq v4.53.2 stdlib (go1.26.2); fixed in go1.26.3+; on-latest-upstream; review by 2026-09-05
+CVE-2026-39820  # 2026-06-05: yq v4.53.2 stdlib (go1.26.2); fixed in go1.26.3+; on-latest-upstream; review by 2026-09-05
+CVE-2026-39823  # 2026-06-05: yq v4.53.2 stdlib (go1.26.2); fixed in go1.26.3+; on-latest-upstream; review by 2026-09-05
+CVE-2026-39825  # 2026-06-05: yq v4.53.2 stdlib (go1.26.2); fixed in go1.26.3+; on-latest-upstream; review by 2026-09-05
+CVE-2026-39826  # 2026-06-05: yq v4.53.2 stdlib (go1.26.2); fixed in go1.26.3+; on-latest-upstream; review by 2026-09-05
+CVE-2026-39836  # 2026-06-05: yq v4.53.2 stdlib (go1.26.2); fixed in go1.26.3+; on-latest-upstream; review by 2026-09-05
+CVE-2026-42499  # 2026-06-05: yq v4.53.2 stdlib (go1.26.2); fixed in go1.26.3+; on-latest-upstream; review by 2026-09-05
+
+# grype v0.113.0 (latest) vendors github.com/docker/docker v28.5.2; fixed in
+# v29.3.1. We ship the official upstream binary and cannot self-build grype's
+# dep tree; clears when anchore/grype bumps the dep.
+CVE-2026-34040  # 2026-06-05: grype v0.113.0 vendored docker/docker v28.5.2; fixed in 29.3.1; on-latest-upstream; review by 2026-09-05
+
+# picomatch 4.0.3 is bundled inside the node base image's own npm
+# (usr/local/lib/node_modules/npm/...), not a tool we install; fixed in 4.0.4.
+# Clears when the node:22 base updates its bundled npm.
+CVE-2026-33671  # 2026-06-05: picomatch 4.0.3 in node-base bundled npm; fixed in 4.0.4; base-bundled, not our dep; review by 2026-09-05

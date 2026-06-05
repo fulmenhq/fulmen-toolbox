@@ -4,6 +4,25 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 ## [Unreleased]
 
+### Added
+
+- **`zip` CLI** in `goneat-tools-runner-{glibc,musl}` (alongside the existing `unzip`). Closes a packaging gap where release tooling building a Windows `.zip` failed with `zip: command not found` (the image shipped `python3` but no `zip`). Reported from a downstream consumer (`forge-microtool-gimlet`) validating against `goneat-tools-runner-glibc:v0.4.2`.
+- **`scripts/validate-apt-pins.sh` + `make validate-apt-pins`** — the apt analog of `validate-apk-pins`. Verifies that apt security pins in `manifests/tools.json` are available in the Debian repos (incl. bookworm-security) and warns when a newer candidate exists. Wired into `make quality`. Establishes a deterministic OS-security-pin model on the glibc runners (previously apt packages were installed unpinned).
+
+### Changed
+
+- **`libgnutls30` security-pinned to `3.7.9-2+deb12u7`** on both glibc runners (`goneat-tools-runner-glibc`, `sbom-tools-runner-glibc`), closing CRITICAL `CVE-2026-33845` / `CVE-2026-42010` and HIGH `CVE-2026-33846` / `CVE-2026-3833` / `CVE-2026-42009`. The bookworm-slim base lags the security repo (ships `deb12u6`); a base-digest refresh alone cannot close this — the explicit apt pin forces the patched build. Pin presence is enforced by `validate-pins`, availability by `validate-apt-pins`.
+- **Go toolchain `1.26.2 → 1.26.4`** (`GO_VERSION` + checksums + the coupled `GO_IMAGE` builder digest, kept in sync) on both goneat runners. Rebuilds the in-house Go tools (goneat, golangci-lint, shfmt, yamlfmt, checkmake, actionlint, shellsentry) and ships the patched `/opt/go` toolchain, clearing the Go-stdlib CVE class embedded in those binaries.
+- **`goneat v0.5.9 → v0.5.13`** — picks up patched `go-git` (v5.19.0), `go-billy` (v5.9.0), and OpenTelemetry (v1.43.0) dependencies, clearing `CVE-2026-44973`, `CVE-2026-45022`, `CVE-2026-29181`, `CVE-2026-39883`. (v0.5.13 is a drop-in over v0.5.12 — YAML check/apply fidelity + markdown-lint additions; CVE-relevant deps unchanged.)
+- **Bundled scanner/tool bumps** to clear vendored-dependency CVEs (grpc, docker/cli, containerd, go-git, OpenTelemetry, and their stdlib): `syft v1.41.1 → v1.45.0`, `grype v0.107.1 → v0.113.0`, `trivy v0.69.3 → v0.71.0` (sbom-tools), `yq v4.49.2 → v4.53.2` (glibc fetched binary). Updated in lockstep across the Dockerfiles and `manifests/tools.json`. (musl `yq-go` stays at the alpine-packaged `4.49.2-r6` / `4.44.5-r5` — no newer build is available in the alpine 3.21/3.23 repos.)
+- **Final-stage base image digests refreshed** so the runtime bases rebuild on patched OS package sets: `node:22-alpine`, `node:22-bookworm-slim` (goneat musl/glibc), `alpine:3.21`, `debian:bookworm-slim` (sbom musl/glibc). Lockstep across `manifests/tools.json` and the Dockerfiles.
+
+### Notes
+
+- **`CGO_ENABLED=1` runner preset documented.** The `-runner-{glibc,musl}` images preset `CGO_ENABLED=1` (intentional — the runner is CGO-capable). This overrides Go's per-target default of `0`, so a plain `go build` for a non-native `GOOS`/`GOARCH` fails (`gcc: error: unrecognized command-line option '-m64'`), and a Makefile `CGO_ENABLED ?= 0` is silently overridden by the image env. Consumers building static or cross-compiled binaries should set `CGO_ENABLED=0` explicitly (use `:=`/`override`, not `?=`). See `docs/user-guide/container-usage-patterns.md` and `docs/images/goneat-tools.md`. Whether to drop the preset entirely is tracked in #14 for a future minor.
+- **CVE posture:** this release sweeps every _actionable_ HIGH/CRITICAL on the published images (OS security pin + toolchain + bundled-tool bumps). Two residual categories remain, neither a regression: (1) the _no-fix_ class already excluded by the cve-scan gate (`ignore-unfixed: true`) — dominated by `linux-libc-dev` (kernel-header package; not applicable in-container) plus Debian won't-fix entries (`zlib1g` CVE-2023-45853, `libsqlite3`) and unfixed-upstream `python3.11`/`perl`; and (2) a small set of findings that are fixed in a dependency but for which **no upstream release of the prebuilt tool ships the fix yet** — currently `yq`'s embedded Go stdlib, one `grype` vendored dependency, and `picomatch` inside the node base's bundled npm. We ship the latest upstream version of each; these are tracked with time-boxed, rationale-bearing entries in `.trivyignore` (review by 2026-09-05) and will be dropped as upstream rebuilds land.
+- First tagged release to carry the post-v0.4.2 CI/curation fixes (#6 trivy-action pin, #7 RELEASE_CHECKLIST hardening, #11 valkey curation parity, #12 cve-scan hardening).
+
 ## [0.4.2] - 2026-05-18
 
 ### Changed

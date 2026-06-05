@@ -14,8 +14,8 @@
 # golang:1.X-bookworm tag containing the same Go patch version. The two ARGs
 # must stay in sync — a mismatch silently ships a runner whose builder Go
 # differs from its runtime Go, defeating the consumer fix landed in v0.4.0.
-ARG GO_IMAGE=golang:1.26-bookworm@sha256:47ce5636e9936b2c5cbf708925578ef386b4f8872aec74a67bd13a627d242b19
-ARG NODE_IMAGE=node:22-bookworm-slim@sha256:7378f5a4830ef48eb36d1abf4ef398391db562b5c41a0bded83192fbcea21cc8
+ARG GO_IMAGE=golang:1.26-bookworm@sha256:5d2b868674b57c9e48cdd39e891acce4196b6926ca6d11e9c270a8f85106203d
+ARG NODE_IMAGE=node:22-bookworm-slim@sha256:7af03b14a13c8cdd38e45058fd957bf00a72bbe17feac43b1c15a689c029c732
 ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c
 ARG YAMLFMT_VERSION=v0.21.0
 ARG SHFMT_VERSION=v3.12.0
@@ -24,12 +24,12 @@ ARG ACTIONLINT_VERSION=v1.7.10
 ARG PRETTIER_VERSION=3.8.0
 ARG BIOME_VERSION=2.3.11
 ARG JQ_VERSION=1.8.1
-ARG YQ_VERSION=v4.49.2
+ARG YQ_VERSION=v4.53.2
 ARG RIPGREP_VERSION=15.1.0
 ARG TAPLO_VERSION=0.10.0
 
 # DX tools (Go)
-ARG GONEAT_VERSION=v0.5.9
+ARG GONEAT_VERSION=v0.5.13
 ARG SFETCH_VERSION=v0.4.5
 ARG SHELLSENTRY_VERSION=v0.1.4
 ARG GOLANGCI_LINT_VERSION=v2.12.1
@@ -38,17 +38,17 @@ ARG GOLANGCI_LINT_VERSION=v2.12.1
 ARG MINISIGN_VERSION=0.12
 
 # Toolchain pins (runner-only)
-ARG GO_VERSION=1.26.2
-ARG GO_SHA256_AMD64=990e6b4bbba816dc3ee129eaeaf4b42f17c2800b88a2166c265ac1a200262282
-ARG GO_SHA256_ARM64=c958a1fe1b361391db163a485e21f5f228142d6f8b584f6bef89b26f66dc5b23
+ARG GO_VERSION=1.26.4
+ARG GO_SHA256_AMD64=1153d3d50e0ac764b447adfe05c2bcf08e889d42a02e0fe0259bd47f6733ad7f
+ARG GO_SHA256_ARM64=ef758ae7c6cf9267c9c0ef080b8965f453d89ab2d25d9eb22de4405925238768
 ARG RUST_VERSION=1.92.0
 ARG RUSTUP_VERSION=1.28.2
 ARG RUST_TARGETS="x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu aarch64-unknown-linux-musl x86_64-apple-darwin aarch64-apple-darwin x86_64-pc-windows-gnu"
 ARG ZIG_VERSION=0.15.2
 ARG ZIG_SHA256_AMD64=02aa270f183da276e5b5920b1dac44a63f1a49e55050ebde3aecc9eb82f93239
 ARG ZIG_SHA256_ARM64=958ed7d1e00d0ea76590d27666efbf7a932281b3d7ba0c6b01b0ff26498f667f
-ARG SYFT_VERSION=v1.41.1
-ARG GRYPE_VERSION=v0.107.1
+ARG SYFT_VERSION=v1.45.0
+ARG GRYPE_VERSION=v0.113.0
 ARG CARGO_DENY_VERSION=0.19.0
 ARG CARGO_AUDIT_VERSION=0.22.0
 ARG CARGO_ZIGBUILD_VERSION=0.20.1
@@ -496,8 +496,12 @@ ARG NAPI_RS_CLI_VERSION
 
 USER root
 
-# Install runner baseline packages + build tools for CGO
+# Install runner baseline packages + build tools for CGO.
+# libgnutls30 is security-pinned to the patched bookworm-security build (the
+# base image lags the security repo). See manifests/tools.json; availability is
+# enforced by validate-apt-pins.sh and presence by validate-pins.sh.
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgnutls30=3.7.9-2+deb12u7 \
     bash \
     git \
     curl \
@@ -510,6 +514,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gzip \
     xz-utils \
     unzip \
+    zip \
     openssh-client \
     build-essential \
     gcc \

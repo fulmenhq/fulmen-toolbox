@@ -7,14 +7,14 @@
 # - slim: tool payload only (not published)
 # - runner (default): slim + runner baseline + build tools
 
-ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c
-ARG GO_IMAGE=golang:1.26-bookworm@sha256:8e8aa801e8417ef0b5c42b504dd34db3db911bb73dba933bd8bde75ed815fdbb
-ARG SYFT_VERSION=v1.41.1
-ARG GRYPE_VERSION=v0.107.1
-ARG TRIVY_VERSION=v0.69.3
+ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:0104b334637a5f19aa9c983a91b54c89887c0984081f2068983107a6f6c21eeb
+ARG GO_IMAGE=golang:1.26-bookworm@sha256:5d2b868674b57c9e48cdd39e891acce4196b6926ca6d11e9c270a8f85106203d
+ARG SYFT_VERSION=v1.45.0
+ARG GRYPE_VERSION=v0.113.0
+ARG TRIVY_VERSION=v0.71.0
 ARG SHELLSENTRY_VERSION=v0.1.4
 ARG JQ_VERSION=1.8.1
-ARG YQ_VERSION=v4.49.2
+ARG YQ_VERSION=v4.53.2
 
 # Stage 1: Fetch binaries and stage licenses/notices (kept out of runtime layers)
 FROM ${DEBIAN_IMAGE} AS fetcher
@@ -124,8 +124,12 @@ FROM slim AS runner
 
 USER root
 
-# Install runner baseline packages + build tools for CGO
+# Install runner baseline packages + build tools for CGO.
+# libgnutls30 is security-pinned to the patched bookworm-security build (the
+# base image lags the security repo). See manifests/tools.json; availability is
+# enforced by validate-apt-pins.sh and presence by validate-pins.sh.
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgnutls30=3.7.9-2+deb12u7 \
     bash \
     git \
     curl \

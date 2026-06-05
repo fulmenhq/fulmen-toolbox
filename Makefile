@@ -17,7 +17,7 @@
 .PHONY: cache-init cache-clear
 .PHONY: inventory-goneat-tools-runner inventory-goneat-tools-runner-glibc
 .PHONY: clean help bump-major bump-minor bump-patch lint-sh fmt-sh prereqs bootstrap bootstrap-tools size
-.PHONY: validate-manifest validate-apk-pins validate-pins validate-profiles validate-licenses
+.PHONY: validate-manifest validate-apk-pins validate-apt-pins validate-pins validate-profiles validate-licenses
 .PHONY: lint-workflows lint-dockerfiles
 .PHONY: quality precommit prepush pr-final check-clean check-quick
 .PHONY: catalog
@@ -76,6 +76,7 @@ OPTIONAL_CMDS ?= shellcheck shfmt
 VALIDATE_MANIFEST ?= scripts/validate-manifest.sh
 VALIDATE_PINS ?= scripts/validate-pins.sh
 VALIDATE_APK_PINS ?= scripts/validate-apk-pins.sh
+VALIDATE_APT_PINS ?= scripts/validate-apt-pins.sh
 VALIDATE_PROFILES ?= scripts/validate-profiles.sh
 VALIDATE_LICENSES ?= scripts/validate-licenses.sh
 VALIDATE_SUBSYSTEMS ?= scripts/validate-subsystems.sh
@@ -671,6 +672,10 @@ validate-pins:
 validate-apk-pins:
 	@$(VALIDATE_APK_PINS)
 
+## Validate APT security pins are available in upstream Debian repos (requires Docker)
+validate-apt-pins:
+	@$(VALIDATE_APT_PINS)
+
 ## Validate Dockerfiles conform to baseline profiles
 validate-profiles:
 	@$(VALIDATE_PROFILES)
@@ -749,7 +754,7 @@ lint-dockerfiles:
 	fi
 
 ## Quality bundle: manifest validation + profile validation + workflow lint + dockerfile lint
-quality: validate-manifest validate-pins validate-apk-pins validate-profiles lint-workflows lint-dockerfiles lint-sh
+quality: validate-manifest validate-pins validate-apk-pins validate-apt-pins validate-profiles lint-workflows lint-dockerfiles lint-sh
 
 ## Precommit bundle: quality checks
 precommit:
