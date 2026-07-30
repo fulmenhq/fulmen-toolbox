@@ -7,14 +7,14 @@
 # - slim: tool payload only (not published)
 # - runner (default): slim + runner baseline + build tools
 
-ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:0104b334637a5f19aa9c983a91b54c89887c0984081f2068983107a6f6c21eeb
-ARG GO_IMAGE=golang:1.26-bookworm@sha256:5d2b868674b57c9e48cdd39e891acce4196b6926ca6d11e9c270a8f85106203d
-ARG SYFT_VERSION=v1.45.0
-ARG GRYPE_VERSION=v0.113.0
-ARG TRIVY_VERSION=v0.71.0
-ARG SHELLSENTRY_VERSION=v0.1.4
+ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b7ea838a042bbd5acbfca6ec875818
+ARG GO_IMAGE=golang:1.26-bookworm@sha256:1ecb7edf62a0408027bd5729dfd6b1b8766e578e8df93995b225dfd0944eb651
+ARG SYFT_VERSION=v1.50.0
+ARG GRYPE_VERSION=v0.116.1
+ARG TRIVY_VERSION=v0.72.0
+ARG SHELLSENTRY_VERSION=v0.1.5
 ARG JQ_VERSION=1.8.1
-ARG YQ_VERSION=v4.53.2
+ARG YQ_VERSION=v4.53.3
 
 # Stage 1: Fetch binaries and stage licenses/notices (kept out of runtime layers)
 FROM ${DEBIAN_IMAGE} AS fetcher

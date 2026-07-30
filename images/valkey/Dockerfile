@@ -17,7 +17,7 @@ ARG VALKEY_LICENSE_BRANCH=8.1
 
 # Stage 1: Fetch license from upstream repo
 # Pin base image for reproducibility
-ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c
+ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b7ea838a042bbd5acbfca6ec875818
 FROM ${DEBIAN_IMAGE} AS license-fetcher
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl && \
     rm -rf /var/lib/apt/lists/*

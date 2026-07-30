@@ -92,6 +92,7 @@ goneat_node=$(get_version "node-base" "goneat-tools-slim-musl")
 goneat_go=$(get_version "golang-builder" "goneat-tools-slim-musl")
 goneat_prettier=$(get_version "prettier" "goneat-tools-slim-musl")
 goneat_biome=$(get_version "biome" "goneat-tools-slim-musl")
+goneat_npm=$(get_version "npm" "goneat-tools-slim-musl")
 goneat_yamlfmt=$(get_version "yamlfmt" "goneat-tools-slim-musl")
 goneat_shfmt=$(get_version "shfmt" "goneat-tools-slim-musl")
 goneat_checkmake=$(get_version "checkmake" "goneat-tools-slim-musl")
@@ -106,8 +107,10 @@ goneat_sfetch=$(get_version "sfetch" "goneat-tools-slim-musl")
 goneat_bash=$(get_version "bash" "goneat-tools-runner-musl")
 goneat_git=$(get_version "git" "goneat-tools-runner-musl")
 goneat_curl=$(get_version "curl" "goneat-tools-runner-musl")
+goneat_ruff=$(get_version "ruff" "goneat-tools-runner-musl")
+goneat_gover=$(get_version "go" "goneat-tools-runner-musl")
 
-for name in goneat_node goneat_go goneat_prettier goneat_biome goneat_yamlfmt goneat_shfmt goneat_checkmake goneat_actionlint goneat_jq goneat_yq goneat_ripgrep goneat_taplo goneat_bash goneat_git goneat_curl goneat_minisign goneat_goneat goneat_sfetch; do
+for name in goneat_node goneat_go goneat_prettier goneat_biome goneat_npm goneat_yamlfmt goneat_shfmt goneat_checkmake goneat_actionlint goneat_jq goneat_yq goneat_ripgrep goneat_taplo goneat_bash goneat_git goneat_curl goneat_minisign goneat_goneat goneat_sfetch goneat_ruff goneat_gover; do
 	if [ -z "${!name:-}" ]; then
 		echo "❌ Missing manifest entry for ${name#goneat_}"
 		fail=1
@@ -118,6 +121,7 @@ check_pin "$goneat_df" "goneat-tools node base" "ARG NODE_IMAGE=${goneat_node}" 
 check_pin "$goneat_df" "goneat-tools golang builder" "ARG GO_IMAGE=${goneat_go}" || fail=1
 check_pin "$goneat_df" "goneat-tools prettier" "ARG PRETTIER_VERSION=${goneat_prettier}" || fail=1
 check_pin "$goneat_df" "goneat-tools biome" "ARG BIOME_VERSION=${goneat_biome}" || fail=1
+check_pin "$goneat_df" "goneat-tools npm" "ARG NPM_VERSION=${goneat_npm}" || fail=1
 check_pin "$goneat_df" "goneat-tools yamlfmt" "ARG YAMLFMT_VERSION=${goneat_yamlfmt}" || fail=1
 check_pin "$goneat_df" "goneat-tools shfmt" "ARG SHFMT_VERSION=${goneat_shfmt}" || fail=1
 check_pin "$goneat_df" "goneat-tools checkmake" "ARG CHECKMAKE_VERSION=${goneat_checkmake}" || fail=1
@@ -132,6 +136,11 @@ check_pin "$goneat_df" "goneat-tools curl" "ARG CURL_VERSION=${goneat_curl}" || 
 check_pin "$goneat_df" "goneat-tools minisign" "ARG MINISIGN_VERSION=${goneat_minisign}" || fail=1
 check_pin "$goneat_df" "goneat-tools goneat" "ARG GONEAT_VERSION=${goneat_goneat}" || fail=1
 check_pin "$goneat_df" "goneat-tools sfetch" "ARG SFETCH_VERSION=${goneat_sfetch}" || fail=1
+check_pin "$goneat_df" "goneat-tools ruff" "ARG RUFF_VERSION=${goneat_ruff}" || fail=1
+# The Go toolchain shipped at /opt/go. Kept in lockstep with GO_IMAGE (see the
+# GO_IMAGE <-> GO_VERSION rule); unchecked until v0.5.0, during which the
+# manifest silently drifted to 1.26.2 while the Dockerfiles carried 1.26.4.
+check_pin "$goneat_df" "goneat-tools go toolchain" "ARG GO_VERSION=${goneat_gover}" || fail=1
 
 # goneat-tools-glibc pins
 goneat_glibc_df="$ROOT/images/goneat-tools-glibc/Dockerfile"
@@ -139,6 +148,7 @@ goneat_glibc_node=$(get_version "node-base-glibc" "goneat-tools-runner-glibc")
 goneat_glibc_go=$(get_version "golang-builder-glibc" "goneat-tools-runner-glibc")
 goneat_glibc_prettier=$(get_version "prettier" "goneat-tools-runner-glibc")
 goneat_glibc_biome=$(get_version "biome" "goneat-tools-runner-glibc")
+goneat_glibc_npm=$(get_version "npm" "goneat-tools-runner-glibc")
 goneat_glibc_yamlfmt=$(get_version "yamlfmt" "goneat-tools-runner-glibc")
 goneat_glibc_shfmt=$(get_version "shfmt" "goneat-tools-runner-glibc")
 goneat_glibc_checkmake=$(get_version "checkmake" "goneat-tools-runner-glibc")
@@ -150,8 +160,10 @@ goneat_glibc_taplo=$(get_version "taplo" "goneat-tools-runner-glibc")
 goneat_glibc_minisign=$(get_version "minisign" "goneat-tools-runner-glibc")
 goneat_glibc_goneat=$(get_version "goneat" "goneat-tools-runner-glibc")
 goneat_glibc_sfetch=$(get_version "sfetch" "goneat-tools-runner-glibc")
+goneat_glibc_ruff=$(get_version "ruff" "goneat-tools-runner-glibc")
+goneat_glibc_gover=$(get_version "go" "goneat-tools-runner-glibc")
 
-for name in goneat_glibc_node goneat_glibc_go goneat_glibc_prettier goneat_glibc_biome goneat_glibc_yamlfmt goneat_glibc_shfmt goneat_glibc_checkmake goneat_glibc_actionlint goneat_glibc_jq goneat_glibc_yq goneat_glibc_ripgrep goneat_glibc_taplo goneat_glibc_minisign goneat_glibc_goneat goneat_glibc_sfetch; do
+for name in goneat_glibc_node goneat_glibc_go goneat_glibc_prettier goneat_glibc_biome goneat_glibc_npm goneat_glibc_yamlfmt goneat_glibc_shfmt goneat_glibc_checkmake goneat_glibc_actionlint goneat_glibc_jq goneat_glibc_yq goneat_glibc_ripgrep goneat_glibc_taplo goneat_glibc_minisign goneat_glibc_goneat goneat_glibc_sfetch goneat_glibc_ruff goneat_glibc_gover; do
 	if [ -z "${!name:-}" ]; then
 		echo "❌ Missing manifest entry for ${name#goneat_glibc_}"
 		fail=1
@@ -162,6 +174,7 @@ check_pin "$goneat_glibc_df" "goneat-tools-glibc node base" "ARG NODE_IMAGE=${go
 check_pin "$goneat_glibc_df" "goneat-tools-glibc golang builder" "ARG GO_IMAGE=${goneat_glibc_go}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc prettier" "ARG PRETTIER_VERSION=${goneat_glibc_prettier}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc biome" "ARG BIOME_VERSION=${goneat_glibc_biome}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc npm" "ARG NPM_VERSION=${goneat_glibc_npm}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc yamlfmt" "ARG YAMLFMT_VERSION=${goneat_glibc_yamlfmt}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc shfmt" "ARG SHFMT_VERSION=${goneat_glibc_shfmt}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc checkmake" "ARG CHECKMAKE_VERSION=${goneat_glibc_checkmake}" || fail=1
@@ -173,6 +186,8 @@ check_pin "$goneat_glibc_df" "goneat-tools-glibc taplo" "ARG TAPLO_VERSION=${gon
 check_pin "$goneat_glibc_df" "goneat-tools-glibc minisign" "ARG MINISIGN_VERSION=${goneat_glibc_minisign}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc goneat" "ARG GONEAT_VERSION=${goneat_glibc_goneat}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc sfetch" "ARG SFETCH_VERSION=${goneat_glibc_sfetch}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc ruff" "ARG RUFF_VERSION=${goneat_glibc_ruff}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc go toolchain" "ARG GO_VERSION=${goneat_glibc_gover}" || fail=1
 
 # apt security pins (glibc runners) — inline-pinned in the apt install line,
 # not an ARG. Presence enforced here; availability enforced by validate-apt-pins.sh.

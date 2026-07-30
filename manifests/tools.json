@@ -2,6 +2,20 @@
   "$schema": "https://schema.fulmenhq.dev/fulmen-toolbox/tool-manifest.schema.json",
   "tools": [
     {
+      "name": "npm",
+      "version": "12.0.1",
+      "source": "npm",
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
+      "notes": "Overrides the npm bundled in the node base image, whose dependency tree carries HIGH/CRITICAL advisories (tar, sigstore, brace-expansion). Re-verify this pin is still >= the base's bundled npm on every node base digest bump, and drop the override once the base catches up. See RELEASE_CHECKLIST.md.",
+      "license_spdx": "Artistic-2.0",
+      "license_source": "npm",
+      "license_path": "/licenses/npm/npm/LICENSE"
+    },
+    {
       "name": "prettier",
       "version": "3.8.0",
       "source": "npm",
@@ -54,7 +68,7 @@
         "goneat-tools-slim-musl",
         "goneat-tools-runner-musl"
       ],
-      "notes": "Alpine 3.23 version (node:22-alpine base)"
+      "notes": "Alpine 3.24 version (node:22-alpine base)"
     },
     {
       "name": "jq",
@@ -78,13 +92,13 @@
     },
     {
       "name": "yq-go",
-      "version": "4.49.2-r6",
+      "version": "4.53.3-r0",
       "source": "apk",
       "images": [
         "goneat-tools-slim-musl",
         "goneat-tools-runner-musl"
       ],
-      "notes": "Alpine 3.23 version (node:22-alpine base)"
+      "notes": "Alpine 3.24 version (node:22-alpine base)"
     },
     {
       "name": "yq-go",
@@ -98,7 +112,7 @@
     },
     {
       "name": "yq-go",
-      "version": "v4.53.2",
+      "version": "v4.53.3",
       "source": "binary",
       "images": [
         "goneat-tools-runner-glibc",
@@ -145,7 +159,7 @@
     },
     {
       "name": "bash",
-      "version": "5.3.3-r1",
+      "version": "5.3.9-r1",
       "source": "apk",
       "images": [
         "goneat-tools-runner-musl"
@@ -153,12 +167,12 @@
     },
     {
       "name": "git",
-      "version": "2.52.0-r0",
+      "version": "2.54.0-r0",
       "source": "apk",
       "images": [
         "goneat-tools-runner-musl"
       ],
-      "notes": "Alpine 3.23 version (node:22-alpine base)"
+      "notes": "Alpine 3.24 version (node:22-alpine base)"
     },
     {
       "name": "git",
@@ -171,7 +185,7 @@
     },
     {
       "name": "curl",
-      "version": "8.19.0-r0",
+      "version": "8.21.0-r0",
       "source": "apk",
       "images": [
         "goneat-tools-runner-musl"
@@ -180,7 +194,7 @@
     },
     {
       "name": "minisign",
-      "version": "0.12-r1",
+      "version": "0.12-r2",
       "source": "apk",
       "images": [
         "goneat-tools-slim-musl",
@@ -205,7 +219,7 @@
     },
     {
       "name": "node-base",
-      "version": "node:22-alpine@sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966920",
+      "version": "node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2",
       "source": "other",
       "images": [
         "goneat-tools-slim-musl",
@@ -215,7 +229,7 @@
     },
     {
       "name": "node-base-glibc",
-      "version": "node:22-bookworm-slim@sha256:7af03b14a13c8cdd38e45058fd957bf00a72bbe17feac43b1c15a689c029c732",
+      "version": "node:22-bookworm-slim@sha256:6c74791e557ce11fc957704f6d4fe134a7bc8d6f5ca4403205b2966bd488f6b3",
       "source": "other",
       "images": [
         "goneat-tools-runner-glibc"
@@ -234,7 +248,7 @@
     },
     {
       "name": "golang-builder",
-      "version": "golang:1.26-alpine@sha256:f23e8b227fb4493eabe03bede4d5a32d04092da71962f1fb79b5f7d1e6c2a17f",
+      "version": "golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2",
       "source": "other",
       "images": [
         "goneat-tools-slim-musl",
@@ -244,7 +258,7 @@
     },
     {
       "name": "golang-builder-glibc",
-      "version": "golang:1.26-bookworm@sha256:5d2b868674b57c9e48cdd39e891acce4196b6926ca6d11e9c270a8f85106203d",
+      "version": "golang:1.26-bookworm@sha256:1ecb7edf62a0408027bd5729dfd6b1b8766e578e8df93995b225dfd0944eb651",
       "source": "other",
       "images": [
         "goneat-tools-runner-glibc"
@@ -295,7 +309,7 @@
     },
     {
       "name": "goneat",
-      "version": "v0.5.13",
+      "version": "v0.5.15",
       "source": "go",
       "images": [
         "goneat-tools-slim-musl",
@@ -311,7 +325,7 @@
     },
     {
       "name": "sfetch",
-      "version": "v0.4.5",
+      "version": "v0.4.9",
       "source": "go",
       "images": [
         "goneat-tools-slim-musl",
@@ -325,7 +339,7 @@
     },
     {
       "name": "go",
-      "version": "1.26.2",
+      "version": "1.26.5",
       "source": "binary",
       "images": [
         "goneat-tools-runner-musl",
@@ -527,6 +541,19 @@
       "license_path": "/licenses/pypi/pytest/LICENSE"
     },
     {
+      "name": "ruff",
+      "version": "0.15.22",
+      "source": "other",
+      "images": [
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
+      "notes": "Python linter/formatter (installed via pip). goneat format dispatches to ruff for .py files; goneat >= v0.5.15 fails closed when it is absent.",
+      "license_spdx": "MIT",
+      "license_source": "manual",
+      "license_path": "/licenses/pypi/ruff/LICENSE"
+    },
+    {
       "name": "napi-rs-cli",
       "version": "3.5.1",
       "source": "npm",
@@ -541,7 +568,7 @@
     },
     {
       "name": "shellsentry",
-      "version": "v0.1.4",
+      "version": "v0.1.5",
       "source": "go",
       "images": [
         "goneat-tools-runner-musl",
@@ -571,7 +598,7 @@
     },
     {
       "name": "syft",
-      "version": "v1.45.0",
+      "version": "v1.50.0",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",
@@ -588,7 +615,7 @@
     },
     {
       "name": "grype",
-      "version": "v0.113.0",
+      "version": "v0.116.1",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",
@@ -605,7 +632,7 @@
     },
     {
       "name": "trivy",
-      "version": "v0.71.0",
+      "version": "v0.72.0",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",
@@ -631,7 +658,7 @@
     },
     {
       "name": "debian-base",
-      "version": "debian:bookworm-slim@sha256:0104b334637a5f19aa9c983a91b54c89887c0984081f2068983107a6f6c21eeb",
+      "version": "debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b7ea838a042bbd5acbfca6ec875818",
       "source": "other",
       "images": [
         "sbom-tools-runner-glibc"
