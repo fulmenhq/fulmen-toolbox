@@ -14,45 +14,48 @@
 # golang:1.X-alpine tag containing the same Go patch version. The two ARGs
 # must stay in sync — a mismatch silently ships a runner whose builder Go
 # differs from its runtime Go, defeating the consumer fix landed in v0.4.0.
-ARG GO_IMAGE=golang:1.26-alpine@sha256:f85330846cde1e57ca9ec309382da3b8e6ae3ab943d2739500e08c86393a21b1
-ARG NODE_IMAGE=node:22-alpine@sha256:9632533eda8061fc1e9960cfb3f8762781c07a00ee7317f5dc0e13c05e15166f
+ARG GO_IMAGE=golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2
+ARG NODE_IMAGE=node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
 ARG YAMLFMT_VERSION=v0.21.0
 ARG SHFMT_VERSION=v3.12.0
 ARG CHECKMAKE_VERSION=v0.3.2
 ARG ACTIONLINT_VERSION=v1.7.10
 ARG PRETTIER_VERSION=3.8.0
 ARG BIOME_VERSION=2.3.11
+# Overrides the npm bundled in the node base. See the npm stage below for the
+# maintenance obligation this pin creates.
+ARG NPM_VERSION=12.0.1
 ARG JQ_VERSION=1.8.1-r0
-ARG YQ_VERSION=4.49.2-r6
+ARG YQ_VERSION=4.53.3-r0
 ARG RIPGREP_VERSION=15.1.0-r0
 ARG TAPLO_VERSION=0.10.0-r0
 
 # DX tools (Go)
-ARG GONEAT_VERSION=v0.5.9
-ARG SFETCH_VERSION=v0.4.5
-ARG SHELLSENTRY_VERSION=v0.1.4
+ARG GONEAT_VERSION=v0.5.15
+ARG SFETCH_VERSION=v0.4.9
+ARG SHELLSENTRY_VERSION=v0.1.5
 ARG GOLANGCI_LINT_VERSION=v2.12.1
 
 # Runner-baseline pinned packages (subset)
-ARG BASH_VERSION=5.3.3-r1
-ARG GIT_VERSION=2.52.0-r0
-ARG CURL_VERSION=8.19.0-r0
+ARG BASH_VERSION=5.3.9-r1
+ARG GIT_VERSION=2.54.0-r0
+ARG CURL_VERSION=8.21.0-r0
 
 # Non-runner tool pins
-ARG MINISIGN_VERSION=0.12-r1
+ARG MINISIGN_VERSION=0.12-r2
 
 # Toolchain pins (runner-only)
-ARG GO_VERSION=1.26.2
-ARG GO_SHA256_AMD64=990e6b4bbba816dc3ee129eaeaf4b42f17c2800b88a2166c265ac1a200262282
-ARG GO_SHA256_ARM64=c958a1fe1b361391db163a485e21f5f228142d6f8b584f6bef89b26f66dc5b23
+ARG GO_VERSION=1.26.5
+ARG GO_SHA256_AMD64=5c2c3b16caefa1d968a94c1daca04a7ca301a496d9b086e17ad77bb81393f053
+ARG GO_SHA256_ARM64=fe4789e92b1f33358680864bbe8704289e7bb5fc207d80623c308935bd696d49
 ARG RUST_VERSION=1.92.0
 ARG RUSTUP_VERSION=1.28.2
 ARG RUST_TARGETS="x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu aarch64-unknown-linux-musl x86_64-apple-darwin aarch64-apple-darwin x86_64-pc-windows-gnu"
 ARG ZIG_VERSION=0.15.2
 ARG ZIG_SHA256_AMD64=02aa270f183da276e5b5920b1dac44a63f1a49e55050ebde3aecc9eb82f93239
 ARG ZIG_SHA256_ARM64=958ed7d1e00d0ea76590d27666efbf7a932281b3d7ba0c6b01b0ff26498f667f
-ARG SYFT_VERSION=v1.41.1
-ARG GRYPE_VERSION=v0.107.1
+ARG SYFT_VERSION=v1.50.0
+ARG GRYPE_VERSION=v0.116.1
 ARG CARGO_DENY_VERSION=0.19.0
 ARG CARGO_AUDIT_VERSION=0.22.0
 ARG CARGO_ZIGBUILD_VERSION=0.20.1
@@ -61,6 +64,7 @@ ARG CBINDGEN_VERSION=0.29.0
 ARG UV_VERSION=0.9.28
 ARG MATURIN_VERSION=1.11.5
 ARG PYTEST_VERSION=9.0.2
+ARG RUFF_VERSION=0.15.22
 ARG NAPI_RS_CLI_VERSION=3.5.1
 
 # Stage 1: Build Go tools (yamlfmt, shfmt, checkmake, actionlint, goneat, sfetch)
@@ -419,6 +423,26 @@ RUN mkdir -p \
     fi && \
     chmod -R a+rX /licenses /notices
 
+# Update the npm bundled in the node base image.
+#
+# node:22 ships npm 10.9.x, whose *bundled* dependency tree carries HIGH and
+# CRITICAL advisories (tar, sigstore, brace-expansion). Those packages are not
+# ours -- they live under /usr/local/lib/node_modules/npm/node_modules -- so the
+# only ways to clear them are to wait for the base image to refresh its npm, or
+# to update npm ourselves. We update.
+#
+# MAINTENANCE OBLIGATION: this pin overrides whatever npm the base ships, so it
+# can silently go BACKWARDS if the base later bundles a newer npm than
+# ${NPM_VERSION}. On every node base digest bump, re-verify that this pin is
+# still >= the base's bundled npm, and drop this stage entirely once the base
+# catches up. See RELEASE_CHECKLIST.md ("Pinned npm override").
+ARG NPM_VERSION
+RUN npm install -g npm@${NPM_VERSION} && \
+    npm cache clean --force && \
+    mkdir -p /licenses/npm/npm && \
+    cp /usr/local/lib/node_modules/npm/LICENSE /licenses/npm/npm/LICENSE && \
+    chmod -R a+rX /licenses/npm
+
 # Install Prettier and Biome globally
 RUN npm install -g prettier@${PRETTIER_VERSION} @biomejs/biome@${BIOME_VERSION} && \
     npm cache clean --force && \
@@ -466,6 +490,7 @@ ARG CURL_VERSION
 ARG UV_VERSION
 ARG MATURIN_VERSION
 ARG PYTEST_VERSION
+ARG RUFF_VERSION
 ARG NAPI_RS_CLI_VERSION
 
 USER root
@@ -491,6 +516,7 @@ RUN apk add --no-cache \
     gzip \
     xz \
     unzip \
+    zip \
     openssh-client
 
 ENV CARGO_HOME=/opt/cargo \
@@ -528,7 +554,7 @@ COPY --from=golangci-lint-builder /out/licenses/github/golangci/golangci-lint/LI
 RUN set -eux; \
     ln -s /opt/zig/zig /usr/local/bin/zig; \
     mkdir -p /opt/gopath; \
-    python3 -m pip install --no-cache-dir uv==${UV_VERSION} maturin==${MATURIN_VERSION} pytest==${PYTEST_VERSION}; \
+    python3 -m pip install --no-cache-dir uv==${UV_VERSION} maturin==${MATURIN_VERSION} pytest==${PYTEST_VERSION} ruff==${RUFF_VERSION}; \
     npm install -g @napi-rs/cli@${NAPI_RS_CLI_VERSION}; \
     mkdir -p /licenses/npm/napi-rs; \
     if [ -f /usr/local/lib/node_modules/@napi-rs/cli/LICENSE ]; then \
@@ -554,6 +580,7 @@ def copy_license(package, destination):
 copy_license("uv", "/licenses/pypi/uv/LICENSE")
 copy_license("maturin", "/licenses/pypi/maturin/LICENSE")
 copy_license("pytest", "/licenses/pypi/pytest/LICENSE")
+copy_license("ruff", "/licenses/pypi/ruff/LICENSE")
 PY
 
 RUN chmod -R a+rX /licenses /notices /opt && \

@@ -36,7 +36,22 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
   - For local `gh api` queries, use a classic PAT with `read:packages`.
   - Avoid `repo` scope for GHCR-only usage; some `gh` interactions may still require additional org access depending on visibility/policy.
 - [ ] Update `CHANGELOG.md` and `RELEASE_NOTES.md` with the release entry
+- [ ] Propagate the release notes to `docs/releases/v<semver>.md` (same content, expanded detail — see the previous release's file for the shape). These have drifted before: during v0.5.0 the CHANGELOG was kept current across two scope changes while `RELEASE_NOTES.md` and `docs/releases/` still carried the original values, which would have shipped wrong version numbers and omitted the headline feature. Diff the version strings in all three against `manifests/tools.json` before tagging.
+- [ ] Read `README.md` end to end and update anything the release changed (tool lists, image contents, usage examples, supported-platform claims). It is the first thing a consumer sees and nothing mechanically validates it.
 - [ ] Sync pins: update `manifests/tools.json`, Dockerfile ARGs, and `docs/images/goneat-tools.md`
+- [ ] **Pinned npm override** — verify `NPM_VERSION` is still ≥ the npm bundled in the node base image:
+
+  ```bash
+  # What the base ships (run against the pinned NODE_IMAGE digest, not :latest)
+  docker run --rm <node-base-image@sha256:...> npm --version
+  # What we pin
+  grep '^ARG NPM_VERSION=' images/goneat-tools/Dockerfile images/goneat-tools-glibc/Dockerfile
+  ```
+
+  Both goneat runners install `npm@${NPM_VERSION}` over the base's bundled npm. This was added in v0.5.0 because node:22 shipped npm 10.9.x whose _bundled_ dependency tree carried a CRITICAL (`tar`) plus HIGH advisories (`sigstore`, `brace-expansion`) that no change of ours could reach — those packages live under `/usr/local/lib/node_modules/npm/node_modules/`.
+
+  **The risk this creates is a silent downgrade.** `npm install -g npm@X` sets the version absolutely, so once the base bundles an npm newer than our pin, the override starts _removing_ fixes instead of adding them — and nothing fails loudly when it does. Re-check on **every node base digest bump**, and **delete the override stage entirely** (plus its `manifests/tools.json` entry and `validate-pins` check) once the base has caught up. Carrying it longer than needed is the failure mode, not dropping it.
+
 - [ ] If adding a new image, confirm `manifests/tools.json` includes it (release signing/digests derive from the manifest list)
 - [ ] Run local checks: `make precommit` (manifest + workflows lint) and `make prepush` (quality + build + test)
   - **Timing note**: `make prepush` builds and smoke-tests images cold; expect **~30 minutes** on a clean cache, **~3-5 min** when layers are warm. If running under an automation harness, set the command timeout to **at least 45 min** to avoid spurious cancellation.

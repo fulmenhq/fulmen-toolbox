@@ -11,7 +11,7 @@
 ## Why Toolbox?
 
 - **Reproducible CI/CD**: No more flakey tool installs – pull a container.
-- **Focused & Lean**: One purpose per image (~150-250MB, multi-arch).
+- **Focused**: One purpose per image, multi-arch. Slim variants are ~450-500MB; the runners carry full Go/Rust/Zig/Python toolchains and are correspondingly large (several GB uncompressed — registry pulls are compressed and smaller). Pick `-slim` when you only need the tools.
 - **Team-Stewarded**: FulmenHQ maintains consistency, security, minimal size.
 - **Easy Integration**: Drop-in GitHub Actions or local Docker runs.
 
@@ -30,6 +30,8 @@ Each toolbox image comes in three variants to match your use case:
 - Use **`-runner`** if you're running CI jobs, need `make`/`gcc`, or want a full shell environment (musl/Alpine)
 - Use **`-runner-glibc`** if you need `CGO_ENABLED=1` or glibc-only dependencies
 - Use **`-slim`** if you just want to run a tool without installing it locally (e.g., `docker run ... prettier --write .`)
+
+> **Python users: use a `-runner` variant.** The runners ship `ruff` (the formatter/linter `goneat` dispatches to for `.py` files) alongside `python3`, `uv`, `maturin`, and `pytest`. The slim variants deliberately do **not** include `ruff`. Since goneat v0.5.15, `goneat format` _fails closed_ when a formatter it needs is unavailable — so running it over Python sources in a slim image exits non-zero with `tool-unavailable` rather than silently skipping those files. Either use a runner variant or pass `--ignore-missing-tools`.
 
 **Why no `-slim-glibc`?**
 

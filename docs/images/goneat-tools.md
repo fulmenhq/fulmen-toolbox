@@ -32,7 +32,7 @@ See `docs/images/tag-taxonomy.md` for canonical tags and alias mappings.
 | **Cargo tools** | cargo-deny, cargo-audit, cargo-zigbuild, cargo-nextest, cbindgen                                       |
 | **Go**          | Full toolchain with CGO_ENABLED=1; `golangci-lint` v2 (bundled, built in-runner against the pinned Go) |
 | **Zig**         | Cross-compilation backend for cargo-zigbuild                                                           |
-| **Python**      | python3, uv, maturin (PyO3/Rust bindings), pytest                                                      |
+| **Python**      | python3, uv, maturin (PyO3/Rust bindings), pytest, ruff (lint + format)                                |
 | **Node**        | npm, napi-rs CLI for native addon builds                                                               |
 | **SBOM**        | syft, grype                                                                                            |
 | **Shell**       | shellsentry                                                                                            |
@@ -41,13 +41,33 @@ See `docs/images/tag-taxonomy.md` for canonical tags and alias mappings.
 
 | Feature       | `-runner-musl`   | `-runner-glibc`       |
 | ------------- | ---------------- | --------------------- |
-| Base          | Alpine 3.21      | Debian bookworm-slim  |
+| Base          | Alpine 3.24      | Debian bookworm-slim  |
 | libc          | musl             | glibc                 |
 | CGO           | Yes (build-base) | Yes (build-essential) |
 | cargo-audit   | amd64 only       | amd64 + arm64         |
 | cargo-nextest | amd64 only       | amd64 + arm64         |
 
 **Recommendation**: Use `-runner-glibc` for full toolchain support on arm64.
+
+> **Go build environment — `CGO_ENABLED=1` is preset.** The runner images set
+> `CGO_ENABLED=1` so native cgo builds work out of the box. This overrides Go's
+> per-target default of `0`, so a plain `go build` for a non-native
+> `GOOS`/`GOARCH` fails (`gcc: error: unrecognized command-line option '-m64'`).
+> When building static or cross-compiled binaries, set `CGO_ENABLED=0`
+> explicitly (and use `:=`/`override`, not `?=`, in Makefiles — the image env
+> otherwise silently wins). See
+> [Container Usage Patterns → Troubleshooting](../user-guide/container-usage-patterns.md#go-cross-compilation-fails-with-gcc-error-unrecognized-command-line-option--m64).
+
+> **Python lint/format parity — `ruff` is included.** `goneat format` and
+> `goneat assess` auto-detect Python sources and dispatch to `ruff`, so the
+> runners ship it pinned alongside python3/uv/maturin/pytest. This matters from
+> goneat v0.5.15 onward: standalone `goneat format` **fails closed** when a
+> formatter required by the selected files is unavailable, rather than
+> completing with silently incomplete coverage. A runner without `ruff` would
+> therefore fail any job that formats `.py` files. `goneat assess` still treats
+> unavailable optional language tools as skipped coverage, and
+> `--ignore-missing-tools` remains the explicit degradation path for standalone
+> formatting.
 
 ## How to see what's included (definitively)
 
@@ -82,6 +102,9 @@ docker run --rm ghcr.io/fulmenhq/goneat-tools-runner-musl:v<version> -c "prettie
 
 # Polyglot toolchains
 docker run --rm ghcr.io/fulmenhq/goneat-tools-runner-glibc:v<version> -c "rustc --version && go version && zig version && python3 --version"
+
+# Python lint/format parity
+docker run --rm ghcr.io/fulmenhq/goneat-tools-runner-glibc:v<version> -c "ruff --version"
 ```
 
 ## Maintainer tooling: local manifest-derived catalog

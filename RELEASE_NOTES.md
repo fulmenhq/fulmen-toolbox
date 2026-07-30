@@ -1,5 +1,44 @@
 # Release Notes
 
+## v0.5.0 (2026-07-30)
+
+**Runner content delta + full fixable-CVE sweep — `ruff` Python parity, `zip`, `CGO_ENABLED` docs, deterministic OS-security pins, Go 1.26.5, scanner/tool currency**
+
+First image-content rebuild since v0.4.x. Started as a downstream ask (add `zip`, document `CGO_ENABLED`) and was deliberately widened — since any image touch forces a full rebuild + downstream adoption cascade — to sweep every **fixable** HIGH/CRITICAL CVE across the image set. All six images scan to **0 fixable HIGH/CRITICAL** (trivy `--ignore-unfixed`, with documented `.trivyignore` exceptions). Versioned minor: `ruff` and `zip` are new tools consumers can rely on.
+
+> **Read this before upgrading.** goneat v0.5.15 changes `goneat format` to **fail closed** when an external formatter it would dispatch to is missing, rather than completing with silently incomplete coverage. `ruff` ships in this release for exactly that reason — without it, any repository containing `.py` files would move from _quietly unformatted_ to a _hard CI failure_. If your pipeline depends on a formatter that is not installed, expect a new failure and either install it or pass `--ignore-missing-tools`. `goneat assess` is unaffected and still reports such files as skipped.
+
+### Changes
+
+| Area                                                      | Change                                                                                                                                                                                                                                                                                                                               |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `goneat-tools-runner-{glibc,musl}`                        | **`ruff 0.15.22` added** — the Python formatter/linter `goneat` dispatches to. The runners shipped python3/uv/maturin/pytest but not `ruff`, so any repository with `.py` files failed in hosted CI. Matches goneat's recommended foundation version. Not added to the slim images.                                                  |
+| `goneat-tools-runner-{glibc,musl}`                        | **`zip` CLI added** (beside `unzip`). Closes a Windows-`.zip` packaging gap.                                                                                                                                                                                                                                                         |
+| Docs (`container-usage-patterns.md`, `goneat-tools.md`)   | **`CGO_ENABLED=1` documented** — preset is intentional (CGO-capable runner); set `CGO_ENABLED=0` (use `:=`/`override`) for static/cross builds. Revisiting the preset tracked in #14.                                                                                                                                                |
+| `goneat-tools-glibc`, `sbom-tools-glibc`                  | **`libgnutls30` pinned to `3.7.9-2+deb12u7`** (CRITICAL CVE-2026-33845/42010 + 3 HIGH). Base lags the security repo; explicit apt pin forces the patched build.                                                                                                                                                                      |
+| `scripts/validate-apt-pins.sh` + `make validate-apt-pins` | **New** deterministic apt-security-pin validator (apt analog of `validate-apk-pins`); wired into `make quality`. `validate-pins` enforces pin presence. First `source:"apt"` entry in `tools.json`.                                                                                                                                  |
+| Go toolchain                                              | **`1.26.2 → 1.26.5`** (version + checksums + coupled `GO_IMAGE`); clears Go-stdlib CVEs in the in-house tools + shipped `/opt/go`.                                                                                                                                                                                                   |
+| `goneat`                                                  | **`v0.5.9 → v0.5.15`** — patched go-git/go-billy/OpenTelemetry deps, plus the fail-closed formatter behavior described above.                                                                                                                                                                                                        |
+| `syft`/`grype`/`trivy`/`yq`                               | **`v1.41.1→v1.50.0` / `v0.107.1→v0.116.1` / `v0.69.3→v0.72.0` / `v4.49.2→v4.53.3`** (glibc yq); clear vendored-dependency CVEs. syft/grype were initially held one release back for soak time, then adopted once `v1.50.0`/`v0.116.1` were confirmed to carry `grpc v1.82.1` (closes `GHSA-hrxh-6v49-42gf`).                         |
+| `sfetch`/`shellsentry`                                    | **`v0.4.5→v0.4.9` / `v0.1.4→v0.1.5`** — both move to `x/crypto v0.54.0`, clearing nine HIGH advisories. The two carried the same CVE set from different `x/crypto` versions, so both had to move before any cleared.                                                                                                                 |
+| `npm` (goneat runners)                                    | **Pinned to `12.0.1`**, overriding the node base's bundled npm 10.9.x whose dependency tree carries a CRITICAL (`tar`) plus HIGH `sigstore`/`brace-expansion` advisories. Those live inside npm's own `node_modules` and are unreachable except by updating npm. Re-verify on every base digest bump; drop once the base catches up. |
+| musl runner base                                          | **Alpine `3.23 → 3.24.1`** via the `node:22-alpine` upstream rebase, rotating four pinned apk packages (`bash`, `curl`, `git`, `minisign`) and `yq-go → 4.53.3-r0` — the musl `yq` now converges with the glibc binary pin. (`sbom-tools` stays on `alpine:3.21`.)                                                                   |
+| Final-stage base digests                                  | Refreshed (`node:22-alpine`, `node:22-bookworm-slim`, `alpine:3.21`, `debian:bookworm-slim`) — rebuild on patched OS package sets. The two glibc images had drifted onto different `debian:bookworm-slim` digests and are now converged.                                                                                             |
+
+### Updated Images
+
+All six tool images rebuilt; `valkey-server-glibc` unchanged (base already current). No interface change beyond the new `ruff` and `zip` binaries and patched package/tool versions — but note the `goneat format` behavior change called out above.
+
+### CVE posture
+
+All six images scan to **0 fixable HIGH/CRITICAL**. Residuals: (1) no-fix class gate-excluded by `ignore-unfixed: true` (`linux-libc-dev` kernel headers not-applicable, Debian won't-fix, unfixed-upstream python/perl); (2) fixes that exist in a dependency but ship in no upstream release of the tool we carry — embedded Go stdlib in the prebuilt `syft`/`grype`/`trivy`/`yq` binaries, `x/text` in `golangci-lint`/`yq`/`trivy`, `docker/docker` vendored by `grype`, `oras-go` and `grpc` vendored by `trivy`, and `brace-expansion` inside the pinned npm. We are on the latest release of every one of these. Tracked via time-boxed `.trivyignore` entries (review by 2026-10-30), each attributed to the specific binary carrying it and re-verified against this build.
+
+### Verification
+
+`make quality` green (incl. new `validate-apt-pins`); all six images built; `make test-all` green — including the new Python parity e2e, which asserts that `goneat format --check` fails on an unformatted fixture for _format drift_ rather than for a missing executable, so a `ruff`-less image cannot pass it vacuously; trivy `--ignore-unfixed` = 0 HIGH/CRITICAL on all six images. Validated via a `v0.5.0-rc.1` prerelease (pilot: `forge-microtool-gimlet`) before GA.
+
+Full detail: `docs/releases/v0.5.0.md`.
+
 ## v0.4.2 (2026-05-18)
 
 **Release-Pipeline Hygiene — Native arm64 Runners + Forced apk Pin Refresh**

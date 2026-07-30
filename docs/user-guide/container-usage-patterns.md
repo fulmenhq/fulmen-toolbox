@@ -257,6 +257,37 @@ docker run --rm \
   ghcr.io/fulmenhq/goneat-tools-slim-musl:latest yamlfmt -lint .
 ```
 
+### Go cross-compilation fails with `gcc: error: unrecognized command-line option '-m64'`
+
+The `-runner-{glibc,musl}` images preset **`CGO_ENABLED=1`** in the image
+environment so the runner is CGO-capable out of the box (native cgo builds,
+PyO3/maturin, napi-rs). This **overrides Go's normal per-target default of `0`**,
+so a plain `go build` for a non-native `GOOS`/`GOARCH` invokes the host gcc and
+fails — most visibly in multi-platform `build-all` / release matrices.
+
+When building **static** or **cross-compiled** binaries, set `CGO_ENABLED=0`
+explicitly:
+
+```bash
+# Single build
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build ./...
+```
+
+In a Makefile, the image's env value is a default-override trap: a
+`CGO_ENABLED ?= 0` is **silently overridden** by the image's `CGO_ENABLED=1`,
+because `?=` only assigns when the variable is unset and the environment already
+sets it. Use `:=` (or `override`) so your value wins:
+
+```make
+# ❌ silently loses to the image env
+CGO_ENABLED ?= 0
+# ✅ wins regardless of the image env
+CGO_ENABLED := 0
+```
+
+Native (matching-arch) cgo builds are unaffected and continue to work with the
+preset as-is.
+
 ---
 
 ## GitHub Actions Usage

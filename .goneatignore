@@ -1,0 +1,8 @@
+# Fixtures whose contents are load-bearing for tests must not be rewritten by
+# this repository's own `goneat format` / `make pr-final` runs.
+#
+# tests/fixtures/python/bad/ holds a deliberately unformatted Python file. The
+# runner Python e2e smoke test asserts that `goneat format --check` fails on it
+# for format drift rather than for a missing ruff executable. Formatting it
+# would make that assertion pass vacuously.
+tests/fixtures/python/bad/
