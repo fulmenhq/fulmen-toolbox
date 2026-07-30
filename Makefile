@@ -9,6 +9,7 @@
 .PHONY: build-goneat-tools build-goneat-tools-runner build-goneat-tools-slim build-goneat-tools-runner-glibc
 .PHONY: build-goneat-tools-multi build-goneat-tools-runner-multi build-goneat-tools-slim-multi build-goneat-tools-runner-glibc-multi
 .PHONY: test-goneat-tools test-goneat-tools-runner test-goneat-tools-slim test-goneat-tools-runner-glibc
+.PHONY: test-goneat-tools-runner-python test-goneat-tools-runner-glibc-python
 .PHONY: build-sbom-tools build-sbom-tools-runner build-sbom-tools-slim build-sbom-tools-runner-glibc
 .PHONY: build-sbom-tools-multi build-sbom-tools-runner-multi build-sbom-tools-slim-multi build-sbom-tools-runner-glibc-multi
 .PHONY: test-sbom-tools test-sbom-tools-runner test-sbom-tools-slim test-sbom-tools-runner-glibc
@@ -101,7 +102,7 @@ all: build-all test-all
 build-all: build-goneat-tools-runner build-goneat-tools-slim build-goneat-tools-runner-glibc build-sbom-tools-runner build-sbom-tools-slim build-sbom-tools-runner-glibc
 
 ## Test all images
-test-all: test-goneat-tools-runner test-goneat-tools-slim test-goneat-tools-runner-glibc test-sbom-tools-runner test-sbom-tools-slim test-sbom-tools-runner-glibc
+test-all: test-goneat-tools-runner test-goneat-tools-runner-python test-goneat-tools-slim test-goneat-tools-runner-glibc test-goneat-tools-runner-glibc-python test-sbom-tools-runner test-sbom-tools-slim test-sbom-tools-runner-glibc
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Parallel builds with buildx bake (prove targets)
@@ -279,6 +280,7 @@ test-goneat-tools-runner:
 		uv --version >/dev/null 2>&1 && \
 		maturin --version >/dev/null 2>&1 && \
 		pytest --version >/dev/null 2>&1 && \
+		ruff --version >/dev/null 2>&1 && \
 		command -v napi >/dev/null 2>&1 && \
 		bash --version >/dev/null 2>&1 && \
 		git --version >/dev/null 2>&1 && \
@@ -293,6 +295,12 @@ test-goneat-tools-runner:
 		[ -f /licenses/rust/LICENSE-APACHE ] && \
 		[ -f /licenses/crates/cargo-deny/LICENSE-APACHE ] && \
 		echo 'goneat-tools-runner-musl OK!'"
+
+## Test Python lint/format parity (musl runner)
+# Asserts ruff is reachable by goneat's formatter dispatch, not just installed.
+# See scripts/test-runner-python.sh for why the failure REASON is the assertion.
+test-goneat-tools-runner-python:
+	./scripts/test-runner-python.sh $(GONEAT_RUNNER_TAG_LOCAL)
 
 ## Test goneat-tools slim
 # Ensures tool payload works and runner baseline packages are absent.
@@ -329,6 +337,7 @@ test-goneat-tools-slim:
 		! command -v uv >/dev/null 2>&1 && \
 		! command -v maturin >/dev/null 2>&1 && \
 		! command -v pytest >/dev/null 2>&1 && \
+		! command -v ruff >/dev/null 2>&1 && \
 		! command -v napi >/dev/null 2>&1 && \
 		! command -v bash >/dev/null 2>&1 && \
 		! command -v git >/dev/null 2>&1 && \
@@ -373,6 +382,7 @@ test-goneat-tools-runner-glibc:
 		uv --version >/dev/null 2>&1 && \
 		maturin --version >/dev/null 2>&1 && \
 		pytest --version >/dev/null 2>&1 && \
+		ruff --version >/dev/null 2>&1 && \
 		command -v napi >/dev/null 2>&1 && \
 		bash --version >/dev/null 2>&1 && \
 		git --version >/dev/null 2>&1 && \
@@ -387,6 +397,12 @@ test-goneat-tools-runner-glibc:
 		[ -f /licenses/rust/LICENSE-APACHE ] && \
 		[ -f /licenses/crates/cargo-deny/LICENSE-APACHE ] && \
 		echo 'goneat-tools-runner-glibc OK!'"
+
+## Test Python lint/format parity (glibc runner)
+# Asserts ruff is reachable by goneat's formatter dispatch, not just installed.
+# See scripts/test-runner-python.sh for why the failure REASON is the assertion.
+test-goneat-tools-runner-glibc-python:
+	./scripts/test-runner-python.sh $(GONEAT_GLIBC_TAG_LOCAL)
 
 ## Inventory goneat-tools runner (musl)
 inventory-goneat-tools-runner:
