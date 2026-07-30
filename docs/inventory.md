@@ -20,7 +20,7 @@ This document provides a conceptual overview of available images. For definitive
 - **Rust**: rustc/cargo via rustup, with cross-compilation targets + cargo-deny, cargo-audit, cargo-zigbuild, cargo-nextest, cbindgen
 - **Go**: Full toolchain with CGO support
 - **Zig**: Cross-compilation backend
-- **Python**: python3 + uv, maturin (PyO3/Rust bindings), pytest
+- **Python**: python3 + uv, maturin (PyO3/Rust bindings), pytest, ruff (lint + format)
 - **Node/TypeScript**: npm + napi-rs CLI for native addon builds
 - **SBOM**: syft + grype for in-build SBOM generation
 
