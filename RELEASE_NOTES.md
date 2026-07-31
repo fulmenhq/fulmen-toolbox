@@ -1,5 +1,28 @@
 # Release Notes
 
+## v0.5.1 (2026-07-31)
+
+**Release-pipeline hygiene — manifest matrix concurrency + imagetools retry**
+
+No image content change from v0.5.0. Hardens the release workflow against GHCR write throttling observed when composing multi-arch manifests and copying aliases under full 7-way concurrency.
+
+### Changes
+
+| Area | Change |
+| ---- | ------ |
+| `.github/workflows/release.yml` (`manifest` job) | **`max-parallel: 2`** on the strategy matrix — lowers concurrent GHCR blob/manifest writes |
+| Compose step (`docker buildx imagetools create`) | **429/5xx-only retry** with exponential backoff + jitter (5 attempts, 15s base); permanent errors fail immediately |
+
+### Updated Images
+
+All images rebuilt and re-tagged as `v0.5.1` (content identical to v0.5.0). Floating tags `:latest` / `:v0` move on GA.
+
+### Verification
+
+Workflow change only; validated against the v0.5.0 failure mode (3/7 concurrent manifests failed on 429; single-cell re-run passed).
+
+Full detail: `docs/releases/v0.5.1.md`.
+
 ## v0.5.0 (2026-07-30)
 
 **Runner content delta + full fixable-CVE sweep — `ruff` Python parity, `zip`, `CGO_ENABLED` docs, deterministic OS-security pins, Go 1.26.5, scanner/tool currency**
