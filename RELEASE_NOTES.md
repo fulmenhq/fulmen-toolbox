@@ -11,7 +11,7 @@ No image content change from v0.5.0. Hardens the release workflow against GHCR w
 | Area | Change |
 | ---- | ------ |
 | `.github/workflows/release.yml` (`manifest` job) | **`max-parallel: 2`** on the strategy matrix — lowers concurrent GHCR blob/manifest writes |
-| Compose step (`docker buildx imagetools create`) | **Retry with exponential backoff** (5 attempts, 15s base) for residual 429s |
+| Compose step (`docker buildx imagetools create`) | **429/5xx-only retry** with exponential backoff + jitter (5 attempts, 15s base); permanent errors fail immediately |
 
 ### Updated Images
 

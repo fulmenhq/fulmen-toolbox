@@ -7,7 +7,7 @@ Adheres to Keep a Changelog format. Versions follow semver.
 ### Fixed
 
 - **Release manifest matrix concurrency** — `max-parallel: 2` on the `manifest` job in `.github/workflows/release.yml`. Full 7-way concurrent alias/manifest publish hit GHCR write throttling (HTTP 429 on blob upload / manifest PUT) on both `v0.5.0-rc.1` and `v0.5.0`; re-running a single failed cell alone always passed. Caps concurrent GHCR writes while keeping release wall-clock reasonable.
-- **`docker buildx imagetools create` retry/backoff** — up to 5 attempts with exponential sleep (15s → 30s → 60s → 120s) around the compose step. Covers residual 429s if GHCR's undocumented write ceiling shifts; pairs with `max-parallel` rather than replacing it.
+- **`docker buildx imagetools create` retry/backoff** — up to 5 attempts with exponential sleep (15s → 30s → 60s → 120s) plus full jitter, **only** when the failure looks like GHCR throttle (429 / `toomanyrequests`) or transient 5xx. Auth, 403, missing digests, and other permanent errors fail immediately (no backoff burn). Pairs with `max-parallel` rather than replacing it.
 
 ### Notes
 
