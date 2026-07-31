@@ -248,13 +248,14 @@ jobs:
           # max-parallel lowers collision rate; 429-scoped retry covers residual
           # blips without a full job re-run. Jitter avoids two matrix cells
           # re-colliding on the same sleep ticks.
-          # shellcheck disable=SC2086
           attempt=1
           max_attempts=5
           delay=15
           while true; do
             err_file="$(mktemp)"
             set +e
+            # Intentional word-split of tag/digest arg lists (same as pre-v0.5.1).
+            # shellcheck disable=SC2086
             docker buildx imagetools create $TAG_ARGS $DIGEST_REFS >"$err_file" 2>&1
             rc=$?
             set -e
