@@ -88,6 +88,7 @@ These gates catch issues that PR status does not. Even if all pre-flight items w
 - [ ] Tag repo: `git tag v$(cat VERSION) && git push origin --tags`
 - [ ] CI release workflow triggers on tag push:
   - Builds multi-arch images for all matrix entries
+  - Manifest job composes multi-arch tags (`max-parallel: 2` + imagetools retry; do not raise concurrency without re-validating GHCR 429 behavior)
   - Pushes to GHCR (`:latest`, `:v<major>`, and semver tag)
   - Generates SBOMs and SHA256SUMS per-image
   - Uploads artifacts to GitHub Release

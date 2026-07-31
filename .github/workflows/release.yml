@@ -99,6 +99,14 @@ jobs:
     runs-on: ubuntu-latest-m
     strategy:
       fail-fast: false
+      # Cap concurrent manifest/alias publishes. Full 7-way concurrency hit
+      # GHCR write throttling (HTTP 429 on blob upload / manifest PUT) during
+      # v0.5.0-rc.1 and v0.5.0 — re-running a single failed cell alone always
+      # passed. max-parallel: 2 keeps release wall-clock reasonable while
+      # staying under GHCR's undocumented write ceiling. Pair with the
+      # imagetools retry below; neither alone is sufficient if the ceiling
+      # moves.
+      max-parallel: 2
       matrix:
         include:
           - family: goneat-tools
@@ -234,8 +242,26 @@ jobs:
           echo "Composing manifest for $IMAGE"
           echo "  sources:$DIGEST_REFS"
           echo "  tags:$TAG_ARGS"
+          # Retry under GHCR write throttling (429). max-parallel lowers the
+          # collision rate but the ceiling is undocumented and can shift;
+          # backoff covers residual blips without a full job re-run.
           # shellcheck disable=SC2086
-          docker buildx imagetools create $TAG_ARGS $DIGEST_REFS
+          attempt=1
+          max_attempts=5
+          delay=15
+          while true; do
+            if docker buildx imagetools create $TAG_ARGS $DIGEST_REFS; then
+              break
+            fi
+            if [ "$attempt" -ge "$max_attempts" ]; then
+              echo "❌ imagetools create failed after ${max_attempts} attempts" >&2
+              exit 1
+            fi
+            echo "⚠️ imagetools create failed (attempt ${attempt}/${max_attempts}); retrying in ${delay}s..."
+            sleep "$delay"
+            attempt=$((attempt + 1))
+            delay=$((delay * 2))
+          done
           # Resolve composed manifest digest from canonical :v<version> tag.
           CANON_REF="$REGISTRY/$OWNER/$IMAGE:v$VERSION"
           DIGEST=$(docker buildx imagetools inspect "$CANON_REF" --format '{{json .Manifest}}' | jq -r '.digest')
