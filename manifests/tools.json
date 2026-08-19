@@ -309,7 +309,7 @@
     },
     {
       "name": "goneat",
-      "version": "v0.5.15",
+      "version": "v0.5.16",
       "source": "go",
       "images": [
         "goneat-tools-slim-musl",
@@ -365,7 +365,7 @@
     },
     {
       "name": "rustc",
-      "version": "1.92.0",
+      "version": "1.94.1",
       "source": "binary",
       "images": [
         "goneat-tools-runner-musl",
@@ -381,7 +381,7 @@
     },
     {
       "name": "cargo",
-      "version": "1.92.0",
+      "version": "1.94.1",
       "source": "binary",
       "images": [
         "goneat-tools-runner-musl",
@@ -397,7 +397,7 @@
     },
     {
       "name": "rustfmt",
-      "version": "1.92.0",
+      "version": "1.94.1",
       "source": "binary",
       "images": [
         "goneat-tools-runner-musl",
@@ -413,7 +413,7 @@
     },
     {
       "name": "clippy",
-      "version": "1.92.0",
+      "version": "1.94.1",
       "source": "binary",
       "images": [
         "goneat-tools-runner-musl",
@@ -529,7 +529,7 @@
     },
     {
       "name": "pytest",
-      "version": "9.0.2",
+      "version": "9.1.1",
       "source": "other",
       "images": [
         "goneat-tools-runner-musl",
