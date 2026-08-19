@@ -1,5 +1,34 @@
 # Release Notes
 
+## v0.5.2 (2026-08-19)
+
+**Runner content pins — Rust 1.94.1, goneat v0.5.16, pytest 9.1.1**
+
+Image contents change. v0.5.1 was pipeline-only; this cut rebuilds the goneat-tools images so CI runners can compile crates whose transitive `rust-version` is 1.94.1, and folds two already-reviewed companion pins into the same rebuild.
+
+### Changes
+
+| Area | Change |
+| ---- | ------ |
+| `goneat-tools-runner-{glibc,musl}` | **Rust `1.92.0` → `1.94.1`** (rustc, cargo, rustfmt, clippy). rustup default toolchain only — no `RUSTUP_TOOLCHAIN` env. Slim stays Rust-free. 7 cross targets unchanged. |
+| `goneat-tools-slim-musl` + both runners | **`goneat` `v0.5.15` → `v0.5.16`**. Fail-closed formatter preflight is unchanged from v0.5.15. |
+| `goneat-tools-runner-{glibc,musl}` | **`pytest` `9.0.2` → `9.1.1`**. |
+| OS APK/APT pins | Unchanged. |
+
+### Updated Images
+
+goneat-tools slim + both full runners rebuild. sbom-tools and valkey images are unchanged in content (retag only if the release matrix republishes them). Floating tags `:latest` / `:v0` move on GA.
+
+### Upgrade notes
+
+Consumers pinned to `:v0.5.1` must move to `:v0.5.2` to get the new toolchain. rustfmt/clippy may emit different diagnostics or formatting than 1.92.0. Repos that pin an older channel in `rust-toolchain.toml` can still rustup-install that channel; the image default is 1.94.1.
+
+### Non-goals (this cut)
+
+Prettier/Biome, uv, ruff, cargo-deny, scanner (syft/grype/trivy), and OS pin refreshes. Not a jump to Rust 1.97. Slim does not gain Rust.
+
+Full detail: `docs/releases/v0.5.2.md`.
+
 ## v0.5.1 (2026-07-31)
 
 **Release-pipeline hygiene — manifest matrix concurrency + imagetools retry**

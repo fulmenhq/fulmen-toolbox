@@ -2,6 +2,20 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
+## [0.5.2] - 2026-08-19
+
+### Changed
+
+- **Rust toolchain `1.92.0` → `1.94.1`** on `goneat-tools-runner-{glibc,musl}` (`ARG RUST_VERSION` + rustc/cargo/rustfmt/clippy in `manifests/tools.json`). rustup still installs this as the default toolchain; the image does **not** set `RUSTUP_TOOLCHAIN`, so a consumer `rust-toolchain.toml` continues to win. Slim images remain Rust-free. Existing 7 rustup targets and rustfmt/clippy components are unchanged. 1.94.1 is the floor needed for crates whose transitive `rust-version` is 1.94.1 (notably AWS SDK / smithy 1.3+); this is not a jump to current stable.
+- **`goneat` `v0.5.15` → `v0.5.16`** on slim and both full runners. v0.5.16 is a dogfood pin of goneat's own CI onto toolbox `v0.5.1`; formatter fail-closed behavior is unchanged from v0.5.15.
+- **`pytest` `9.0.2` → `9.1.1`** on both full runners (pip pin + `tools.json`).
+
+### Notes
+
+- Image **contents** change this cut (unlike v0.5.1, which was release-pipeline hygiene only). Consumers pinned to `:v0.5.1` must retag to pick up the new toolchain.
+- OS APK/APT pins are **unchanged**.
+- rustfmt and clippy are not covered by the Rust language stability promise; `goneat format --check` / clippy-deny-warnings on older repos may differ from 1.92.0 output.
+
 ## [0.5.1] - 2026-07-31
 
 ### Fixed
