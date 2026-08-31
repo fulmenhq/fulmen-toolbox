@@ -2,6 +2,21 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
+## [0.5.3] - 2026-08-31
+
+### Changed
+
+- **`prettier` `3.8.0` → `3.9.6`** on slim and both full goneat-tools runners (`ARG PRETTIER_VERSION` + `manifests/tools.json`). Aligns the image with goneat v0.5.16 foundation recommended version. Markdown/JSON format output may differ from 3.8.0.
+- **`actionlint` `v1.7.10` → `v1.7.12`** on slim and both full runners.
+- **`shfmt` `v3.12.0` → `v3.13.1`** on slim and both full runners.
+- **`golangci-lint` `v2.12.1` → `v2.12.2`** on both full runners (not slim). Still built in-runner against the pinned Go toolchain (1.26.5). Not a jump to 2.13.x.
+- **`scripts/validate-pins.sh`** now checks `ARG GOLANGCI_LINT_VERSION` against `tools.json` on both goneat-tools Dockerfiles.
+
+### Notes
+
+- Image **contents** change this cut. Consumers pinned to `:v0.5.2` must retag to pick up the new formatter/linter pins.
+- OS APK/APT pins, goneat (`v0.5.16`), Rust, ruff, biome, uv, cargo-deny, and scanners are **unchanged**.
+
 ## [0.5.2] - 2026-08-19
 
 ### Changed

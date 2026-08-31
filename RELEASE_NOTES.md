@@ -1,5 +1,36 @@
 # Release Notes
 
+## v0.5.3 (2026-08-31)
+
+**Runner content pins — Prettier 3.9.6 + goneat-aligned linter patches**
+
+Image contents change. Rebuilds the goneat-tools images so hosted CI ships Prettier 3.9.6 (goneat v0.5.16 recommended) instead of 3.8.0, and folds three matching patch alignments into the same rebuild.
+
+### Changes
+
+| Area | Change |
+| ---- | ------ |
+| slim + both full runners | **`prettier` `3.8.0` → `3.9.6`** |
+| slim + both full runners | **`actionlint` `v1.7.10` → `v1.7.12`** |
+| slim + both full runners | **`shfmt` `v3.12.0` → `v3.13.1`** |
+| both full runners | **`golangci-lint` `v2.12.1` → `v2.12.2`** (not slim) |
+| OS APK/APT pins | Unchanged. |
+| goneat | Unchanged at **v0.5.16**. |
+
+### Updated Images
+
+goneat-tools slim + both full runners rebuild. sbom-tools and valkey images are unchanged in content (retag only if the release matrix republishes them). Floating tags `:latest` / `:v0` move on GA.
+
+### Upgrade notes
+
+Consumers pinned to `:v0.5.2` must move to `:v0.5.3` to get the new pins. Prettier 3.9.x may rewrite Markdown/JSON differently than 3.8.0 — re-run format on consumer trees.
+
+### Non-goals (this cut)
+
+Biome, uv, ruff 0.16, cargo-deny 0.20, shfmt 3.14, golangci-lint 2.13, scanners, OS pin refreshes, and goneat newer than v0.5.16.
+
+Full detail: `docs/releases/v0.5.3.md`.
+
 ## v0.5.2 (2026-08-19)
 
 **Runner content pins — Rust 1.94.1, goneat v0.5.16, pytest 9.1.1**

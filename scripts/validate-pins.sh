@@ -111,8 +111,9 @@ goneat_ruff=$(get_version "ruff" "goneat-tools-runner-musl")
 goneat_gover=$(get_version "go" "goneat-tools-runner-musl")
 goneat_rust=$(get_version "rustc" "goneat-tools-runner-musl")
 goneat_pytest=$(get_version "pytest" "goneat-tools-runner-musl")
+goneat_golangci=$(get_version "golangci-lint" "goneat-tools-runner-musl")
 
-for name in goneat_node goneat_go goneat_prettier goneat_biome goneat_npm goneat_yamlfmt goneat_shfmt goneat_checkmake goneat_actionlint goneat_jq goneat_yq goneat_ripgrep goneat_taplo goneat_bash goneat_git goneat_curl goneat_minisign goneat_goneat goneat_sfetch goneat_ruff goneat_gover goneat_rust goneat_pytest; do
+for name in goneat_node goneat_go goneat_prettier goneat_biome goneat_npm goneat_yamlfmt goneat_shfmt goneat_checkmake goneat_actionlint goneat_jq goneat_yq goneat_ripgrep goneat_taplo goneat_bash goneat_git goneat_curl goneat_minisign goneat_goneat goneat_sfetch goneat_ruff goneat_gover goneat_rust goneat_pytest goneat_golangci; do
 	if [ -z "${!name:-}" ]; then
 		echo "❌ Missing manifest entry for ${name#goneat_}"
 		fail=1
@@ -145,6 +146,7 @@ check_pin "$goneat_df" "goneat-tools ruff" "ARG RUFF_VERSION=${goneat_ruff}" || 
 check_pin "$goneat_df" "goneat-tools go toolchain" "ARG GO_VERSION=${goneat_gover}" || fail=1
 check_pin "$goneat_df" "goneat-tools rust toolchain" "ARG RUST_VERSION=${goneat_rust}" || fail=1
 check_pin "$goneat_df" "goneat-tools pytest" "ARG PYTEST_VERSION=${goneat_pytest}" || fail=1
+check_pin "$goneat_df" "goneat-tools golangci-lint" "ARG GOLANGCI_LINT_VERSION=${goneat_golangci}" || fail=1
 
 # goneat-tools-glibc pins
 goneat_glibc_df="$ROOT/images/goneat-tools-glibc/Dockerfile"
@@ -168,8 +170,9 @@ goneat_glibc_ruff=$(get_version "ruff" "goneat-tools-runner-glibc")
 goneat_glibc_gover=$(get_version "go" "goneat-tools-runner-glibc")
 goneat_glibc_rust=$(get_version "rustc" "goneat-tools-runner-glibc")
 goneat_glibc_pytest=$(get_version "pytest" "goneat-tools-runner-glibc")
+goneat_glibc_golangci=$(get_version "golangci-lint" "goneat-tools-runner-glibc")
 
-for name in goneat_glibc_node goneat_glibc_go goneat_glibc_prettier goneat_glibc_biome goneat_glibc_npm goneat_glibc_yamlfmt goneat_glibc_shfmt goneat_glibc_checkmake goneat_glibc_actionlint goneat_glibc_jq goneat_glibc_yq goneat_glibc_ripgrep goneat_glibc_taplo goneat_glibc_minisign goneat_glibc_goneat goneat_glibc_sfetch goneat_glibc_ruff goneat_glibc_gover goneat_glibc_rust goneat_glibc_pytest; do
+for name in goneat_glibc_node goneat_glibc_go goneat_glibc_prettier goneat_glibc_biome goneat_glibc_npm goneat_glibc_yamlfmt goneat_glibc_shfmt goneat_glibc_checkmake goneat_glibc_actionlint goneat_glibc_jq goneat_glibc_yq goneat_glibc_ripgrep goneat_glibc_taplo goneat_glibc_minisign goneat_glibc_goneat goneat_glibc_sfetch goneat_glibc_ruff goneat_glibc_gover goneat_glibc_rust goneat_glibc_pytest goneat_glibc_golangci; do
 	if [ -z "${!name:-}" ]; then
 		echo "❌ Missing manifest entry for ${name#goneat_glibc_}"
 		fail=1
@@ -196,6 +199,7 @@ check_pin "$goneat_glibc_df" "goneat-tools-glibc ruff" "ARG RUFF_VERSION=${gonea
 check_pin "$goneat_glibc_df" "goneat-tools-glibc go toolchain" "ARG GO_VERSION=${goneat_glibc_gover}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc rust toolchain" "ARG RUST_VERSION=${goneat_glibc_rust}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc pytest" "ARG PYTEST_VERSION=${goneat_glibc_pytest}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc golangci-lint" "ARG GOLANGCI_LINT_VERSION=${goneat_glibc_golangci}" || fail=1
 
 # apt security pins (glibc runners) — inline-pinned in the apt install line,
 # not an ARG. Presence enforced here; availability enforced by validate-apt-pins.sh.

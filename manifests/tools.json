@@ -17,7 +17,7 @@
     },
     {
       "name": "prettier",
-      "version": "3.8.0",
+      "version": "3.9.6",
       "source": "npm",
       "images": [
         "goneat-tools-slim-musl",
@@ -267,7 +267,7 @@
     },
     {
       "name": "shfmt",
-      "version": "v3.12.0",
+      "version": "v3.13.1",
       "source": "go",
       "images": [
         "goneat-tools-slim-musl",
@@ -295,7 +295,7 @@
     },
     {
       "name": "actionlint",
-      "version": "v1.7.10",
+      "version": "v1.7.12",
       "source": "go",
       "images": [
         "goneat-tools-slim-musl",
@@ -585,13 +585,13 @@
     },
     {
       "name": "golangci-lint",
-      "version": "v2.12.1",
+      "version": "v2.12.2",
       "source": "go",
       "images": [
         "goneat-tools-runner-musl",
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Go linter aggregator. Built in-runner against the runner's pinned Go (currently 1.26.2) so consumer configs targeting that Go version don't fail with 'language version too low'. Runner is copyleft-by-design; bundled GPL-3.0 binary aligns with that posture.",
+      "notes": "Go linter aggregator. Built in-runner against the runner's pinned Go (currently 1.26.5) so consumer configs targeting that Go version don't fail with 'language version too low'. Runner is copyleft-by-design; bundled GPL-3.0 binary aligns with that posture.",
       "license_spdx": "GPL-3.0-only",
       "license_source": "gomodcache",
       "license_path": "/licenses/github/golangci/golangci-lint/LICENSE"

@@ -13,12 +13,12 @@ This image bundles upstream license texts under `/licenses/` and upstream notice
 
 | Tool                                   | Purpose                           | Source     |
 | -------------------------------------- | --------------------------------- | ---------- |
-| Prettier (3.7.4)                       | JSON, Markdown, YAML formatting   | npm        |
+| Prettier (3.9.6)                       | JSON, Markdown, YAML formatting   | npm        |
 | Biome (2.3.8)                          | JS/TS/JSON lint/format            | npm        |
 | yamlfmt (v0.20.0)                      | Dedicated YAML formatting/linting | Go binary  |
-| shfmt (v3.12.0)                        | Shell script formatting           | Go binary  |
+| shfmt (v3.13.1)                        | Shell script formatting           | Go binary  |
 | checkmake (0.2.2)                      | Makefile linting                  | Go binary  |
-| actionlint (v1.7.9)                    | GitHub Actions workflow linting   | Go binary  |
+| actionlint (v1.7.12)                   | GitHub Actions workflow linting   | Go binary  |
 | jq (1.8.1-r0)                          | JSON processing/filtering         | Alpine pkg |
 | yq-go (4.49.2-r1)                      | YAML processing/filtering         | Alpine pkg |
 | ripgrep (15.1.0-r0)                    | Fast text search/search & replace | Alpine pkg |
