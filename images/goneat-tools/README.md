@@ -11,29 +11,29 @@ This image bundles upstream license texts under `/licenses/` and upstream notice
 
 ## Included Tools
 
-| Tool                                   | Purpose                           | Source     |
-| -------------------------------------- | --------------------------------- | ---------- |
-| Prettier (3.7.4)                       | JSON, Markdown, YAML formatting   | npm        |
-| Biome (2.3.8)                          | JS/TS/JSON lint/format            | npm        |
-| yamlfmt (v0.20.0)                      | Dedicated YAML formatting/linting | Go binary  |
-| shfmt (v3.12.0)                        | Shell script formatting           | Go binary  |
-| checkmake (0.2.2)                      | Makefile linting                  | Go binary  |
-| actionlint (v1.7.9)                    | GitHub Actions workflow linting   | Go binary  |
-| jq (1.8.1-r0)                          | JSON processing/filtering         | Alpine pkg |
-| yq-go (4.49.2-r1)                      | YAML processing/filtering         | Alpine pkg |
-| ripgrep (15.1.0-r0)                    | Fast text search/search & replace | Alpine pkg |
-| taplo (0.10.0-r0)                      | TOML formatting/linting           | Alpine pkg |
-| bash (5.3.3-r1), git (2.52.0-r0), curl | Shell & Git utilities             | Alpine pkg |
-| minisign (0.12-r0)                     | File signing/verification         | Alpine pkg |
+| Tool                                                        | Purpose                           | Source     |
+| ----------------------------------------------------------- | --------------------------------- | ---------- |
+| Prettier (3.9.6)                                            | JSON, Markdown, YAML formatting   | npm        |
+| Biome (2.3.11)                                              | JS/TS/JSON lint/format            | npm        |
+| yamlfmt (v0.21.0)                                           | Dedicated YAML formatting/linting | Go binary  |
+| shfmt (v3.13.1)                                             | Shell script formatting           | Go binary  |
+| checkmake (v0.3.2)                                          | Makefile linting                  | Go binary  |
+| actionlint (v1.7.12)                                        | GitHub Actions workflow linting   | Go binary  |
+| jq (1.8.1-r0)                                               | JSON processing/filtering         | Alpine pkg |
+| yq-go (4.53.3-r0)                                           | YAML processing/filtering         | Alpine pkg |
+| ripgrep (15.1.0-r0)                                         | Fast text search/search & replace | Alpine pkg |
+| taplo (0.10.0-r0)                                           | TOML formatting/linting           | Alpine pkg |
+| bash (5.3.9-r1), git (2.54.0-r0), curl (8.21.0-r0)          | Shell & Git utilities (runner)    | Alpine pkg |
+| minisign (0.12-r2)                                          | File signing/verification         | Alpine pkg |
 
-**Base Image:** `node:22-alpine@sha256:9632533...` (multi-arch digest pinned)
+**Base Image:** `node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2` (multi-arch digest pinned)
 
 See `docs/images/goneat-tools.md` and `manifests/tools.json` for pinning details.
 
 **Image Tags:**
 
 - `ghcr.io/fulmenhq/goneat-tools-runner-musl:latest`
-- `ghcr.io/fulmenhq/goneat-tools:v0.1.1` (semver tags)
+- `ghcr.io/fulmenhq/goneat-tools-slim-musl:v0.5.3` (semver tags)
 
 ## Usage
 
