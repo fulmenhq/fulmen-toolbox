@@ -2,6 +2,22 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
+## [0.5.4] - 2026-09-01
+
+### Changed
+
+- **Go toolchain `1.26.5` → `1.26.6`** on slim and both full goneat-tools runners (`GO_VERSION` + tarball checksums + the coupled `GO_IMAGE` builder digest, kept in sync). Builder digests are pinned to the patch-specific `golang:1.26.6-alpine` / `golang:1.26.6-bookworm` tags (verified `go1.26.6`); the floating `golang:1.26-*` tags have moved to 1.26.7. Clears the Go-stdlib HIGH advisory cluster embedded in every in-runner-built binary and the shipped `/opt/go`.
+- **Node base digests refreshed** (`node:22-alpine`, `node:22-bookworm-slim`) to digests shipping node 22.23.2 (was 22.23.1; clears 3 HIGH). Base npm is 10.9.8, still below the pinned npm 12.0.1 override — override stays.
+- **`jq` `1.8.1` → `1.8.2`** on `goneat-tools-runner-glibc` (upstream binary), now **checksum-verified per-arch in the build** (`JQ_SHA256_AMD64`/`JQ_SHA256_ARM64` + `sha256sum -c`); SHA256s recorded in `manifests/tools.json`. The shared glibc jq row was split so `sbom-tools-runner-glibc` stays at 1.8.1.
+
+### Notes
+
+- Image **contents** change this cut. Consumers pinned to `:v0.5.3` should retag to pick up the Go 1.26.6 stdlib fixes. Floating `:latest` / `:v0` move on GA.
+- **musl jq held at `1.8.1-r0`**: Alpine 3.24 does not carry jq 1.8.2 yet (`validate-apk-pins` green against upstream); bump when it lands.
+- **musl `libssl3`/`libcrypto3` pinned to `3.5.8-r0`**: the pinned node:22-alpine digest bundles 3.5.7-r0 and `apk add` does not upgrade satisfied dependencies; explicit apk pins pull the patched build from the Alpine 3.24 repos, clearing `CVE-2026-63073` (CRITICAL) + 7 HIGH per lib.
+- **Residuals (not clean)**: prebuilt syft/grype/yq binaries retain Go stdlib HIGHs (upstream-built with older Go); goneat embedded module advisories (go-git/x/crypto/x/mod) ride the next goneat pin; Debian bookworm OS criticals on the glibc runner are no-fix upstream (base migration deferred); musl jq held at 1.8.1-r0.
+- goneat **unchanged at `v0.5.16`**; Rust, ruff, biome, uv, pytest, and scanners unchanged.
+
 ## [0.5.3] - 2026-08-31
 
 ### Changed

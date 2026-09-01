@@ -105,6 +105,8 @@ goneat_minisign=$(get_version "minisign" "goneat-tools-slim-musl")
 goneat_goneat=$(get_version "goneat" "goneat-tools-slim-musl")
 goneat_sfetch=$(get_version "sfetch" "goneat-tools-slim-musl")
 goneat_bash=$(get_version "bash" "goneat-tools-runner-musl")
+goneat_libssl=$(get_version "libssl3" "goneat-tools-slim-musl")
+goneat_libcrypto=$(get_version "libcrypto3" "goneat-tools-slim-musl")
 goneat_git=$(get_version "git" "goneat-tools-runner-musl")
 goneat_curl=$(get_version "curl" "goneat-tools-runner-musl")
 goneat_ruff=$(get_version "ruff" "goneat-tools-runner-musl")
@@ -113,7 +115,7 @@ goneat_rust=$(get_version "rustc" "goneat-tools-runner-musl")
 goneat_pytest=$(get_version "pytest" "goneat-tools-runner-musl")
 goneat_golangci=$(get_version "golangci-lint" "goneat-tools-runner-musl")
 
-for name in goneat_node goneat_go goneat_prettier goneat_biome goneat_npm goneat_yamlfmt goneat_shfmt goneat_checkmake goneat_actionlint goneat_jq goneat_yq goneat_ripgrep goneat_taplo goneat_bash goneat_git goneat_curl goneat_minisign goneat_goneat goneat_sfetch goneat_ruff goneat_gover goneat_rust goneat_pytest goneat_golangci; do
+for name in goneat_node goneat_go goneat_prettier goneat_biome goneat_npm goneat_yamlfmt goneat_shfmt goneat_checkmake goneat_actionlint goneat_jq goneat_yq goneat_ripgrep goneat_taplo goneat_bash goneat_libssl goneat_libcrypto goneat_git goneat_curl goneat_minisign goneat_goneat goneat_sfetch goneat_ruff goneat_gover goneat_rust goneat_pytest goneat_golangci; do
 	if [ -z "${!name:-}" ]; then
 		echo "❌ Missing manifest entry for ${name#goneat_}"
 		fail=1
@@ -134,6 +136,8 @@ check_pin "$goneat_df" "goneat-tools yq-go" "ARG YQ_VERSION=${goneat_yq}" || fai
 check_pin "$goneat_df" "goneat-tools ripgrep" "ARG RIPGREP_VERSION=${goneat_ripgrep}" || fail=1
 check_pin "$goneat_df" "goneat-tools taplo" "ARG TAPLO_VERSION=${goneat_taplo}" || fail=1
 check_pin "$goneat_df" "goneat-tools bash" "ARG BASH_VERSION=${goneat_bash}" || fail=1
+check_pin "$goneat_df" "goneat-tools libssl3 security pin" "ARG LIBSSL_VERSION=${goneat_libssl}" || fail=1
+check_pin "$goneat_df" "goneat-tools libcrypto3 security pin" "ARG LIBCRYPTO_VERSION=${goneat_libcrypto}" || fail=1
 check_pin "$goneat_df" "goneat-tools git" "ARG GIT_VERSION=${goneat_git}" || fail=1
 check_pin "$goneat_df" "goneat-tools curl" "ARG CURL_VERSION=${goneat_curl}" || fail=1
 check_pin "$goneat_df" "goneat-tools minisign" "ARG MINISIGN_VERSION=${goneat_minisign}" || fail=1

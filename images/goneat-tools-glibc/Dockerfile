@@ -14,8 +14,8 @@
 # golang:1.X-bookworm tag containing the same Go patch version. The two ARGs
 # must stay in sync — a mismatch silently ships a runner whose builder Go
 # differs from its runtime Go, defeating the consumer fix landed in v0.4.0.
-ARG GO_IMAGE=golang:1.26-bookworm@sha256:1ecb7edf62a0408027bd5729dfd6b1b8766e578e8df93995b225dfd0944eb651
-ARG NODE_IMAGE=node:22-bookworm-slim@sha256:6c74791e557ce11fc957704f6d4fe134a7bc8d6f5ca4403205b2966bd488f6b3
+ARG GO_IMAGE=golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36
+ARG NODE_IMAGE=node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5
 ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b7ea838a042bbd5acbfca6ec875818
 ARG YAMLFMT_VERSION=v0.21.0
 ARG SHFMT_VERSION=v3.13.1
@@ -26,7 +26,11 @@ ARG BIOME_VERSION=2.3.11
 # Overrides the npm bundled in the node base. See the npm stage below for the
 # maintenance obligation this pin creates.
 ARG NPM_VERSION=12.0.1
-ARG JQ_VERSION=1.8.1
+# Upstream GitHub release binary (jqlang/jq), checksum-verified per arch below.
+# The musl runners keep the Alpine apk jq (1.8.1-r0) until Alpine 3.24 ships 1.8.2.
+ARG JQ_VERSION=1.8.2
+ARG JQ_SHA256_AMD64=b1c22172dd303f3be49e935aa56aa48a8b7a46e0bc838b4997d3bb451495870f
+ARG JQ_SHA256_ARM64=8b85c817833814ddca00a144c33705546355afccf0cf39b188f3cdb48b852309
 ARG YQ_VERSION=v4.53.3
 ARG RIPGREP_VERSION=15.1.0
 ARG TAPLO_VERSION=0.10.0
@@ -41,9 +45,9 @@ ARG GOLANGCI_LINT_VERSION=v2.12.2
 ARG MINISIGN_VERSION=0.12
 
 # Toolchain pins (runner-only)
-ARG GO_VERSION=1.26.5
-ARG GO_SHA256_AMD64=5c2c3b16caefa1d968a94c1daca04a7ca301a496d9b086e17ad77bb81393f053
-ARG GO_SHA256_ARM64=fe4789e92b1f33358680864bbe8704289e7bb5fc207d80623c308935bd696d49
+ARG GO_VERSION=1.26.6
+ARG GO_SHA256_AMD64=708effb774be8237570d0add163225abbdfaf4fca28b2611df167beba4feef89
+ARG GO_SHA256_ARM64=d0507e9e9d7fe012aae570108cbd76c15de879e17130ab8cb90d4d7445cb1f2e
 ARG RUST_VERSION=1.94.1
 ARG RUSTUP_VERSION=1.28.2
 ARG RUST_TARGETS="x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu aarch64-unknown-linux-musl x86_64-apple-darwin aarch64-apple-darwin x86_64-pc-windows-gnu"
@@ -403,6 +407,8 @@ RUN set -eux; \
 # Stage 3: Fetch platform binaries (jq, yq, ripgrep, taplo, minisign)
 FROM ${DEBIAN_IMAGE} AS bin-fetcher
 ARG JQ_VERSION
+ARG JQ_SHA256_AMD64
+ARG JQ_SHA256_ARM64
 ARG YQ_VERSION
 ARG RIPGREP_VERSION
 ARG TAPLO_VERSION
@@ -412,11 +418,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 RUN set -eux; \
     mkdir -p /out/bin /tmp/rg /tmp/minisign; \
     case "$(uname -m)" in \
-      x86_64) ARCH="amd64"; RG_ARCH="x86_64"; RG_LIBC="musl"; TAPLO_ARCH="x86_64" ;; \
-      aarch64) ARCH="arm64"; RG_ARCH="aarch64"; RG_LIBC="gnu"; TAPLO_ARCH="aarch64" ;; \
+      x86_64) ARCH="amd64"; RG_ARCH="x86_64"; RG_LIBC="musl"; TAPLO_ARCH="x86_64"; JQ_SHA256="${JQ_SHA256_AMD64}" ;; \
+      aarch64) ARCH="arm64"; RG_ARCH="aarch64"; RG_LIBC="gnu"; TAPLO_ARCH="aarch64"; JQ_SHA256="${JQ_SHA256_ARM64}" ;; \
       *) echo "Unsupported arch: $(uname -m)" >&2; exit 1 ;; \
     esac; \
     curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${ARCH}" -o /out/bin/jq; \
+    echo "${JQ_SHA256}  /out/bin/jq" | sha256sum -c -; \
     curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${ARCH}" -o /out/bin/yq; \
     curl -fsSL "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VERSION}/ripgrep-${RIPGREP_VERSION}-${RG_ARCH}-unknown-linux-${RG_LIBC}.tar.gz" -o /tmp/rg.tar.gz; \
     tar -xzf /tmp/rg.tar.gz -C /tmp/rg --strip-components=1; \
