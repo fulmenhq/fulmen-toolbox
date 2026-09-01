@@ -2,6 +2,17 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
+## [0.5.5] - 2026-09-01
+
+### Changed
+
+- **`goneat` `v0.5.16` -> `v0.6.0`** on `goneat-tools-slim-musl` and both full runners (`ARG GONEAT_VERSION` + `manifests/tools.json`). All other tool, OS, and base-image pins are unchanged.
+- Applied goneat v0.6.0's whitespace-only Markdown table formatting to existing documentation.
+
+### Notes
+
+- Image contents change this cut. Consumers pinned to `:v0.5.4` should retag to pick up goneat v0.6.0. Floating `:latest` / `:v0` move on GA.
+
 ## [0.5.4] - 2026-09-01
 
 ### Changed

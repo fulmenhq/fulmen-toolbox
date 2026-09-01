@@ -1,5 +1,34 @@
 # Release Notes
 
+## v0.5.5 (2026-09-01)
+
+**goneat v0.6.0 runner pin**
+
+Image contents change. Rebuilds the goneat-tools images with goneat v0.6.0. All other tool, OS, and base-image pins remain unchanged from v0.5.4.
+
+### Changes
+
+| Area                                         | Change                             |
+| -------------------------------------------- | ---------------------------------- |
+| `goneat-tools-slim-musl` + both full runners | **`goneat` `v0.5.16` -> `v0.6.0`** |
+| Other pins                                   | Unchanged from v0.5.4.             |
+
+Existing Markdown tables also receive whitespace-only formatting from goneat v0.6.0.
+
+### Updated Images
+
+goneat-tools slim + both full runners rebuild. sbom-tools and valkey images are unchanged in content (retag only if the release matrix republishes them). Floating tags `:latest` / `:v0` move on GA.
+
+### Upgrade notes
+
+Consumers pinned to `:v0.5.4` should retag to `:v0.5.5` to pick up goneat v0.6.0. The image layout and bundled command paths are unchanged.
+
+### Non-goals (this cut)
+
+All other tool, OS-package, and base-image updates.
+
+Full detail: `docs/releases/v0.5.5.md`.
+
 ## v0.5.4 (2026-09-01)
 
 **Go 1.26.6 runner rebuild + security pin refresh**
@@ -8,14 +37,14 @@ Image contents change. Rebuilds the goneat-tools images with Go 1.26.6 — clear
 
 ### Changes
 
-| Area | Change |
-| ---- | ------ |
-| Go toolchain | **`1.26.5` → `1.26.6`** (version + tarball checksums + coupled `GO_IMAGE`) on slim + both full runners |
-| Builder digests | Pinned to patch-specific `golang:1.26.6-alpine` / `golang:1.26.6-bookworm` (floating `1.26-*` tags already at 1.26.7) |
-| Node bases | Digest refresh on both images → node **22.23.2** (base npm 10.9.8 < pinned 12.0.1 → npm override stays) |
-| `goneat-tools-runner-glibc` | **`jq` `1.8.1` → `1.8.2`** upstream binary, **checksum-verified per-arch in the build** |
-| musl `jq` | **Held at `1.8.1-r0`** — Alpine 3.24 has no 1.8.2 package yet |
-| goneat | Unchanged at **v0.5.16**. |
+| Area                        | Change                                                                                                                                                                                                                                  |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Go toolchain                | **`1.26.5` → `1.26.6`** (version + tarball checksums + coupled `GO_IMAGE`) on slim + both full runners                                                                                                                                  |
+| Builder digests             | Pinned to patch-specific `golang:1.26.6-alpine` / `golang:1.26.6-bookworm` (floating `1.26-*` tags already at 1.26.7)                                                                                                                   |
+| Node bases                  | Digest refresh on both images → node **22.23.2** (base npm 10.9.8 < pinned 12.0.1 → npm override stays)                                                                                                                                 |
+| `goneat-tools-runner-glibc` | **`jq` `1.8.1` → `1.8.2`** upstream binary, **checksum-verified per-arch in the build**                                                                                                                                                 |
+| musl `jq`                   | **Held at `1.8.1-r0`** — Alpine 3.24 has no 1.8.2 package yet                                                                                                                                                                           |
+| goneat                      | Unchanged at **v0.5.16**.                                                                                                                                                                                                               |
 | musl `libssl3`/`libcrypto3` | **Pinned to `3.5.8-r0`** — the pinned node:22-alpine digest bundles 3.5.7-r0 and `apk add` does not upgrade satisfied dependencies, so explicit apk pins pull the patched build, clearing `CVE-2026-63073` (CRITICAL) + 7 HIGH per lib. |
 
 ### Updated Images
@@ -47,14 +76,14 @@ Image contents change. Rebuilds the goneat-tools images so hosted CI ships Prett
 
 ### Changes
 
-| Area | Change |
-| ---- | ------ |
-| slim + both full runners | **`prettier` `3.8.0` → `3.9.6`** |
-| slim + both full runners | **`actionlint` `v1.7.10` → `v1.7.12`** |
-| slim + both full runners | **`shfmt` `v3.12.0` → `v3.13.1`** |
-| both full runners | **`golangci-lint` `v2.12.1` → `v2.12.2`** (not slim) |
-| OS APK/APT pins | Unchanged. |
-| goneat | Unchanged at **v0.5.16**. |
+| Area                     | Change                                               |
+| ------------------------ | ---------------------------------------------------- |
+| slim + both full runners | **`prettier` `3.8.0` → `3.9.6`**                     |
+| slim + both full runners | **`actionlint` `v1.7.10` → `v1.7.12`**               |
+| slim + both full runners | **`shfmt` `v3.12.0` → `v3.13.1`**                    |
+| both full runners        | **`golangci-lint` `v2.12.1` → `v2.12.2`** (not slim) |
+| OS APK/APT pins          | Unchanged.                                           |
+| goneat                   | Unchanged at **v0.5.16**.                            |
 
 ### Updated Images
 
@@ -78,12 +107,12 @@ Image contents change. v0.5.1 was pipeline-only; this cut rebuilds the goneat-to
 
 ### Changes
 
-| Area | Change |
-| ---- | ------ |
-| `goneat-tools-runner-{glibc,musl}` | **Rust `1.92.0` → `1.94.1`** (rustc, cargo, rustfmt, clippy). rustup default toolchain only — no `RUSTUP_TOOLCHAIN` env. Slim stays Rust-free. 7 cross targets unchanged. |
-| `goneat-tools-slim-musl` + both runners | **`goneat` `v0.5.15` → `v0.5.16`**. Fail-closed formatter preflight is unchanged from v0.5.15. |
-| `goneat-tools-runner-{glibc,musl}` | **`pytest` `9.0.2` → `9.1.1`**. |
-| OS APK/APT pins | Unchanged. |
+| Area                                    | Change                                                                                                                                                                    |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `goneat-tools-runner-{glibc,musl}`      | **Rust `1.92.0` → `1.94.1`** (rustc, cargo, rustfmt, clippy). rustup default toolchain only — no `RUSTUP_TOOLCHAIN` env. Slim stays Rust-free. 7 cross targets unchanged. |
+| `goneat-tools-slim-musl` + both runners | **`goneat` `v0.5.15` → `v0.5.16`**. Fail-closed formatter preflight is unchanged from v0.5.15.                                                                            |
+| `goneat-tools-runner-{glibc,musl}`      | **`pytest` `9.0.2` → `9.1.1`**.                                                                                                                                           |
+| OS APK/APT pins                         | Unchanged.                                                                                                                                                                |
 
 ### Updated Images
 
@@ -107,9 +136,9 @@ No image content change from v0.5.0. Hardens the release workflow against GHCR w
 
 ### Changes
 
-| Area | Change |
-| ---- | ------ |
-| `.github/workflows/release.yml` (`manifest` job) | **`max-parallel: 2`** on the strategy matrix — lowers concurrent GHCR blob/manifest writes |
+| Area                                             | Change                                                                                                             |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `.github/workflows/release.yml` (`manifest` job) | **`max-parallel: 2`** on the strategy matrix — lowers concurrent GHCR blob/manifest writes                         |
 | Compose step (`docker buildx imagetools create`) | **429/5xx-only retry** with exponential backoff + jitter (5 attempts, 15s base); permanent errors fail immediately |
 
 ### Updated Images

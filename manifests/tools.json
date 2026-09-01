@@ -337,7 +337,7 @@
     },
     {
       "name": "goneat",
-      "version": "v0.5.16",
+      "version": "v0.6.0",
       "source": "go",
       "images": [
         "goneat-tools-slim-musl",
