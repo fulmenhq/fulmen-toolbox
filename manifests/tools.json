@@ -68,7 +68,7 @@
         "goneat-tools-slim-musl",
         "goneat-tools-runner-musl"
       ],
-      "notes": "Alpine 3.24 version (node:22-alpine base)"
+      "notes": "Alpine 3.24 version (node:22-alpine base). Held at 1.8.1-r0: Alpine 3.24 repos do not carry jq 1.8.2 yet; bump when the apk pin validates."
     },
     {
       "name": "jq",
@@ -82,13 +82,21 @@
     },
     {
       "name": "jq",
+      "version": "1.8.2",
+      "source": "binary",
+      "images": [
+        "goneat-tools-runner-glibc"
+      ],
+      "notes": "GitHub release binary for glibc runners, checksum-verified in the Dockerfile fetch stage (JQ_SHA256_AMD64 / JQ_SHA256_ARM64). Upstream sha256: amd64 b1c22172dd303f3be49e935aa56aa48a8b7a46e0bc838b4997d3bb451495870f, arm64 8b85c817833814ddca00a144c33705546355afccf0cf39b188f3cdb48b852309."
+    },
+    {
+      "name": "jq",
       "version": "1.8.1",
       "source": "binary",
       "images": [
-        "goneat-tools-runner-glibc",
         "sbom-tools-runner-glibc"
       ],
-      "notes": "GitHub release binary for glibc runners."
+      "notes": "GitHub release binary for glibc runners. Out of the v0.5.4 cut (sbom-tools not rebuilt); refresh with the next sbom-tools pass."
     },
     {
       "name": "yq-go",
@@ -158,6 +166,26 @@
       "notes": "GitHub release binary for glibc runners."
     },
     {
+      "name": "libssl3",
+      "version": "3.5.8-r0",
+      "source": "apk",
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl"
+      ],
+      "notes": "Security pin: the pinned node:22-alpine digest bundles 3.5.7-r0 and apk add does not upgrade satisfied dependencies, so an explicit pin is required to pull the patched 3.5.8-r0 from the Alpine 3.24 repos (clears CVE-2026-63073 CRITICAL + 7 HIGH)."
+    },
+    {
+      "name": "libcrypto3",
+      "version": "3.5.8-r0",
+      "source": "apk",
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl"
+      ],
+      "notes": "Security pin, see libssl3 row."
+    },
+    {
       "name": "bash",
       "version": "5.3.9-r1",
       "source": "apk",
@@ -219,22 +247,22 @@
     },
     {
       "name": "node-base",
-      "version": "node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2",
+      "version": "node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32",
       "source": "other",
       "images": [
         "goneat-tools-slim-musl",
         "goneat-tools-runner-musl"
       ],
-      "notes": "Pinned base image digest for multi-arch."
+      "notes": "Pinned base image digest for multi-arch. Ships node 22.23.2 / npm 10.9.8."
     },
     {
       "name": "node-base-glibc",
-      "version": "node:22-bookworm-slim@sha256:6c74791e557ce11fc957704f6d4fe134a7bc8d6f5ca4403205b2966bd488f6b3",
+      "version": "node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5",
       "source": "other",
       "images": [
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Pinned base image tag for glibc runner."
+      "notes": "Pinned base image tag for glibc runner. Ships node 22.23.2 / npm 10.9.8."
     },
     {
       "name": "libgnutls30",
@@ -248,22 +276,22 @@
     },
     {
       "name": "golang-builder",
-      "version": "golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2",
+      "version": "golang:1.26.6-alpine@sha256:3889b425f035be855a72fb4755265311293b6d414521f0a519d819df32222d83",
       "source": "other",
       "images": [
         "goneat-tools-slim-musl",
         "goneat-tools-runner-musl"
       ],
-      "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint)."
+      "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint). Patch-pinned tag: the floating golang:1.26-alpine tag has moved past 1.26.6; the GO_IMAGE ↔ GO_VERSION coupling requires the same patch version."
     },
     {
       "name": "golang-builder-glibc",
-      "version": "golang:1.26-bookworm@sha256:1ecb7edf62a0408027bd5729dfd6b1b8766e578e8df93995b225dfd0944eb651",
+      "version": "golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36",
       "source": "other",
       "images": [
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Pinned builder image tag for Go tools in glibc runner."
+      "notes": "Pinned builder image tag for Go tools in glibc runner. Patch-pinned tag; verified to resolve go1.26.6."
     },
     {
       "name": "shfmt",
@@ -339,7 +367,7 @@
     },
     {
       "name": "go",
-      "version": "1.26.5",
+      "version": "1.26.6",
       "source": "binary",
       "images": [
         "goneat-tools-runner-musl",
@@ -591,7 +619,7 @@
         "goneat-tools-runner-musl",
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Go linter aggregator. Built in-runner against the runner's pinned Go (currently 1.26.5) so consumer configs targeting that Go version don't fail with 'language version too low'. Runner is copyleft-by-design; bundled GPL-3.0 binary aligns with that posture.",
+      "notes": "Go linter aggregator. Built in-runner against the runner's pinned Go (currently 1.26.6) so consumer configs targeting that Go version don't fail with 'language version too low'. Runner is copyleft-by-design; bundled GPL-3.0 binary aligns with that posture.",
       "license_spdx": "GPL-3.0-only",
       "license_source": "gomodcache",
       "license_path": "/licenses/github/golangci/golangci-lint/LICENSE"

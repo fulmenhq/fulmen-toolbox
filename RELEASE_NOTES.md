@@ -1,5 +1,44 @@
 # Release Notes
 
+## v0.5.4 (2026-09-01)
+
+**Go 1.26.6 runner rebuild + security pin refresh**
+
+Image contents change. Rebuilds the goneat-tools images with Go 1.26.6 — clearing the Go-stdlib HIGH advisory cluster carried by every in-runner-built binary and the shipped `/opt/go` — plus refreshed node base digests (node 22.23.2) and the checksum-verified jq 1.8.2 binary on the glibc runner. goneat stays at v0.5.16.
+
+### Changes
+
+| Area | Change |
+| ---- | ------ |
+| Go toolchain | **`1.26.5` → `1.26.6`** (version + tarball checksums + coupled `GO_IMAGE`) on slim + both full runners |
+| Builder digests | Pinned to patch-specific `golang:1.26.6-alpine` / `golang:1.26.6-bookworm` (floating `1.26-*` tags already at 1.26.7) |
+| Node bases | Digest refresh on both images → node **22.23.2** (base npm 10.9.8 < pinned 12.0.1 → npm override stays) |
+| `goneat-tools-runner-glibc` | **`jq` `1.8.1` → `1.8.2`** upstream binary, **checksum-verified per-arch in the build** |
+| musl `jq` | **Held at `1.8.1-r0`** — Alpine 3.24 has no 1.8.2 package yet |
+| goneat | Unchanged at **v0.5.16**. |
+| musl `libssl3`/`libcrypto3` | **Pinned to `3.5.8-r0`** — the pinned node:22-alpine digest bundles 3.5.7-r0 and `apk add` does not upgrade satisfied dependencies, so explicit apk pins pull the patched build, clearing `CVE-2026-63073` (CRITICAL) + 7 HIGH per lib. |
+
+### Updated Images
+
+goneat-tools slim + both full runners rebuild. sbom-tools and valkey images are unchanged in content (retag only if the release matrix republishes them). Floating tags `:latest` / `:v0` move on GA.
+
+### Known residuals (not clean)
+
+- Prebuilt `syft`/`grype`/`yq` binaries retain Go stdlib HIGHs (upstream ships them built with older Go).
+- Embedded module advisories in `goneat` (go-git, x/crypto, x/mod) — owned by the goneat dependency-refresh task, re-embedded on the next goneat pin bump.
+- Debian bookworm OS criticals on the glibc runner (`curl`, `libc6`, `perl`, `libssh2-1`, `openssh-client`) — no-fix upstream in bookworm; base migration deferred to its own cut.
+- musl jq held at `1.8.1-r0` until Alpine 3.24 publishes 1.8.2.
+
+### Upgrade notes
+
+Consumers pinned to `:v0.5.3` should retag to `:v0.5.4` for the Go 1.26.6 toolchain and stdlib fixes. No interface change — same binaries and paths, patched builds. Downstream consumers (including goneat's CI) retag their runner references to `:v0.5.4` after GA.
+
+### Non-goals (this cut)
+
+Debian trixie migration, Alpine rebase beyond 3.24, sbom-tools rebuild, syft/grype/yq bumps, golangci-lint 2.13, biome 2.5.x, ruff 0.16, cargo-deny 0.20, goneat newer than v0.5.16.
+
+Full detail: `docs/releases/v0.5.4.md`.
+
 ## v0.5.3 (2026-08-31)
 
 **Runner content pins — Prettier 3.9.6 + goneat-aligned linter patches**

@@ -14,8 +14,8 @@
 # golang:1.X-alpine tag containing the same Go patch version. The two ARGs
 # must stay in sync — a mismatch silently ships a runner whose builder Go
 # differs from its runtime Go, defeating the consumer fix landed in v0.4.0.
-ARG GO_IMAGE=golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2
-ARG NODE_IMAGE=node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
+ARG GO_IMAGE=golang:1.26.6-alpine@sha256:3889b425f035be855a72fb4755265311293b6d414521f0a519d819df32222d83
+ARG NODE_IMAGE=node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32
 ARG YAMLFMT_VERSION=v0.21.0
 ARG SHFMT_VERSION=v3.13.1
 ARG CHECKMAKE_VERSION=v0.3.2
@@ -25,7 +25,16 @@ ARG BIOME_VERSION=2.3.11
 # Overrides the npm bundled in the node base. See the npm stage below for the
 # maintenance obligation this pin creates.
 ARG NPM_VERSION=12.0.1
+# Held at 1.8.1-r0: Alpine 3.24 (this base) has no jq 1.8.2 package yet; the
+# 1.8.2 bump is deferred until the apk pin is resolvable. Re-check on each
+# base refresh. (glibc runners ship upstream jq 1.8.2 with checksums.)
 ARG JQ_VERSION=1.8.1-r0
+# Security pins for the openssl libs bundled in the node base. The pinned
+# node:22-alpine digest ships 3.5.7-r0 and `apk add` does not upgrade
+# satisfied dependencies, so an explicit pin is required to pull the patched
+# 3.5.8-r0 from the Alpine 3.24 repos (validate-apk-pins verifies availability).
+ARG LIBSSL_VERSION=3.5.8-r0
+ARG LIBCRYPTO_VERSION=3.5.8-r0
 ARG YQ_VERSION=4.53.3-r0
 ARG RIPGREP_VERSION=15.1.0-r0
 ARG TAPLO_VERSION=0.10.0-r0
@@ -45,9 +54,9 @@ ARG CURL_VERSION=8.21.0-r0
 ARG MINISIGN_VERSION=0.12-r2
 
 # Toolchain pins (runner-only)
-ARG GO_VERSION=1.26.5
-ARG GO_SHA256_AMD64=5c2c3b16caefa1d968a94c1daca04a7ca301a496d9b086e17ad77bb81393f053
-ARG GO_SHA256_ARM64=fe4789e92b1f33358680864bbe8704289e7bb5fc207d80623c308935bd696d49
+ARG GO_VERSION=1.26.6
+ARG GO_SHA256_AMD64=708effb774be8237570d0add163225abbdfaf4fca28b2611df167beba4feef89
+ARG GO_SHA256_ARM64=d0507e9e9d7fe012aae570108cbd76c15de879e17130ab8cb90d4d7445cb1f2e
 ARG RUST_VERSION=1.94.1
 ARG RUSTUP_VERSION=1.28.2
 ARG RUST_TARGETS="x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu aarch64-unknown-linux-musl x86_64-apple-darwin aarch64-apple-darwin x86_64-pc-windows-gnu"
@@ -401,14 +410,19 @@ FROM ${NODE_IMAGE} AS slim
 ARG PRETTIER_VERSION
 ARG BIOME_VERSION
 ARG JQ_VERSION
+ARG LIBSSL_VERSION
+ARG LIBCRYPTO_VERSION
 ARG YQ_VERSION
 ARG RIPGREP_VERSION
 ARG TAPLO_VERSION
 ARG MINISIGN_VERSION
 
-# Install non-runner Alpine packages
+# Install non-runner Alpine packages (libssl3/libcrypto3 are explicit security
+# pins — see the ARG block above for why they do not ride in on the base)
 RUN apk add --no-cache \
     jq=${JQ_VERSION} \
+    libssl3=${LIBSSL_VERSION} \
+    libcrypto3=${LIBCRYPTO_VERSION} \
     yq-go=${YQ_VERSION} \
     ripgrep=${RIPGREP_VERSION} \
     taplo=${TAPLO_VERSION} \
