@@ -6,7 +6,8 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 ### Changed
 
-- **`goneat` `v0.5.16` -> `v0.6.0`** on `goneat-tools-slim-musl` and both full runners (`ARG GONEAT_VERSION` + `manifests/tools.json`). All other tool, OS, and base-image pins are unchanged.
+- **`goneat` `v0.5.16` -> `v0.6.0`** on `goneat-tools-slim-musl` and both full runners (`ARG GONEAT_VERSION` + `manifests/tools.json`).
+- **musl `jq` `1.8.1-r0` -> `1.8.2-r0`** after Alpine 3.24 rotated the prior package revision out of its repositories. All other tool, OS, and base-image pins are unchanged.
 - Applied goneat v0.6.0's whitespace-only Markdown table formatting to existing documentation.
 
 ### Notes

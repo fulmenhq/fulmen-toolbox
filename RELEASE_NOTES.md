@@ -4,13 +4,14 @@
 
 **goneat v0.6.0 runner pin**
 
-Image contents change. Rebuilds the goneat-tools images with goneat v0.6.0. All other tool, OS, and base-image pins remain unchanged from v0.5.4.
+Image contents change. Rebuilds the goneat-tools images with goneat v0.6.0 and the newly available musl jq 1.8.2 package. All other tool, OS, and base-image pins remain unchanged from v0.5.4.
 
 ### Changes
 
 | Area                                         | Change                             |
 | -------------------------------------------- | ---------------------------------- |
 | `goneat-tools-slim-musl` + both full runners | **`goneat` `v0.5.16` -> `v0.6.0`** |
+| musl slim + runner                           | **`jq` `1.8.1-r0` -> `1.8.2-r0`**  |
 | Other pins                                   | Unchanged from v0.5.4.             |
 
 Existing Markdown tables also receive whitespace-only formatting from goneat v0.6.0.

@@ -25,10 +25,9 @@ ARG BIOME_VERSION=2.3.11
 # Overrides the npm bundled in the node base. See the npm stage below for the
 # maintenance obligation this pin creates.
 ARG NPM_VERSION=12.0.1
-# Held at 1.8.1-r0: Alpine 3.24 (this base) has no jq 1.8.2 package yet; the
-# 1.8.2 bump is deferred until the apk pin is resolvable. Re-check on each
-# base refresh. (glibc runners ship upstream jq 1.8.2 with checksums.)
-ARG JQ_VERSION=1.8.1-r0
+# Alpine 3.24 package; glibc runners ship the upstream jq 1.8.2 binary with
+# per-architecture checksums.
+ARG JQ_VERSION=1.8.2-r0
 # Security pins for the openssl libs bundled in the node base. The pinned
 # node:22-alpine digest ships 3.5.7-r0 and `apk add` does not upgrade
 # satisfied dependencies, so an explicit pin is required to pull the patched
