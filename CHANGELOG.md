@@ -2,7 +2,7 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
-## [0.5.5] - 2026-09-01
+## 0.5.6 - 2026-09-02
 
 ### Changed
 
@@ -13,6 +13,11 @@ Adheres to Keep a Changelog format. Versions follow semver.
 ### Notes
 
 - Image contents change this cut. Consumers pinned to `:v0.5.4` should retag to pick up goneat v0.6.0. Floating `:latest` / `:v0` move on GA.
+- v0.5.5 was not released. Its workflow failed before manifest publication, and this release supersedes it.
+
+## 0.5.5 - Not released (2026-09-01)
+
+This release candidate was not published. Its workflow failed before manifest publication and was superseded by v0.5.6.
 
 ## [0.5.4] - 2026-09-01
 

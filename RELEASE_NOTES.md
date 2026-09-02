@@ -1,6 +1,6 @@
 # Release Notes
 
-## v0.5.5 (2026-09-01)
+## v0.5.6 (2026-09-02)
 
 **goneat v0.6.0 runner pin**
 
@@ -22,13 +22,19 @@ goneat-tools slim + both full runners rebuild. sbom-tools and valkey images are 
 
 ### Upgrade notes
 
-Consumers pinned to `:v0.5.4` should retag to `:v0.5.5` to pick up goneat v0.6.0. The image layout and bundled command paths are unchanged.
+Consumers pinned to `:v0.5.4` should retag to `:v0.5.6` to pick up goneat v0.6.0 and musl jq 1.8.2. The image layout and bundled command paths are unchanged.
 
 ### Non-goals (this cut)
 
 All other tool, OS-package, and base-image updates.
 
-Full detail: `docs/releases/v0.5.5.md`.
+v0.5.5 was not released. Its workflow failed before manifest publication, and this release supersedes it.
+
+Full detail: `docs/releases/v0.5.6.md`.
+
+## v0.5.5 - Not released (2026-09-01)
+
+This release candidate was not published. Its workflow failed before manifest publication and was superseded by v0.5.6.
 
 ## v0.5.4 (2026-09-01)
 
