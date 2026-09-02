@@ -62,13 +62,13 @@
     },
     {
       "name": "jq",
-      "version": "1.8.1-r0",
+      "version": "1.8.2-r0",
       "source": "apk",
       "images": [
         "goneat-tools-slim-musl",
         "goneat-tools-runner-musl"
       ],
-      "notes": "Alpine 3.24 version (node:22-alpine base). Held at 1.8.1-r0: Alpine 3.24 repos do not carry jq 1.8.2 yet; bump when the apk pin validates."
+      "notes": "Alpine 3.24 version (node:22-alpine base)."
     },
     {
       "name": "jq",
