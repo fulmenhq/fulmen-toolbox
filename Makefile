@@ -9,7 +9,7 @@
 .PHONY: build-goneat-tools build-goneat-tools-runner build-goneat-tools-slim build-goneat-tools-runner-glibc
 .PHONY: build-goneat-tools-multi build-goneat-tools-runner-multi build-goneat-tools-slim-multi build-goneat-tools-runner-glibc-multi
 .PHONY: test-goneat-tools test-goneat-tools-runner test-goneat-tools-slim test-goneat-tools-runner-glibc
-.PHONY: test-goneat-tools-runner-python test-goneat-tools-runner-glibc-python
+.PHONY: test-goneat-tools-runner-python test-goneat-tools-runner-glibc-python test-goneat-tools-runner-rust test-goneat-tools-runner-glibc-rust
 .PHONY: build-sbom-tools build-sbom-tools-runner build-sbom-tools-slim build-sbom-tools-runner-glibc
 .PHONY: build-sbom-tools-multi build-sbom-tools-runner-multi build-sbom-tools-slim-multi build-sbom-tools-runner-glibc-multi
 .PHONY: test-sbom-tools test-sbom-tools-runner test-sbom-tools-slim test-sbom-tools-runner-glibc
@@ -90,7 +90,7 @@ YAMLLINT ?= yamllint
 
 # Bootstrap tooling (sfetch -> goneat trust chain)
 # Note: GONEAT_VERSION is a minimum version; if goneat is already installed, it is used as-is.
-GONEAT_VERSION ?= v0.5.9
+GONEAT_VERSION ?= v0.6.1
 BINDIR ?= $(HOME)/.local/bin
 SFETCH_BIN = $(shell command -v sfetch 2>/dev/null || echo "")
 GONEAT_BIN = $(shell command -v goneat 2>/dev/null || echo "")
@@ -102,7 +102,7 @@ all: build-all test-all
 build-all: build-goneat-tools-runner build-goneat-tools-slim build-goneat-tools-runner-glibc build-sbom-tools-runner build-sbom-tools-slim build-sbom-tools-runner-glibc
 
 ## Test all images
-test-all: test-goneat-tools-runner test-goneat-tools-runner-python test-goneat-tools-slim test-goneat-tools-runner-glibc test-goneat-tools-runner-glibc-python test-sbom-tools-runner test-sbom-tools-slim test-sbom-tools-runner-glibc
+test-all: test-goneat-tools-runner test-goneat-tools-runner-python test-goneat-tools-runner-rust test-goneat-tools-slim test-goneat-tools-runner-glibc test-goneat-tools-runner-glibc-python test-goneat-tools-runner-glibc-rust test-sbom-tools-runner test-sbom-tools-slim test-sbom-tools-runner-glibc
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Parallel builds with buildx bake (prove targets)
@@ -248,6 +248,8 @@ build-goneat-tools-multi: build-goneat-tools-runner-multi
 # NOTE: cargo-audit and cargo-nextest are skipped on arm64 musl (glibc binaries only).
 test-goneat-tools-runner:
 	docker run --rm $(GONEAT_RUNNER_TAG_LOCAL) -c "\
+		apk info -e yq-go=4.53.3-r1 >/dev/null && \
+		apk info -e curl=8.22.0-r0 >/dev/null && \
 		prettier --version && \
 		biome --version && \
 		yamlfmt --version && \
@@ -260,7 +262,7 @@ test-goneat-tools-runner:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version >/dev/null 2>&1 && \
+		goneat version | grep -q 'goneat v0.6.1' && \
 		sfetch --help >/dev/null 2>&1 && \
 		shellsentry --version >/dev/null 2>&1 && \
 		syft version >/dev/null 2>&1 && \
@@ -269,8 +271,8 @@ test-goneat-tools-runner:
 		cargo --version >/dev/null 2>&1 && \
 		rustfmt --version >/dev/null 2>&1 && \
 		cargo clippy --version >/dev/null 2>&1 && \
-		cargo deny --version >/dev/null 2>&1 && \
-		([ \$$(uname -m) = 'aarch64' ] || cargo audit --version >/dev/null 2>&1) && \
+		cargo deny --version | grep -q '0.20.2' && \
+		([ \$$(uname -m) = 'aarch64' ] || cargo audit --version | grep -q '0.22.2') && \
 		cargo-zigbuild --version >/dev/null 2>&1 && \
 		([ \$$(uname -m) = 'aarch64' ] || cargo nextest --version >/dev/null 2>&1) && \
 		cbindgen --version >/dev/null 2>&1 && \
@@ -302,10 +304,15 @@ test-goneat-tools-runner:
 test-goneat-tools-runner-python:
 	./scripts/test-runner-python.sh $(GONEAT_RUNNER_TAG_LOCAL)
 
+## Test Rust format/clippy/error paths (musl runner)
+test-goneat-tools-runner-rust:
+	./scripts/test-runner-rust.sh $(GONEAT_RUNNER_TAG_LOCAL)
+
 ## Test goneat-tools slim
 # Ensures tool payload works and runner baseline packages are absent.
 test-goneat-tools-slim:
 	docker run --rm $(GONEAT_SLIM_TAG_LOCAL) -c "\
+		apk info -e yq-go=4.53.3-r1 >/dev/null && \
 		prettier --version && \
 		biome --version && \
 		yamlfmt --version && \
@@ -318,7 +325,7 @@ test-goneat-tools-slim:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version >/dev/null 2>&1 && \
+		goneat version | grep -q 'goneat v0.6.1' && \
 		sfetch --help >/dev/null 2>&1 && \
 		! command -v shellsentry >/dev/null 2>&1 && \
 		! command -v syft >/dev/null 2>&1 && \
@@ -362,7 +369,7 @@ test-goneat-tools-runner-glibc:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version >/dev/null 2>&1 && \
+		goneat version | grep -q 'goneat v0.6.1' && \
 		sfetch --help >/dev/null 2>&1 && \
 		shellsentry --version >/dev/null 2>&1 && \
 		syft version >/dev/null 2>&1 && \
@@ -371,8 +378,8 @@ test-goneat-tools-runner-glibc:
 		cargo --version >/dev/null 2>&1 && \
 		rustfmt --version >/dev/null 2>&1 && \
 		cargo clippy --version >/dev/null 2>&1 && \
-		cargo deny --version >/dev/null 2>&1 && \
-		cargo audit --version >/dev/null 2>&1 && \
+		cargo deny --version | grep -q '0.20.2' && \
+		cargo audit --version | grep -q '0.22.2' && \
 		cargo-zigbuild --version >/dev/null 2>&1 && \
 		cargo nextest --version >/dev/null 2>&1 && \
 		cbindgen --version >/dev/null 2>&1 && \
@@ -403,6 +410,10 @@ test-goneat-tools-runner-glibc:
 # See scripts/test-runner-python.sh for why the failure REASON is the assertion.
 test-goneat-tools-runner-glibc-python:
 	./scripts/test-runner-python.sh $(GONEAT_GLIBC_TAG_LOCAL)
+
+## Test Rust format/clippy/error paths (glibc runner)
+test-goneat-tools-runner-glibc-rust:
+	./scripts/test-runner-rust.sh $(GONEAT_GLIBC_TAG_LOCAL)
 
 ## Inventory goneat-tools runner (musl)
 inventory-goneat-tools-runner:

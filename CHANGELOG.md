@@ -2,6 +2,20 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
+## 0.5.7 - 2026-09-28
+
+### Changed
+
+- **`goneat` `v0.6.0` → `v0.6.1`** in the musl slim image and both full runners. The Go install now stamps the binary version so `goneat version` reports the pinned release rather than `dev`. Rust format checks now invoke cargo fmt, clippy execution errors fail the lint assessment, and assessment/hooks no longer hide category errors; linked worktree handling and bundled Go dependency security fixes are included.
+- **`cargo-deny` `0.19.0` → `0.20.2` and `cargo-audit` `0.22.0` → `0.22.2`** in both runners. Cargo-deny uses upstream checksums; cargo-audit archives are SHA256-verified against pinned release asset digests on supported platforms. The existing musl arm64 cargo-audit limitation remains (upstream has no aarch64 musl binary).
+- **musl `curl` `8.21.0-r0` → `8.22.0-r0` and `yq-go` `4.53.3-r0` → `4.53.3-r1`** after Alpine 3.24 package revisions rotated out; manifest and Dockerfile pins remain synchronized.
+- Added Rust format/clippy/error-path smoke tests for both runners and exact goneat/scanner version assertions. Aligned the local Makefile bootstrap minimum with goneat v0.6.1.
+
+### Notes
+
+- Image contents change for the three goneat-tools variants. Consumers pinned to `:v0.5.6` can retag after GA; `:latest` / `:v0` move on GA. The release workflow republishes the full seven-image matrix on both architectures.
+- Previously untested Rust formatting or suppressed category execution failures can now fail CI. Scanner execution errors in the security category are still logged rather than fail-closed; this release does not claim otherwise. Other tool, OS and base-image pins stay unchanged except for the forced Alpine package revisions above.
+
 ## 0.5.6 - 2026-09-02
 
 ### Changed

@@ -24,3 +24,6 @@ venv/
 # Docker artifacts
 goneat-tools-sbom.json
 .buildcache/
+
+# Rust smoke fixture build outputs (Cargo.lock is retained for read-only mounts)
+/tests/fixtures/rust/**/target/

@@ -6,3 +6,5 @@
 # for format drift rather than for a missing ruff executable. Formatting it
 # would make that assertion pass vacuously.
 tests/fixtures/python/bad/
+tests/fixtures/rust/bad-format/
+tests/fixtures/rust/bad-clippy/
