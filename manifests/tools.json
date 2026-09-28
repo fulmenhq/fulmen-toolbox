@@ -100,7 +100,7 @@
     },
     {
       "name": "yq-go",
-      "version": "4.53.3-r0",
+      "version": "4.53.3-r1",
       "source": "apk",
       "images": [
         "goneat-tools-slim-musl",
@@ -213,7 +213,7 @@
     },
     {
       "name": "curl",
-      "version": "8.21.0-r0",
+      "version": "8.22.0-r0",
       "source": "apk",
       "images": [
         "goneat-tools-runner-musl"
@@ -337,7 +337,7 @@
     },
     {
       "name": "goneat",
-      "version": "v0.6.0",
+      "version": "v0.6.1",
       "source": "go",
       "images": [
         "goneat-tools-slim-musl",
@@ -457,7 +457,7 @@
     },
     {
       "name": "cargo-deny",
-      "version": "0.19.0",
+      "version": "0.20.2",
       "source": "binary",
       "images": [
         "goneat-tools-runner-musl",
@@ -473,13 +473,13 @@
     },
     {
       "name": "cargo-audit",
-      "version": "0.22.0",
+      "version": "0.22.2",
       "source": "binary",
       "images": [
         "goneat-tools-runner-musl",
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Cargo plugin for RustSec vulnerability auditing.",
+      "notes": "Cargo plugin for RustSec vulnerability auditing. Release archives SHA256-verified against pinned GitHub release asset digests: musl amd64 7fb9497f8594b389e5fce5ef9b92db08432996895b2e0c5a0167a69ed445c428, glibc amd64 ab28a1bdb54db4d5d8ad5981cf1f959410370b3d28250dbd35f6a44248620e39, glibc arm64 c6603814ddaa45e51263dafd31c0ac98808f688d26f7395804f9670b0fd599dd. The musl arm64 image contains the glibc arm64 artifact, which is not executable on musl; use the glibc runner for cargo-audit on arm64.",
       "license_spdx": "Apache-2.0 OR MIT",
       "license_source": "manual",
       "license_paths": [

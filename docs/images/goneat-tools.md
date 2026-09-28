@@ -64,8 +64,10 @@ See `docs/images/tag-taxonomy.md` for canonical tags and alias mappings.
 > goneat v0.5.15 onward: standalone `goneat format` **fails closed** when a
 > formatter required by the selected files is unavailable, rather than
 > completing with silently incomplete coverage. A runner without `ruff` would
-> therefore fail any job that formats `.py` files. `goneat assess` still treats
-> unavailable optional language tools as skipped coverage, and
+> therefore fail any job that formats `.py` files. `goneat assess` reports
+> unavailable optional language tools as skipped coverage, but Rust formatting
+> with missing cargo or rustfmt fails closed when Rust is in scope. Clippy
+> execution errors also fail the lint category, and
 > `--ignore-missing-tools` remains the explicit degradation path for standalone
 > formatting.
 

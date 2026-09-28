@@ -36,7 +36,7 @@ ARG RIPGREP_VERSION=15.1.0
 ARG TAPLO_VERSION=0.10.0
 
 # DX tools (Go)
-ARG GONEAT_VERSION=v0.6.0
+ARG GONEAT_VERSION=v0.6.1
 ARG SFETCH_VERSION=v0.4.9
 ARG SHELLSENTRY_VERSION=v0.1.5
 ARG GOLANGCI_LINT_VERSION=v2.12.2
@@ -56,8 +56,10 @@ ARG ZIG_SHA256_AMD64=02aa270f183da276e5b5920b1dac44a63f1a49e55050ebde3aecc9eb82f
 ARG ZIG_SHA256_ARM64=958ed7d1e00d0ea76590d27666efbf7a932281b3d7ba0c6b01b0ff26498f667f
 ARG SYFT_VERSION=v1.50.0
 ARG GRYPE_VERSION=v0.116.1
-ARG CARGO_DENY_VERSION=0.19.0
-ARG CARGO_AUDIT_VERSION=0.22.0
+ARG CARGO_DENY_VERSION=0.20.2
+ARG CARGO_AUDIT_VERSION=0.22.2
+ARG CARGO_AUDIT_SHA256_AMD64=ab28a1bdb54db4d5d8ad5981cf1f959410370b3d28250dbd35f6a44248620e39
+ARG CARGO_AUDIT_SHA256_ARM64=c6603814ddaa45e51263dafd31c0ac98808f688d26f7395804f9670b0fd599dd
 ARG CARGO_ZIGBUILD_VERSION=0.20.1
 ARG CARGO_NEXTEST_VERSION=0.9.122
 ARG CBINDGEN_VERSION=0.29.0
@@ -84,7 +86,7 @@ RUN go install github.com/google/yamlfmt/cmd/yamlfmt@${YAMLFMT_VERSION} && \
     go install mvdan.cc/sh/v3/cmd/shfmt@${SHFMT_VERSION} && \
     go install github.com/checkmake/checkmake/cmd/checkmake@${CHECKMAKE_VERSION} && \
     go install github.com/rhysd/actionlint/cmd/actionlint@${ACTIONLINT_VERSION} && \
-    go install github.com/fulmenhq/goneat@${GONEAT_VERSION} && \
+    go install -ldflags "-X github.com/fulmenhq/goneat/pkg/buildinfo.BinaryVersion=${GONEAT_VERSION}" github.com/fulmenhq/goneat@${GONEAT_VERSION} && \
     go install github.com/3leaps/sfetch@${SFETCH_VERSION}
 
 # License/notice staging for Go-installed tools
@@ -294,6 +296,8 @@ RUN set -eux; \
 FROM ${DEBIAN_IMAGE} AS cargo-tools-fetcher
 ARG CARGO_DENY_VERSION
 ARG CARGO_AUDIT_VERSION
+ARG CARGO_AUDIT_SHA256_AMD64
+ARG CARGO_AUDIT_SHA256_ARM64
 ARG CARGO_ZIGBUILD_VERSION
 ARG CARGO_NEXTEST_VERSION
 ARG CBINDGEN_VERSION
@@ -311,14 +315,14 @@ RUN set -eux; \
     case "${UNAME_ARCH}" in \
       x86_64) \
         DENY_ARCH="x86_64-unknown-linux-musl"; \
-        AUDIT_ARCH="x86_64-unknown-linux-gnu"; \
+        AUDIT_ARCH="x86_64-unknown-linux-gnu"; AUDIT_SHA256="${CARGO_AUDIT_SHA256_AMD64}"; \
         ZIGBUILD_ARCH="x86_64-unknown-linux-musl"; \
         NEXTEST_ARCH="x86_64-unknown-linux-gnu"; \
         CBINDGEN_ASSET="cbindgen-ubuntu22.04"; \
         ;; \
       aarch64) \
         DENY_ARCH="aarch64-unknown-linux-musl"; \
-        AUDIT_ARCH="aarch64-unknown-linux-gnu"; \
+        AUDIT_ARCH="aarch64-unknown-linux-gnu"; AUDIT_SHA256="${CARGO_AUDIT_SHA256_ARM64}"; \
         ZIGBUILD_ARCH="aarch64-unknown-linux-musl"; \
         NEXTEST_ARCH="aarch64-unknown-linux-gnu"; \
         CBINDGEN_ASSET="cbindgen-ubuntu22.04-aarch64"; \
@@ -364,6 +368,7 @@ RUN set -eux; \
       "https://github.com/RustSec/rustsec/releases/download/cargo-audit/v${CARGO_AUDIT_VERSION}/cargo-audit-${AUDIT_ARCH}-v${CARGO_AUDIT_VERSION}.tgz" \
       "" \
       /tmp/cargo-audit.tgz; \
+    echo "${AUDIT_SHA256}  /tmp/cargo-audit.tgz" | sha256sum -c -; \
     extract_binary /tmp/cargo-audit.tgz cargo-audit /out/bin/cargo-audit /out/licenses/crates/cargo-audit 1; \
     rm /tmp/cargo-audit.tgz; \
     fetch_and_verify \

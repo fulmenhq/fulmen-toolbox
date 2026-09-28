@@ -1,5 +1,28 @@
 # Release Notes
 
+## v0.5.7 (2026-09-28)
+
+**goneat v0.6.1 and Rust runner scanner refresh**
+
+The musl slim image and both full runners ship goneat v0.6.1. The full runners also ship cargo-deny 0.20.2 and cargo-audit 0.22.2. Alpine 3.24 rotated the musl curl and yq-go package revisions. Rust 1.94.1, Go 1.26.6 and other tool, OS and base-image pins are unchanged.
+
+### Changes
+
+| Area                                         | Change                                                                                            |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `goneat-tools-slim-musl` + both full runners | `goneat` `v0.6.0` → `v0.6.1`                                                                      |
+| Both full runners                            | `cargo-deny` `0.19.0` → `0.20.2`; `cargo-audit` `0.22.0` → `0.22.2`                               |
+| musl slim + runner / musl runner             | `yq-go` `4.53.3-r0` → `4.53.3-r1` / `curl` `8.21.0-r0` → `8.22.0-r0` (Alpine repository rotation) |
+| Local validation                             | Exact version checks and Rust format/clippy/error-path fixture smoke tests                        |
+
+### Upgrade notes
+
+`goneat format` and `goneat assess` now check Rust formatting with cargo fmt. Clippy failures (including Cargo errors) fail lint assessment; invalid assessment config, unknown categories and category errors in hooks no longer pass silently. Repositories may need to fix newly exposed formatting, lint or configuration failures. Lint and security categories also run when some optional tools are unavailable, reporting skipped coverage instead of omitting categories. **Security scanner execution errors are still logged rather than failing the security category.** Goneat also fixes linked worktree state and refreshes vulnerable Go dependencies.
+
+Cargo-audit still has no upstream aarch64-musl binary. Use the glibc arm64 runner when cargo-audit must execute; the musl arm64 smoke test explicitly treats it as unavailable. Cargo-deny is available on both architectures in both runners. Full scanner archive/architecture and checksum details are in `docs/releases/v0.5.7.md`.
+
+Consumers pinned to `:v0.5.6` should retag to `:v0.5.7` after GA. The release workflow builds and publishes all seven image variants on amd64 and arm64, including unchanged sbom-tools and valkey content, and advances `:latest` / `:v0` aliases. Full detail: `docs/releases/v0.5.7.md`.
+
 ## v0.5.6 (2026-09-02)
 
 **goneat v0.6.0 runner pin**
