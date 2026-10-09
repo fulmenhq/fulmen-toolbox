@@ -42,7 +42,7 @@ jobs:
             runner: ubuntu-latest-m
           - name: linux/arm64
             arch: arm64
-            runner: ubuntu-latest-arm64-s
+            runner: ubuntu-latest-arm64-m
     permissions:
       contents: read
       packages: write
