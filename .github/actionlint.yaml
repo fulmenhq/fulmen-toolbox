@@ -2,5 +2,8 @@
 # https://github.com/rhysd/actionlint/blob/main/docs/config.md
 self-hosted-runner:
   labels:
-    - ubuntu-latest-m
+    # ubuntu-latest-m is identical configuration to ubuntu-latest-x64-m;
+    # we stop using the former to match goneat.
+    - ubuntu-latest-x64-m
+    - ubuntu-latest-arm64-m
     - windows-latest-l

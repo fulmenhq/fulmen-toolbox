@@ -39,10 +39,10 @@ jobs:
         platform:
           - name: linux/amd64
             arch: amd64
-            runner: ubuntu-latest-m
+            runner: ubuntu-latest-x64-m
           - name: linux/arm64
             arch: arm64
-            runner: ubuntu-latest-arm64-s
+            runner: ubuntu-latest-arm64-m
     permissions:
       contents: read
       packages: write
@@ -96,7 +96,7 @@ jobs:
     # tag (canonical + aliases). Generate SBOM and SHA256SUMS against the
     # composed manifest digest; upload to the GitHub release page.
     needs: build
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest-x64-m
     strategy:
       fail-fast: false
       # Cap concurrent manifest/alias publishes. Full 7-way concurrency hit
@@ -324,7 +324,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
   cosign:
     needs: manifest
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest-x64-m
     environment: release-signing
     strategy:
       fail-fast: false

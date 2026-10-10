@@ -31,9 +31,9 @@ ARG JQ_VERSION=1.8.2-r0
 # Security pins for the openssl libs bundled in the node base. The pinned
 # node:22-alpine digest ships 3.5.7-r0 and `apk add` does not upgrade
 # satisfied dependencies, so an explicit pin is required to pull the patched
-# 3.5.8-r0 from the Alpine 3.24 repos (validate-apk-pins verifies availability).
-ARG LIBSSL_VERSION=3.5.8-r0
-ARG LIBCRYPTO_VERSION=3.5.8-r0
+# 3.5.9-r0 from the Alpine 3.24 repos (validate-apk-pins verifies availability).
+ARG LIBSSL_VERSION=3.5.9-r0
+ARG LIBCRYPTO_VERSION=3.5.9-r0
 ARG YQ_VERSION=4.53.3-r1
 ARG RIPGREP_VERSION=15.1.0-r0
 ARG TAPLO_VERSION=0.10.0-r0

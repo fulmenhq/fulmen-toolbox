@@ -19,7 +19,7 @@ on:
       - ".github/workflows/**"
 jobs:
   validate:
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest-x64-m
     steps:
       - name: Show initial disk usage
         run: |
