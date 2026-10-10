@@ -167,17 +167,17 @@
     },
     {
       "name": "libssl3",
-      "version": "3.5.8-r0",
+      "version": "3.5.9-r0",
       "source": "apk",
       "images": [
         "goneat-tools-slim-musl",
         "goneat-tools-runner-musl"
       ],
-      "notes": "Security pin: the pinned node:22-alpine digest bundles 3.5.7-r0 and apk add does not upgrade satisfied dependencies, so an explicit pin is required to pull the patched 3.5.8-r0 from the Alpine 3.24 repos (clears CVE-2026-63073 CRITICAL + 7 HIGH)."
+      "notes": "Security pin: the pinned node:22-alpine digest bundles 3.5.7-r0 and apk add does not upgrade satisfied dependencies, so an explicit pin is required to pull the patched 3.5.9-r0 from the Alpine 3.24 repos (clears CVE-2026-63073 CRITICAL + 7 HIGH)."
     },
     {
       "name": "libcrypto3",
-      "version": "3.5.8-r0",
+      "version": "3.5.9-r0",
       "source": "apk",
       "images": [
         "goneat-tools-slim-musl",
