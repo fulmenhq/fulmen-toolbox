@@ -12,54 +12,36 @@
 # ship carries it yet, AND we are already on that tool's latest release.
 # "We haven't gotten to it" is not a rationale; bump the pin instead.
 #
-# EVERY entry below was verified against the v0.5.0 build (2026-07-30) by
-# scanning the actual images with the shipped trivy v0.72.0 and attributing each
-# finding to the binary carrying it. Do not carry an entry forward on trust —
-# re-scan WITHOUT this file and drop anything that no longer appears. Two
-# concrete precedents: the v0.5.0 sweep dropped eight yq stdlib entries whose
-# rationale had gone stale, and this revision dropped CVE-2026-33671 (picomatch)
-# because updating the pinned npm cleared it outright.
+# v0.5.8 (2026-10-10): Docker was not available in this pin-refresh environment,
+# so waivers were re-evaluated from upstream go.mod of the new pins (syft
+# v1.54.0, grype v0.120.0, trivy v0.75.0) rather than a rebuilt-image scan.
+# Dropped trivy-only waivers that those go.mod files show as cleared, and
+# dropped syft/grype Go-stdlib waivers whose fix line is older than the
+# toolchain those releases require. Re-scan published images after GA and drop
+# anything that no longer appears. Do not carry an entry forward on trust.
 # ---------------------------------------------------------------------------
 
 # --- Go stdlib embedded in PREBUILT upstream binaries ------------------------
-# syft and grype ship as anchore's official signed release binaries, not built
-# by us, so we inherit the Go toolchain anchore compiled with. Both v1.50.0 and
-# v0.116.1 — the newest releases as of 2026-07-30 — are built with go1.26.3
-# (verified via `go version -m` on the downloaded release artifacts). These
-# clear when anchore rebuilds on go1.26.4+ / go1.26.5+.
-#
-# The alternative is building syft/grype from source with our own Go 1.26.5,
-# which would clear all three. That trades away anchore's signed upstream
-# provenance and is a deliberate posture change, not a pin bump — deferred, not
-# forgotten.
-CVE-2026-27145  # 2026-07-30: stdlib in prebuilt syft v1.50.0 / grype v0.116.1 (go1.26.3); fixed in go1.26.4; on-latest-upstream; review by 2026-10-30
-CVE-2026-42504  # 2026-07-30: stdlib in prebuilt syft v1.50.0 / grype v0.116.1 (go1.26.3); fixed in go1.26.4; on-latest-upstream; review by 2026-10-30
-CVE-2026-39822  # 2026-07-30: stdlib in prebuilt syft/grype (go1.26.3) plus trivy v0.72.0 and yq v4.53.3 (both go1.26.4); needs go1.26.5; all three on latest release; review by 2026-10-30
+# yq v4.53.3 remains built with go1.26.4 (unchanged pin). syft v1.54.0 and
+# grype v0.120.0 require go 1.26.8; trivy v0.75.0 requires go 1.27.0 — those
+# carriers are past the go1.26.5 stdlib fix line. This leftover needs go1.26.5.
+CVE-2026-39822  # 2026-10-10: stdlib in prebuilt yq v4.53.3 (go1.26.4); needs go1.26.5; yq pin unchanged; review by 2026-12-31
 
 # --- golang.org/x/text in prebuilt / upstream-pinned binaries ----------------
-# Three distinct carriers, none of which we can move:
-#   golangci-lint v2.12.1 -> x/text v0.36.0. We DO build this from source, so
-#     the version comes from its own go.mod, not our toolchain. v2.12.2 (latest)
-#     ships the identical v0.36.0 — verified via `go version -m` — so bumping
-#     would not clear this finding.
-#   yq v4.53.3 (latest) -> x/text v0.37.0.
-#   trivy v0.72.0 (latest) -> x/text v0.38.0.
-# Fixed in x/text v0.39.0; clears as each upstream bumps its dependency.
-CVE-2026-56852  # 2026-07-30: x/text in golangci-lint v2.12.1 (v0.36.0), yq v4.53.3 (v0.37.0), trivy v0.72.0 (v0.38.0); fixed in v0.39.0; v2.12.2 verified to carry the same v0.36.0; review by 2026-10-30
+# Two remaining carriers, neither of which we can move this cut:
+#   golangci-lint v2.12.2 -> x/text v0.36.0. We DO build this from source, so
+#     the version comes from its own go.mod, not our toolchain. Unchanged pin.
+#   yq v4.53.3 (unchanged) -> x/text v0.37.0.
+# trivy v0.75.0 now vendors x/text v0.42.0 (past the v0.39.0 fix) and is
+# dropped from this waiver. Fixed in x/text v0.39.0; clears as each remaining
+# upstream bumps its dependency.
+CVE-2026-56852  # 2026-10-10: x/text in golangci-lint v2.12.2 (v0.36.0) and yq v4.53.3 (v0.37.0); fixed in v0.39.0; trivy v0.75.0 no longer a carrier; review by 2026-12-31
 
 # --- Vendored dependencies in prebuilt upstream binaries ---------------------
-# grype vendors github.com/docker/docker v28.5.2 (fixed in v29.3.1). Re-verified
-# 2026-07-30 against v0.116.1, the newest release — the dependency is unchanged
-# from v0.116.0, so the version bump taken this cycle did not clear it.
-CVE-2026-34040  # 2026-07-30: grype v0.116.1 vendors docker/docker v28.5.2; fixed in 29.3.1; on-latest-upstream; review by 2026-10-30
-
-# trivy v0.72.0 (latest, 2026-06-30) vendors oras-go v2.6.0 and grpc v1.81.0.
-# Note the asymmetry worth remembering: syft/grype v1.50.0/v0.116.1 DO carry the
-# fixed grpc v1.82.1, which is why the goneat runners are clear of the grpc
-# finding while the sbom images — which additionally ship trivy — are not.
-# Same CVE, different carrier.
-CVE-2026-50151      # 2026-07-30: trivy v0.72.0 vendors oras-go v2.6.0; fixed in 2.6.1; on-latest-upstream; sbom-tools images only; review by 2026-10-30
-GHSA-hrxh-6v49-42gf # 2026-07-30: trivy v0.72.0 vendors grpc v1.81.0; fixed in 1.82.1; on-latest-upstream; sbom-tools images only (syft/grype already carry the fixed 1.82.1); review by 2026-10-30
+# grype still vendors github.com/docker/docker v28.5.2 (fixed in v29.3.1).
+# Re-checked 2026-10-10 against grype v0.120.0 go.mod — the dependency is
+# unchanged, so the version bump taken this cycle did not clear it.
+CVE-2026-34040  # 2026-10-10: grype v0.120.0 vendors docker/docker v28.5.2; fixed in 29.3.1; on-latest-upstream; review by 2026-12-31
 
 # --- Bundled npm dependency tree --------------------------------------------
 # We pin npm to 12.0.1 (see the npm stage in the goneat Dockerfiles), which

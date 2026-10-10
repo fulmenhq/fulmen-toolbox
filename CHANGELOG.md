@@ -2,6 +2,22 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
+## 0.5.8 - 2026-10-10
+
+### Changed
+
+- **`goneat` `v0.6.1` → `v0.6.2`** in the musl slim image and both full runners (`ARG GONEAT_VERSION`, Makefile bootstrap minimum, and `manifests/tools.json`).
+- **Go toolchain `1.26.6` → `1.26.9`** on slim and both full goneat-tools runners (`GO_VERSION` + tarball checksums + the coupled `GO_IMAGE` builder digest, kept in sync). Builder digests are pinned to `golang:1.26.9-alpine` / `golang:1.26.9-bookworm`.
+- **Scanners lockstep with goneat v0.6.2 `.goneat/tools.yaml`:** `syft` `v1.50.0` → `v1.54.0` and `grype` `v0.116.1` → `v0.120.0` on goneat runners and sbom-tools. `trivy` `v0.72.0` → `v0.75.0` on sbom-tools (cooling: `min_age_days` 7; v0.75.0 published 2026-10-01).
+- musl `libssl3`/`libcrypto3` remain **`3.5.9-r0`** (already on main via #23; Alpine 3.24 still serves that revision). Other apk/apt pins are unchanged.
+- Dropped trivy-only `.trivyignore` waivers cleared by trivy v0.75.0 (`CVE-2026-50151`, `GHSA-hrxh-6v49-42gf`) and Go-stdlib waivers whose fix line is older than syft/grype/trivy's current toolchains. Residual waivers remain for yq, golangci-lint, grype's vendored `docker/docker`, and the npm brace-expansion pin.
+
+### Notes
+
+- Image contents change for goneat-tools (slim + both runners) and sbom-tools (slim + both runners). Consumers pinned to `:v0.5.7` should retag after GA; `:latest` / `:v0` move on GA. The release workflow republishes the full seven-image matrix on both architectures.
+- amd64/arm64 medium runners (`ubuntu-latest-x64-m` / `ubuntu-latest-arm64-m`) already landed on main via #23; this cut does not change `runs-on` lines.
+- Rust 1.94.1, cargo-deny 0.20.2, cargo-audit 0.22.2, and other non-listed tool pins stay unchanged.
+
 ## 0.5.7 - 2026-09-28
 
 ### Changed
