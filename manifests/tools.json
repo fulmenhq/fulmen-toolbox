@@ -276,22 +276,22 @@
     },
     {
       "name": "golang-builder",
-      "version": "golang:1.26.6-alpine@sha256:3889b425f035be855a72fb4755265311293b6d414521f0a519d819df32222d83",
+      "version": "golang:1.26.9-alpine@sha256:3082400e369fa24d5fc60bca20edab3f6d604e0c5a690ec66b295eff4dd87ade",
       "source": "other",
       "images": [
         "goneat-tools-slim-musl",
         "goneat-tools-runner-musl"
       ],
-      "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint). Patch-pinned tag: the floating golang:1.26-alpine tag has moved past 1.26.6; the GO_IMAGE ↔ GO_VERSION coupling requires the same patch version."
+      "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint). Patch-pinned tag: the GO_IMAGE ↔ GO_VERSION coupling requires the same patch version (1.26.9)."
     },
     {
       "name": "golang-builder-glibc",
-      "version": "golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36",
+      "version": "golang:1.26.9-bookworm@sha256:d9c68c2c51161e12fd77e4c6320687c9cd86e1af1e3ad6e6cd63ff970641453c",
       "source": "other",
       "images": [
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Pinned builder image tag for Go tools in glibc runner. Patch-pinned tag; verified to resolve go1.26.6."
+      "notes": "Pinned builder image tag for Go tools in glibc runner. Patch-pinned tag; verified to resolve go1.26.9."
     },
     {
       "name": "shfmt",
@@ -337,7 +337,7 @@
     },
     {
       "name": "goneat",
-      "version": "v0.6.1",
+      "version": "v0.6.2",
       "source": "go",
       "images": [
         "goneat-tools-slim-musl",
@@ -367,7 +367,7 @@
     },
     {
       "name": "go",
-      "version": "1.26.6",
+      "version": "1.26.9",
       "source": "binary",
       "images": [
         "goneat-tools-runner-musl",
@@ -619,14 +619,14 @@
         "goneat-tools-runner-musl",
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Go linter aggregator. Built in-runner against the runner's pinned Go (currently 1.26.6) so consumer configs targeting that Go version don't fail with 'language version too low'. Runner is copyleft-by-design; bundled GPL-3.0 binary aligns with that posture.",
+      "notes": "Go linter aggregator. Built in-runner against the runner's pinned Go (currently 1.26.9) so consumer configs targeting that Go version don't fail with 'language version too low'. Runner is copyleft-by-design; bundled GPL-3.0 binary aligns with that posture.",
       "license_spdx": "GPL-3.0-only",
       "license_source": "gomodcache",
       "license_path": "/licenses/github/golangci/golangci-lint/LICENSE"
     },
     {
       "name": "syft",
-      "version": "v1.50.0",
+      "version": "v1.54.0",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",
@@ -643,7 +643,7 @@
     },
     {
       "name": "grype",
-      "version": "v0.116.1",
+      "version": "v0.120.0",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",
@@ -660,7 +660,7 @@
     },
     {
       "name": "trivy",
-      "version": "v0.72.0",
+      "version": "v0.75.0",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",

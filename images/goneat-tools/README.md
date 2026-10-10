@@ -19,7 +19,7 @@ This image bundles upstream license texts under `/licenses/` and upstream notice
 | shfmt (v3.13.1)                                    | Shell script formatting           | Go binary  |
 | checkmake (v0.3.2)                                 | Makefile linting                  | Go binary  |
 | actionlint (v1.7.12)                               | GitHub Actions workflow linting   | Go binary  |
-| goneat (v0.6.1)                                    | Format, lint and assessment CLI   | Go binary  |
+| goneat (v0.6.2)                                    | Format, lint and assessment CLI   | Go binary  |
 | jq (1.8.2-r0)                                      | JSON processing/filtering         | Alpine pkg |
 | yq-go (4.53.3-r1)                                  | YAML processing/filtering         | Alpine pkg |
 | ripgrep (15.1.0-r0)                                | Fast text search/search & replace | Alpine pkg |

@@ -1,5 +1,26 @@
 # Release Notes
 
+## v0.5.8 (2026-10-10)
+
+**goneat v0.6.2, Go 1.26.9, and scanner lockstep**
+
+The musl slim image and both full runners ship goneat v0.6.2 and Go 1.26.9. syft and grype move with goneat v0.6.2's `.goneat/tools.yaml` pins; trivy on sbom-tools moves to v0.75.0 after the 7-day cooling window. musl libssl3/libcrypto3 stay at 3.5.9-r0. Medium amd64/arm64 runners already landed on main via #23.
+
+### Changes
+
+| Area                                         | Change                                                                                          |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `goneat-tools-slim-musl` + both full runners | `goneat` `v0.6.1` → `v0.6.2`                                                                    |
+| slim + both full runners                     | Go toolchain `1.26.6` → `1.26.9` (version + tarball checksums + coupled `GO_IMAGE`)             |
+| goneat runners + sbom-tools                  | `syft` `v1.50.0` → `v1.54.0`; `grype` `v0.116.1` → `v0.120.0`                                   |
+| sbom-tools                                   | `trivy` `v0.72.0` → `v0.75.0`                                                                   |
+| musl slim + runner                           | `libssl3`/`libcrypto3` remain `3.5.9-r0` (confirmed still current in Alpine 3.24)               |
+| CI runners                                   | amd64/arm64 medium labels already on main via #23; no `runs-on` change in this cut              |
+
+### Upgrade notes
+
+Consumers pinned to `:v0.5.7` should retag to `:v0.5.8` after GA. The release workflow builds and publishes all seven image variants on amd64 and arm64, including unchanged valkey content, and advances `:latest` / `:v0` aliases. Full detail: `docs/releases/v0.5.8.md`.
+
 ## v0.5.7 (2026-09-28)
 
 **goneat v0.6.1 and Rust runner scanner refresh**
