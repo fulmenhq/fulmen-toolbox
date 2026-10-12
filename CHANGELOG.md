@@ -2,6 +2,18 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
+## 0.5.9 - 2026-10-12
+
+### Changed
+
+- **`goneat` `v0.6.2` → `v0.6.3`** in the musl slim image and both full runners (`ARG GONEAT_VERSION`, Makefile bootstrap minimum, `manifests/tools.json`, image README, and built-image version greps).
+
+### Notes
+
+- Go stays at 1.26.9. goneat v0.6.3 changes no tool pins, so syft, grype and other scanner pins are unchanged.
+- goneat v0.6.3 compiles embedded schemas on first use, and reports gosec and govulncheck as not applicable in projects without a Go module. The runners do not ship gosec or govulncheck.
+- Consumers pinned to `:v0.5.8` should retag after GA; `:latest` / `:v0` move on GA.
+
 ## 0.5.8 - 2026-10-10
 
 ### Changed

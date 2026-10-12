@@ -1,5 +1,21 @@
 # Release Notes
 
+## v0.5.9 (2026-10-12)
+
+**goneat v0.6.3**
+
+The musl slim image and both full runners ship goneat v0.6.3. Go stays at 1.26.9, and the other tool pins are unchanged.
+
+### Changes
+
+| Area                                         | Change                       |
+| -------------------------------------------- | ---------------------------- |
+| `goneat-tools-slim-musl` + both full runners | `goneat` `v0.6.2` → `v0.6.3` |
+
+### Upgrade notes
+
+Consumers pinned to `:v0.5.8` should retag to `:v0.5.9` after GA. The release workflow builds and publishes all seven image variants on amd64 and arm64 and advances `:latest` / `:v0` aliases. Full detail: `docs/releases/v0.5.9.md`.
+
 ## v0.5.8 (2026-10-10)
 
 **goneat v0.6.2, Go 1.26.9, and scanner lockstep**
