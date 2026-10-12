@@ -335,4 +335,4 @@ done
 
 echo ""
 echo "✅ Release signing complete for $TAG"
-echo "   Next: make verify-release-key && make release-upload FULMEN_TOOLBOX_RELEASE_TAG=$TAG"
+echo "   Next: make release-upload FULMEN_TOOLBOX_RELEASE_TAG=$TAG  (exports keys and verifies signatures first)"

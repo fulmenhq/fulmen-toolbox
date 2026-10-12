@@ -28,7 +28,9 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
   - `FULMEN_TOOLBOX_RELEASE_TAG` (must be `v<semver>`, e.g. `v0.2.2`)
   - `FULMEN_TOOLBOX_PGP_KEY_ID` (GPG key ID, with `!` suffix to force subkey)
   - `FULMEN_TOOLBOX_MINISIGN_KEY` (path to minisign secret key)
-  - `FULMEN_TOOLBOX_GPG_HOMEDIR` (optional; multiple keyrings)
+  - `FULMEN_TOOLBOX_GPG_HOMEDIR` (isolated gpg homedir holding the signing key; required for `make release-tag`, optional for manifest signing)
+  - `FULMEN_TOOLBOX_TAGGER_NAME` (tagger name recorded on the release tag)
+  - `FULMEN_TOOLBOX_TAGGER_EMAIL` (tagger email; must be a uid email on the signing key)
   - `FULMEN_TOOLBOX_ATTACH_SBOM=1` (optional; enable OCI SBOM attach)
   - `FULMEN_TOOLBOX_IMAGES` (optional; override default image set for digests/signing)
 - [ ] Ensure GitHub Packages access for verification (for local `gh api`):
@@ -79,13 +81,30 @@ These gates catch issues that PR status does not. Even if all pre-flight items w
   - [ ] No leftover `:<rc-tag>` tags on GHCR are visible to consumers (the pre-release tag guard in `release.yml` prevents publishing pre-release tags to `:latest` / `:v<major>`, but per-image RC tags can linger if they were explicitly written)
 
 - [ ] If superseding a previous partial release (e.g. v0.4.1 → v0.4.2 after a build failure left v0.4.1 incomplete), execute in this order:
-  1. Delete the prior GitHub Release page **immediately before** the new tag push: `gh release delete <prior-tag> --yes` (keep the git tag in history)
-  2. Then tag and push the new release
-  3. This minimizes the consumer-visible window where the prior release page is missing but the new one is not yet published
+  1. Run `make release-tag` and `make release-tag-verify` for the new release first
+  2. Delete the prior GitHub Release page **immediately before** `make release-tag-push`: `gh release delete <prior-tag> --yes` (keep the git tag in history)
+  3. Then run `make release-tag-push`
+  4. This minimizes the consumer-visible window where the prior release page is missing but the new one is not yet published
 
 ## Build & Publish (CI-driven)
 
-- [ ] Tag repo: `git tag v$(cat VERSION) && git push origin --tags`
+- [ ] Tag the release with a GPG-signed annotated tag. Each target refuses unless HEAD is a clean `main` equal to a freshly fetched `origin/main`, and the tag is `v$(cat VERSION)`:
+
+  ```bash
+  # 1. Create the signed tag on HEAD and verify it. Does not push. A tag that
+  #    fails verification is deleted.
+  make release-tag
+  # 2. Check it before anything leaves the machine: annotated, named for
+  #    VERSION, at HEAD, tagger identity as declared, one good signature by
+  #    the selected key.
+  make release-tag-verify
+  # 3. Push only refs/tags/<tag> to origin, then confirm origin's tag object
+  #    and target match the local ones. Never pushes other tags or branches.
+  make release-tag-push
+  ```
+
+  `FULMEN_TOOLBOX_PGP_KEY_ID` must be a 40-hex fingerprint or 16-hex long key id. A trailing `!` forces that exact (sub)key; without it, the id must name a primary key and any of its live signing subkeys may sign.
+
 - [ ] CI release workflow triggers on tag push:
   - Builds multi-arch images for all matrix entries
   - Manifest job composes multi-arch tags (`max-parallel: 2` + imagetools retry; do not raise concurrency without re-validating GHCR 429 behavior)
@@ -201,6 +220,8 @@ Recommended verification before upload:
 - `make verify-release-key` (verifies exported GPG public key contains no private material)
 - `make verify-minisign-key` (verifies minisign public key was exported/copied)
 - `make verify-release-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (fails if any expected image tag is missing)
+- `make release-verify-signatures FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (every `SHA256SUMS-*` manifest has a good PGP and minisign signature by the exported keys; also run by `make release-upload`)
+- `make release-verify-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (every image reference in the signed manifests resolves to its signed digest; `verify-release-digests` above only checks that the tags exist)
 - `make release-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (prints digests for copy/paste)
 
 #### Step 3.1: Stage release notes (optional)
@@ -235,7 +256,8 @@ make release-export-keys
 
 ```bash
 # Uploads signatures and keys to GitHub Release
-# (automatically exports public keys and verifies GPG key is safe)
+# (automatically exports public keys, verifies the GPG key is safe, and
+# verifies every manifest has a good PGP and minisign signature)
 make release-upload FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 ```
 
