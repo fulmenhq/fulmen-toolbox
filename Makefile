@@ -24,6 +24,7 @@
 .PHONY: catalog
 .PHONY: release-plan release-clean release-download release-notes release-sign release-upload release-digests release-signing-help
 .PHONY: release-export-keys release-export-gpg-key release-export-minisign-key
+.PHONY: release-tag release-tag-verify release-tag-push test-release-tag
 .PHONY: verify-release-key verify-minisign-key verify-release-digests
 .PHONY: validate-subsystems validate-subsystem-echo-proxy-fixture validate-subsystem-authentik-idp
 .PHONY: test-subsystem-echo-proxy-fixture test-subsystem-authentik-idp
@@ -844,6 +845,22 @@ FULMEN_TOOLBOX_RELEASE_TAG ?= v$(shell cat VERSION 2>/dev/null || echo "0.0.0")
 DIST_RELEASE ?= dist/release
 GPG_KEY_FILE ?= $(DIST_RELEASE)/fulmen-toolbox-release-signing-key.asc
 MINISIGN_PUB ?= $(DIST_RELEASE)/fulmenhq-release-signing.pub
+
+## Create a GPG-signed annotated tag for FULMEN_TOOLBOX_RELEASE_TAG on HEAD and verify it (does not push)
+release-tag:
+	@FULMEN_TOOLBOX_RELEASE_TAG="$(FULMEN_TOOLBOX_RELEASE_TAG)" ./scripts/release-tag.sh create
+
+## Verify the local release tag: signature, signing key, tagger identity, target
+release-tag-verify:
+	@FULMEN_TOOLBOX_RELEASE_TAG="$(FULMEN_TOOLBOX_RELEASE_TAG)" ./scripts/release-tag.sh verify
+
+## Verify the release tag and push only that tag to origin (starts the release workflow)
+release-tag-push:
+	@FULMEN_TOOLBOX_RELEASE_TAG="$(FULMEN_TOOLBOX_RELEASE_TAG)" ./scripts/release-tag.sh push
+
+## Run the release-tag script tests (fails, rather than skips, without git/gpg)
+test-release-tag:
+	FULMEN_TOOLBOX_REQUIRE_CRYPTO_TOOLS=1 python3 -I scripts/test_release_tag.py -v
 
 ## Clean release artifacts directory (run before release-download)
 release-clean:

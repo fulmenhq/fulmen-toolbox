@@ -28,7 +28,9 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
   - `FULMEN_TOOLBOX_RELEASE_TAG` (must be `v<semver>`, e.g. `v0.2.2`)
   - `FULMEN_TOOLBOX_PGP_KEY_ID` (GPG key ID, with `!` suffix to force subkey)
   - `FULMEN_TOOLBOX_MINISIGN_KEY` (path to minisign secret key)
-  - `FULMEN_TOOLBOX_GPG_HOMEDIR` (optional; multiple keyrings)
+  - `FULMEN_TOOLBOX_GPG_HOMEDIR` (isolated gpg homedir holding the signing key; required for `make release-tag`, optional for manifest signing)
+  - `FULMEN_TOOLBOX_TAGGER_NAME` (tagger name recorded on the release tag)
+  - `FULMEN_TOOLBOX_TAGGER_EMAIL` (tagger email; must be a uid email on the signing key)
   - `FULMEN_TOOLBOX_ATTACH_SBOM=1` (optional; enable OCI SBOM attach)
   - `FULMEN_TOOLBOX_IMAGES` (optional; override default image set for digests/signing)
 - [ ] Ensure GitHub Packages access for verification (for local `gh api`):
@@ -85,7 +87,23 @@ These gates catch issues that PR status does not. Even if all pre-flight items w
 
 ## Build & Publish (CI-driven)
 
-- [ ] Tag repo: `git tag v$(cat VERSION) && git push origin --tags`
+- [ ] Tag the release with a GPG-signed annotated tag. Each target refuses unless HEAD is a clean `main` equal to a freshly fetched `origin/main`, and the tag is `v$(cat VERSION)`:
+
+  ```bash
+  # 1. Create the signed tag on HEAD and verify it. Does not push. A tag that
+  #    fails verification is deleted.
+  make release-tag
+  # 2. Check it before anything leaves the machine: annotated, named for
+  #    VERSION, at HEAD, tagger identity as declared, one good signature by
+  #    the selected key.
+  make release-tag-verify
+  # 3. Push only refs/tags/<tag> to origin, then confirm origin's tag object
+  #    and target match the local ones. Never pushes other tags or branches.
+  make release-tag-push
+  ```
+
+  `FULMEN_TOOLBOX_PGP_KEY_ID` must be a 40-hex fingerprint or 16-hex long key id. A trailing `!` forces that exact (sub)key; without it, the id must name a primary key and any of its live signing subkeys may sign.
+
 - [ ] CI release workflow triggers on tag push:
   - Builds multi-arch images for all matrix entries
   - Manifest job composes multi-arch tags (`max-parallel: 2` + imagetools retry; do not raise concurrency without re-validating GHCR 429 behavior)
