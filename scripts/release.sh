@@ -71,9 +71,10 @@ Suggested steps (manual for now):
    gpg --batch --yes --armor --detach-sign --output SHA256SUMS.asc SHA256SUMS
    minisign -Sm SHA256SUMS -x SHA256SUMS.minisig
 
-6) Git tag:
-   git tag v${VERSION}
-   git push origin v${VERSION}
+6) Signed git tag (see RELEASE_CHECKLIST.md):
+   make release-tag
+   make release-tag-verify
+   make release-tag-push
 
 7) Publish artifacts:
    - Upload SBOM and signed SHA256SUMS to release assets

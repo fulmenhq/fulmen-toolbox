@@ -26,6 +26,7 @@
 .PHONY: release-export-keys release-export-gpg-key release-export-minisign-key
 .PHONY: release-tag release-tag-verify release-tag-push test-release-tag
 .PHONY: verify-release-key verify-minisign-key verify-release-digests
+.PHONY: release-verify-key release-verify-signatures release-verify-digests
 .PHONY: validate-subsystems validate-subsystem-echo-proxy-fixture validate-subsystem-authentik-idp
 .PHONY: test-subsystem-echo-proxy-fixture test-subsystem-authentik-idp
 
@@ -846,20 +847,16 @@ DIST_RELEASE ?= dist/release
 GPG_KEY_FILE ?= $(DIST_RELEASE)/fulmen-toolbox-release-signing-key.asc
 MINISIGN_PUB ?= $(DIST_RELEASE)/fulmenhq-release-signing.pub
 
-## Create a GPG-signed annotated tag for FULMEN_TOOLBOX_RELEASE_TAG on HEAD and verify it (does not push)
-release-tag:
+release-tag: ## Create a GPG-signed annotated tag for v$(VERSION) on HEAD and verify it (does not push)
 	@FULMEN_TOOLBOX_RELEASE_TAG="$(FULMEN_TOOLBOX_RELEASE_TAG)" ./scripts/release-tag.sh create
 
-## Verify the local release tag: signature, signing key, tagger identity, target
-release-tag-verify:
+release-tag-verify: ## Verify the local release tag: signature, signing key, tagger identity, target
 	@FULMEN_TOOLBOX_RELEASE_TAG="$(FULMEN_TOOLBOX_RELEASE_TAG)" ./scripts/release-tag.sh verify
 
-## Verify the release tag and push only that tag to origin (starts the release workflow)
-release-tag-push:
+release-tag-push: ## Verify the release tag and push only that tag to origin (starts the release workflow)
 	@FULMEN_TOOLBOX_RELEASE_TAG="$(FULMEN_TOOLBOX_RELEASE_TAG)" ./scripts/release-tag.sh push
 
-## Run the release-tag script tests (fails, rather than skips, without git/gpg)
-test-release-tag:
+test-release-tag: ## Run the release-tag script tests (fails, rather than skips, without git/gpg)
 	FULMEN_TOOLBOX_REQUIRE_CRYPTO_TOOLS=1 python3 -I scripts/test_release_tag.py -v
 
 ## Clean release artifacts directory (run before release-download)
@@ -979,8 +976,16 @@ verify-minisign-key: release-export-minisign-key
 	@test -f $(MINISIGN_PUB) || { echo "❌ minisign public key missing: $(MINISIGN_PUB)"; exit 1; }
 	@echo "✅ minisign public key present: $(MINISIGN_PUB)"
 
-## Upload signed artifacts to GitHub Release (FULMEN_TOOLBOX_RELEASE_TAG=vX.Y.Z)
-release-upload: verify-release-key verify-minisign-key
+release-verify-key: verify-release-key ## Verify the exported GPG public key holds no private key material
+
+release-verify-signatures: ## Verify PGP and minisign signatures on every SHA256SUMS-* manifest (FULMEN_TOOLBOX_RELEASE_TAG=vX.Y.Z)
+	@scripts/release-verify.sh signatures $(FULMEN_TOOLBOX_RELEASE_TAG) $(DIST_RELEASE)
+
+release-verify-digests: ## Verify every image reference in the signed manifests resolves to its signed digest
+	@scripts/release-verify.sh digests $(FULMEN_TOOLBOX_RELEASE_TAG) $(DIST_RELEASE)
+
+release-upload: verify-release-key verify-minisign-key ## Verify keys and signatures, then upload them to the GitHub Release
+	@scripts/release-verify.sh signatures $(FULMEN_TOOLBOX_RELEASE_TAG) $(DIST_RELEASE)
 	@scripts/release-upload.sh $(FULMEN_TOOLBOX_RELEASE_TAG) $(DIST_RELEASE)
 
 ## Show manual signing workflow steps
@@ -995,7 +1000,7 @@ release-signing-help:
 	@echo ""
 	@echo "2. INTERACTIVE (run via make - still requires passphrase/browser):"
 	@echo "   export FULMEN_TOOLBOX_PGP_KEY_ID='<your-key-id>!'"
-	@echo "   export FULMEN_TOOLBOX_GPG_HOMEDIR=\"\$$HOME/.gnupg\"  # optional (multiple keyrings)"
+	@echo "   export FULMEN_TOOLBOX_GPG_HOMEDIR=<isolated gpg homedir>  # required for release-tag; optional for signing"
 	@echo "   export FULMEN_TOOLBOX_MINISIGN_KEY=\"\$$HOME/.minisign/minisign.key\""
 	@echo "   FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-sign"
 	@echo ""
@@ -1006,8 +1011,9 @@ release-signing-help:
 	@echo "   # (equivalents: FULMEN_TOOLBOX_SKIP_COSIGN=1, FULMEN_TOOLBOX_SKIP_GPG=1, FULMEN_TOOLBOX_SKIP_MINISIGN=1)"
 	@echo ""
 	@echo "3. AUTOMATED (run via make):"
-	@echo "   make verify-release-key"
-	@echo "   FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-upload"
+	@echo "   FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-verify-signatures"
+	@echo "   FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-verify-digests"
+	@echo "   FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-upload  # re-verifies keys and signatures first"
 	@echo ""
 
 ## Bootstrap repo tooling (trust-anchor: sfetch -> goneat -> doctor tools)

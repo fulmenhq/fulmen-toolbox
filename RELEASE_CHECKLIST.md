@@ -81,9 +81,10 @@ These gates catch issues that PR status does not. Even if all pre-flight items w
   - [ ] No leftover `:<rc-tag>` tags on GHCR are visible to consumers (the pre-release tag guard in `release.yml` prevents publishing pre-release tags to `:latest` / `:v<major>`, but per-image RC tags can linger if they were explicitly written)
 
 - [ ] If superseding a previous partial release (e.g. v0.4.1 → v0.4.2 after a build failure left v0.4.1 incomplete), execute in this order:
-  1. Delete the prior GitHub Release page **immediately before** the new tag push: `gh release delete <prior-tag> --yes` (keep the git tag in history)
-  2. Then tag and push the new release
-  3. This minimizes the consumer-visible window where the prior release page is missing but the new one is not yet published
+  1. Run `make release-tag` and `make release-tag-verify` for the new release first
+  2. Delete the prior GitHub Release page **immediately before** `make release-tag-push`: `gh release delete <prior-tag> --yes` (keep the git tag in history)
+  3. Then run `make release-tag-push`
+  4. This minimizes the consumer-visible window where the prior release page is missing but the new one is not yet published
 
 ## Build & Publish (CI-driven)
 
