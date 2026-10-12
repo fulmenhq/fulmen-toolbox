@@ -9,9 +9,14 @@ set -euo pipefail
 #   signatures  every SHA256SUMS-<image> in <dir> has a .asc and a .minisig;
 #               each .asc is one good signature made under the exported GPG
 #               public key, checked in a throwaway keyring; each .minisig
-#               verifies with the exported minisign public key
-#   digests     every image reference listed in the manifests resolves on the
-#               registry to exactly the digest recorded for it
+#               verifies with the exported minisign public key, and its
+#               trusted comment names that image and <tag>
+#   digests     runs the signatures check, then requires every image
+#               reference listed in the manifests to resolve on the registry
+#               to exactly the digest recorded for it
+#
+# The keys are taken from <dir>. Pin the PGP key with
+# FULMEN_TOOLBOX_PGP_FINGERPRINT when verifying downloaded release assets.
 #
 # Inputs in <dir> (default dist/release): SHA256SUMS-*, their .asc and
 # .minisig signatures, fulmen-toolbox-release-signing-key.asc and
@@ -58,7 +63,7 @@ load_manifests() {
 }
 
 cmd_signatures() {
-	local home primary status count=0 m
+	local home primary status count=0 m comment image
 	command -v gpg >/dev/null || die "gpg is required"
 	command -v minisign >/dev/null || die "minisign is required"
 	[ -f "${GPG_KEY_FILE}" ] || die "missing ${GPG_KEY_FILE}; run make release-export-keys or release-download"
@@ -94,8 +99,12 @@ cmd_signatures() {
 			die "$(basename "${m}").asc was not signed under ${primary}"
 		fi
 
-		minisign -Vqm "${m}" -p "${MINISIGN_PUB}" >/dev/null 2>&1 ||
+		comment=$(minisign -Vm "${m}" -p "${MINISIGN_PUB}" 2>/dev/null | sed -n 's/^Trusted comment: //p') ||
 			die "minisign verification failed for $(basename "${m}")"
+		image=${m##*/SHA256SUMS-}
+		if [ "${comment}" != "fulmen-toolbox ${image} ${TAG#v}" ]; then
+			die "$(basename "${m}").minisig trusted comment '${comment}' is not 'fulmen-toolbox ${image} ${TAG#v}'"
+		fi
 		count=$((count + 1))
 	done
 
@@ -107,6 +116,8 @@ cmd_signatures() {
 cmd_digests() {
 	local m name digest ref got total=0 bad=0
 	command -v docker >/dev/null || die "docker (buildx imagetools) is required"
+	# Digests are only meaningful from manifests that verify.
+	(cmd_signatures) || die "manifest signatures did not verify; digests not checked"
 	load_manifests
 	for m in "${MANIFESTS[@]}"; do
 		name=${m##*/}
@@ -114,8 +125,9 @@ cmd_digests() {
 		while read -r digest ref || [ -n "${digest}" ]; do
 			[ -n "${digest}" ] || continue
 			[[ "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]] || die "${name}: invalid digest '${digest}'"
+			[[ "${ref}" =~ ^[a-z0-9][a-z0-9._/:@-]*$ ]] || die "${name}: invalid image reference '${ref}'"
 			total=$((total + 1))
-			got=$(docker buildx imagetools inspect "${ref}" --format '{{json .Manifest.Digest}}' 2>/dev/null | tr -d '"') || got=""
+			got=$(docker buildx imagetools inspect --format '{{json .Manifest.Digest}}' -- "${ref}" 2>/dev/null | tr -d '"') || got=""
 			if [ "${got}" != "${digest}" ]; then
 				echo "mismatch: ${ref} signed ${digest} registry ${got:-unresolved}" >&2
 				bad=$((bad + 1))
