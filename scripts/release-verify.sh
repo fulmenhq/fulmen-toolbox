@@ -36,17 +36,25 @@ MINISIGN_PUB="${DIR}/fulmenhq-release-signing.pub"
 [ -n "${TAG}" ] || die "usage: release-verify.sh signatures|digests <tag> [dir]"
 [ -d "${DIR}" ] || die "${DIR} is not a directory"
 
-manifests() {
-	local m found=0
+# Sets MANIFESTS to the SHA256SUMS-<image> manifests in DIR. Fails when there
+# are none, or when a .asc or .minisig has no manifest: release-upload would
+# publish those signatures unverified.
+MANIFESTS=()
+load_manifests() {
+	local m base
 	for m in "${DIR}"/SHA256SUMS-*; do
 		[ -e "${m}" ] || continue
 		case "${m}" in
-		*.asc | *.minisig) continue ;;
+		*.asc | *.minisig)
+			base=${m%.*}
+			[ -f "${base}" ] || die "${m##*/} has no manifest ${base##*/}"
+			continue
+			;;
 		esac
-		found=1
-		printf '%s\n' "${m}"
+		[ -f "${m}" ] || die "${m##*/} is not a regular file"
+		MANIFESTS+=("${m}")
 	done
-	[ "${found}" -eq 1 ] || die "no SHA256SUMS-* manifests in ${DIR}"
+	[ "${#MANIFESTS[@]}" -gt 0 ] || die "no SHA256SUMS-* manifests in ${DIR}"
 }
 
 cmd_signatures() {
@@ -71,7 +79,8 @@ cmd_signatures() {
 		[ "${primary}" = "${want}" ] || die "exported key ${primary} is not FULMEN_TOOLBOX_PGP_FINGERPRINT ${want}"
 	fi
 
-	while IFS= read -r m; do
+	load_manifests
+	for m in "${MANIFESTS[@]}"; do
 		[ -f "${m}.asc" ] || die "missing ${m}.asc"
 		[ -f "${m}.minisig" ] || die "missing ${m}.minisig"
 
@@ -88,8 +97,9 @@ cmd_signatures() {
 		minisign -Vqm "${m}" -p "${MINISIGN_PUB}" >/dev/null 2>&1 ||
 			die "minisign verification failed for $(basename "${m}")"
 		count=$((count + 1))
-	done < <(manifests)
+	done
 
+	[ "${count}" -eq "${#MANIFESTS[@]}" ] || die "verified ${count} of ${#MANIFESTS[@]} manifests"
 	echo "verified: ${count} manifest(s) for ${TAG} with PGP and minisign"
 	echo "  pgp primary: ${primary}"
 }
@@ -97,9 +107,11 @@ cmd_signatures() {
 cmd_digests() {
 	local m name digest ref got total=0 bad=0
 	command -v docker >/dev/null || die "docker (buildx imagetools) is required"
-	while IFS= read -r m; do
+	load_manifests
+	for m in "${MANIFESTS[@]}"; do
 		name=${m##*/}
-		while read -r digest ref; do
+		# The second test reads a final line that has no trailing newline.
+		while read -r digest ref || [ -n "${digest}" ]; do
 			[ -n "${digest}" ] || continue
 			[[ "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]] || die "${name}: invalid digest '${digest}'"
 			total=$((total + 1))
@@ -109,7 +121,7 @@ cmd_digests() {
 				bad=$((bad + 1))
 			fi
 		done <"${m}"
-	done < <(manifests)
+	done
 	[ "${total}" -gt 0 ] || die "no image references in the manifests"
 	[ "${bad}" -eq 0 ] || die "${bad} of ${total} image reference(s) do not match their signed digest"
 	echo "verified: ${total} image reference(s) for ${TAG} match their signed digests"

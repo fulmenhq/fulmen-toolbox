@@ -220,6 +220,8 @@ Recommended verification before upload:
 - `make verify-release-key` (verifies exported GPG public key contains no private material)
 - `make verify-minisign-key` (verifies minisign public key was exported/copied)
 - `make verify-release-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (fails if any expected image tag is missing)
+- `make release-verify-signatures FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (every `SHA256SUMS-*` manifest has a good PGP and minisign signature by the exported keys; also run by `make release-upload`)
+- `make release-verify-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (every image reference in the signed manifests resolves to its signed digest; `verify-release-digests` above only checks that the tags exist)
 - `make release-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (prints digests for copy/paste)
 
 #### Step 3.1: Stage release notes (optional)
@@ -254,7 +256,8 @@ make release-export-keys
 
 ```bash
 # Uploads signatures and keys to GitHub Release
-# (automatically exports public keys and verifies GPG key is safe)
+# (automatically exports public keys, verifies the GPG key is safe, and
+# verifies every manifest has a good PGP and minisign signature)
 make release-upload FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 ```
 

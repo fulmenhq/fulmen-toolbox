@@ -847,7 +847,7 @@ DIST_RELEASE ?= dist/release
 GPG_KEY_FILE ?= $(DIST_RELEASE)/fulmen-toolbox-release-signing-key.asc
 MINISIGN_PUB ?= $(DIST_RELEASE)/fulmenhq-release-signing.pub
 
-release-tag: ## Create a GPG-signed annotated tag for v$(VERSION) on HEAD and verify it (does not push)
+release-tag: ## Create a GPG-signed annotated tag for v<VERSION> on HEAD and verify it (does not push)
 	@FULMEN_TOOLBOX_RELEASE_TAG="$(FULMEN_TOOLBOX_RELEASE_TAG)" ./scripts/release-tag.sh create
 
 release-tag-verify: ## Verify the local release tag: signature, signing key, tagger identity, target
@@ -981,7 +981,7 @@ release-verify-key: verify-release-key ## Verify the exported GPG public key hol
 release-verify-signatures: ## Verify PGP and minisign signatures on every SHA256SUMS-* manifest (FULMEN_TOOLBOX_RELEASE_TAG=vX.Y.Z)
 	@scripts/release-verify.sh signatures $(FULMEN_TOOLBOX_RELEASE_TAG) $(DIST_RELEASE)
 
-release-verify-digests: ## Verify every image reference in the signed manifests resolves to its signed digest
+release-verify-digests: ## Verify each image ref in the signed manifests resolves to its signed digest (cf. verify-release-digests: tags exist)
 	@scripts/release-verify.sh digests $(FULMEN_TOOLBOX_RELEASE_TAG) $(DIST_RELEASE)
 
 release-upload: verify-release-key verify-minisign-key ## Verify keys and signatures, then upload them to the GitHub Release
@@ -1004,7 +1004,7 @@ release-signing-help:
 	@echo "   export FULMEN_TOOLBOX_MINISIGN_KEY=\"\$$HOME/.minisign/minisign.key\""
 	@echo "   FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-sign"
 	@echo ""
-	@echo "   # Optional skips (debugging / partial runs):"
+	@echo "   # Optional skips (debugging / partial runs; release-upload requires both PGP and minisign):"
 	@echo "   FULMEN_TOOLBOX_COSIGN=0 FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-sign"
 	@echo "   FULMEN_TOOLBOX_GPG=0 FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-sign"
 	@echo "   FULMEN_TOOLBOX_MINISIGN=0 FULMEN_TOOLBOX_RELEASE_TAG=v0.1.2 make release-sign"
