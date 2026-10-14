@@ -4,6 +4,7 @@ on:
     paths:
       - "scripts/release-*.sh"
       - "scripts/image-digests.sh"
+      - "scripts/cosign-release.sh"
       - "scripts/verify-release-pgp.sh"
       - "scripts/test_release_*.py"
       - "keys/**"

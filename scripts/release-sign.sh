@@ -135,7 +135,9 @@ for image in $IMAGES; do
 done
 
 # ── Verify the staged signatures against the pin, then promote ────────────
-bash "$ROOT/scripts/release-verify.sh" signatures "$TAG" "$STAGE" ||
+# Always against the pin: an environment trust override left over from
+# rotation testing must not decide what gets promoted.
+FULMEN_TOOLBOX_RELEASE_TRUST=pin bash "$ROOT/scripts/release-verify.sh" signatures "$TAG" "$STAGE" ||
 	fail "staged signatures do not verify against the pin; $DIR is unchanged"
 
 for image in $IMAGES; do

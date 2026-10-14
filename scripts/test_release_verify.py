@@ -462,6 +462,34 @@ class TestReleaseSign(VerifyTestCase):
         self.assertIn("not the pinned minisign key", out)
         self.assertEqual(self.snapshot(), before)
 
+    def test_env_trust_override_does_not_decide_promotion(self):
+        # A rogue minisign secret with the pinned public key beside it passes
+        # the preflight; an inherited env trust override that matches the
+        # rogue key must not let the staged result be promoted.
+        pair = Path(self.root) / "pair"
+        pair.mkdir()
+        shutil.copy(self.rogue.mini_key, pair / "minisign.key")
+        shutil.copy(self.real.mini_pub, pair / "minisign.pub")
+        before = self.snapshot()
+        e = clean_env()
+        e.update(
+            FULMEN_TOOLBOX_IMAGES=" ".join(IMAGES),
+            FULMEN_TOOLBOX_GPG_HOMEDIR=self.real.home,
+            FULMEN_TOOLBOX_PGP_KEY_ID=f"{self.real.sign}!",
+            FULMEN_TOOLBOX_MINISIGN_KEY=str(pair / "minisign.key"),
+            FULMEN_TOOLBOX_RELEASE_TRUST="env",
+            FULMEN_TOOLBOX_TRUST_PGP_KEYS=str(self.real.full),
+            FULMEN_TOOLBOX_TRUST_MINISIGN_PUB=str(self.rogue.mini_pub),
+        )
+        out, rc = run(
+            ["bash", self.repo / "scripts" / "release-sign.sh", TAG, self.dist],
+            env=e,
+            check=False,
+        )
+        self.assertNotEqual(rc, 0, out)
+        self.assertIn("do not verify against the pin", out)
+        self.assertEqual(self.snapshot(), before)
+
     def test_other_subkey_selector_changes_nothing(self):
         before = self.snapshot()
         out, rc = self.sign(self.real.home, f"{self.real.encr}!", self.real.mini_key)
@@ -474,10 +502,12 @@ COSIGN_STUB = """#!/usr/bin/env bash
 echo "$*" >> "$COSIGN_LOG"
 """
 
+# The live registry view: STUB_LIVE for every name, or STUB_ODD_LIVE for
+# the name in STUB_ODD_NAME.
 DIGESTS_STUB = """#!/usr/bin/env bash
 case "$1" in
-*/$STUB_ODD_NAME:*) echo "index sha256:$(printf 'e%.0s' $(seq 64))" ;;
-*) echo "index $STUB_INDEX" ;;
+*/$STUB_ODD_NAME:*) printf '%s\\n' "$STUB_ODD_LIVE" ;;
+*) printf '%s\\n' "$STUB_LIVE" ;;
 esac
 """
 
@@ -506,14 +536,20 @@ class TestCosignRelease(unittest.TestCase):
         for arch in ("arm64", "amd64"):
             (self.sboms / f"sbom-img-1.2.3-linux-{arch}.json").write_text(arch)
 
-    def cosign(self, cmd, *aliases, odd=""):
+    def live(self, *children):
+        return "\n".join(
+            [f"index {self.INDEX}"] + [f"child {d} {p}" for d, p in children]
+        )
+
+    def cosign(self, cmd, *aliases, odd="", odd_live=""):
         e = clean_env()
         e.update(
             COSIGN=str(self.root / "cosign"),
             IMAGE_DIGESTS=str(self.root / "digests"),
             COSIGN_LOG=str(self.log),
-            STUB_INDEX=self.INDEX,
+            STUB_LIVE=self.live((self.ARM, "linux/arm64"), (self.AMD, "linux/amd64")),
             STUB_ODD_NAME=odd or "none",
+            STUB_ODD_LIVE=odd_live,
             REGISTRY="reg",
             OWNER="own",
             CERT_IDENTITY="id",
@@ -580,10 +616,49 @@ class TestCosignRelease(unittest.TestCase):
                 )
             )
 
-    def test_alias_on_another_index_fails(self):
-        out, rc, _ = self.cosign("verify", "alias-a", odd="alias-a")
+    def assert_mismatch(self, cmd="verify", odd="", odd_live=""):
+        out, rc, calls = self.cosign(cmd, "alias-a", odd=odd, odd_live=odd_live)
         self.assertNotEqual(rc, 0, out)
-        self.assertIn("alias-a:v1.2.3 resolves to", out)
+        self.assertEqual(calls, [], "no cosign call before the inventory check")
+        return out
+
+    def test_alias_on_another_index_fails(self):
+        other = "sha256:" + "e" * 64
+        out = self.assert_mismatch(
+            odd="alias-a",
+            odd_live=f"index {other}\nchild {self.ARM} linux/arm64\nchild {self.AMD} linux/amd64",
+        )
+        self.assertIn("alias-a:v1.2.3 does not match", out)
+
+    def test_digests_file_omitting_a_child_fails(self):
+        self.digests.write_text(f"index {self.INDEX}\nchild {self.ARM} linux/arm64\n")
+        for cmd in ("sign", "verify"):
+            self.assertIn("img:v1.2.3 does not match", self.assert_mismatch(cmd))
+
+    def test_digests_file_adding_a_child_fails(self):
+        extra = "sha256:" + "5" * 64
+        self.digests.write_text(
+            self.digests.read_text() + f"child {extra} linux/s390x\n"
+        )
+        (self.sboms / "sbom-img-1.2.3-linux-s390x.json").write_text("s390x")
+        self.assertIn("does not match", self.assert_mismatch("sign"))
+
+    def test_digests_file_substituting_a_child_fails(self):
+        other = "sha256:" + "6" * 64
+        self.digests.write_text(self.digests.read_text().replace(self.AMD, other))
+        self.assertIn("does not match", self.assert_mismatch("sign"))
+
+    def test_digests_file_repeating_an_entry_fails(self):
+        self.digests.write_text(
+            self.digests.read_text() + f"child {self.AMD} linux/amd64\n"
+        )
+        self.assertIn("repeats an entry", self.assert_mismatch("sign"))
+
+    def test_one_name_missing_a_child_fails(self):
+        out = self.assert_mismatch(
+            odd="alias-a", odd_live=f"index {self.INDEX}\nchild {self.ARM} linux/arm64"
+        )
+        self.assertIn("alias-a:v1.2.3 does not match", out)
 
     def test_missing_child_sbom_fails_before_signing(self):
         (self.sboms / "sbom-img-1.2.3-linux-amd64.json").unlink()

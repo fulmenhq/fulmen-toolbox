@@ -19,7 +19,8 @@ set -euo pipefail
 #           describe every platform the index names; the index signature
 #           binds the child digests)
 #   child   signed and attested with that child's own SBOM, and both verified
-# verify also checks that every name resolves to the index in <digests-file>.
+# Before any cosign call, every name must resolve to exactly the index and
+# platform manifests listed in <digests-file> (see the check below).
 #
 # Environment:
 #   REGISTRY, OWNER                registry and owner (default ghcr.io, fulmenhq)
@@ -45,6 +46,11 @@ OWNER=${OWNER:-fulmenhq}
 COSIGN=${COSIGN:-cosign}
 IMAGE_DIGESTS=${IMAGE_DIGESTS:-"$(dirname "$0")/image-digests.sh"}
 
+case "${CMD}" in
+sign) ;;
+verify) [ -n "${CERT_IDENTITY:-}" ] && [ -n "${CERT_ISSUER:-}" ] || die "verify needs CERT_IDENTITY and CERT_ISSUER" ;;
+*) die "usage: cosign-release.sh sign|verify <image> <version> <digests-file> <sbom-dir> [alias ...]" ;;
+esac
 [ -f "${DIGESTS}" ] || die "missing ${DIGESTS}"
 INDEX=$(awk '$1 == "index" { print $2 }' "${DIGESTS}")
 [[ "${INDEX}" =~ ^sha256:[0-9a-f]{64}$ ]] && [ "$(awk '$1 == "index"' "${DIGESTS}" | wc -l | tr -d ' ')" = "1" ] ||
@@ -66,6 +72,22 @@ while read -r _ platform; do
 	sbom_for "${platform}" >/dev/null
 done <<<"${CHILDREN}"
 
+# The supplied DIGESTS must be exactly what each published name resolves to
+# now: the same index and the same set of platform manifests, nothing omitted,
+# added, substituted or repeated. Checked for every name before any cosign
+# call, so neither signing nor verification trusts the downloaded file alone.
+want=$(sort "${DIGESTS}")
+[ "$(printf '%s\n' "${want}" | uniq -d)" = "" ] || die "${DIGESTS} repeats an entry"
+for name in "${NAMES[@]}"; do
+	live=$("${IMAGE_DIGESTS}" "${REGISTRY}/${OWNER}/${name}:v${VERSION}") ||
+		die "cannot resolve ${name}:v${VERSION}"
+	if [ "$(printf '%s\n' "${live}" | sort)" != "${want}" ]; then
+		echo "error: ${name}:v${VERSION} does not match ${DIGESTS}" >&2
+		diff <(printf '%s\n' "${want}") <(printf '%s\n' "${live}" | sort) >&2 || true
+		exit 1
+	fi
+done
+
 sign_name() {
 	local name=$1 ref digest platform
 	ref="${REGISTRY}/${OWNER}/${name}"
@@ -77,10 +99,8 @@ sign_name() {
 }
 
 verify_name() {
-	local name=$1 ref got digest platform
+	local name=$1 ref digest platform
 	ref="${REGISTRY}/${OWNER}/${name}"
-	got=$("${IMAGE_DIGESTS}" "${ref}:v${VERSION}" | awk '$1 == "index" { print $2 }')
-	[ "${got}" = "${INDEX}" ] || die "${name}:v${VERSION} resolves to ${got:-nothing}, not ${INDEX}"
 	"${COSIGN}" verify --certificate-identity "${CERT_IDENTITY}" --certificate-oidc-issuer "${CERT_ISSUER}" "${ref}@${INDEX}" >/dev/null
 	echo "verified: ${name}@${INDEX} index signature"
 	while read -r digest platform; do
@@ -98,7 +118,6 @@ sign)
 	done
 	;;
 verify)
-	[ -n "${CERT_IDENTITY:-}" ] && [ -n "${CERT_ISSUER:-}" ] || die "verify needs CERT_IDENTITY and CERT_ISSUER"
 	for name in "${NAMES[@]}"; do
 		verify_name "${name}"
 	done
