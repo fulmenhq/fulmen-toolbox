@@ -62,24 +62,13 @@ jobs:
 ## CI Signing Flow (Recommended)
 
 1. **Build & push images** (existing release workflow).
-2. **Collect digests** from the build outputs:
+2. **Collect digests** with `scripts/image-digests.sh <image>:<tag>`:
    - Use the manifest-derived image list (from `manifests/tools.json`) to avoid per-variant hand edits.
-   - For each image, record the pushed digest (`ghcr.io/...@sha256:...`).
-3. **Sign + attest in CI** using cosign keyless:
-   - Set `COSIGN_YES=true` to avoid prompts.
-   - Use `cosign sign` and `cosign attest --type spdxjson` per digest.
-4. **(Optional) Attach SBOM** if legacy discovery is desired:
-   - Use `cosign attach sbom --sbom <file> --type spdx --input-format json`.
-
-## Example CI Step (Skeleton)
-
-```bash
-export COSIGN_YES=true
-for ref in ${IMAGE_DIGESTS}; do
-  cosign sign "${ref}"
-  cosign attest --predicate "${SBOM_FILE}" --type spdxjson "${ref}"
-done
-```
+   - It prints the index digest and each platform manifest digest; buildx attestation-manifest entries are skipped. Never take the first entry of the platform list.
+3. **Sign + attest in CI** with `scripts/cosign-release.sh sign`, for every published name (the image and each alias; each is its own registry repository, so equal digests do not share signatures):
+   - Sign the index digest and every platform manifest digest.
+   - Attest each platform manifest with its own SBOM (`sbom-<image>-<version>-<os>-<arch>.json`, generated from that digest). The index gets no SBOM attestation.
+4. **Verify in CI** with `scripts/cosign-release.sh verify`: every name resolves to the same index, and every signature and attestation verifies against the release workflow identity at the tag.
 
 ## Release Checklist Integration
 
@@ -91,15 +80,17 @@ When CI signing is enabled:
 
 ## Verification (Consumer)
 
-Document these commands in release notes:
+The release workflow signs and attests each image's multi-arch index digest and every platform manifest the index names, then verifies all of them before the job succeeds. `DIGESTS-<image>` on the release lists the digests. Verify against the workflow identity at the tag, not any identity:
 
 ```bash
-cosign verify \
-  --certificate-oidc-issuer https://accounts.google.com \
-  --certificate-identity-regexp ".*@.*" \
+IDENTITY="https://github.com/fulmenhq/fulmen-toolbox/.github/workflows/release.yml@refs/tags/<tag>"
+ISSUER="https://token.actions.githubusercontent.com"
+
+cosign verify --certificate-identity "$IDENTITY" --certificate-oidc-issuer "$ISSUER" \
   ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest>
 
 cosign verify-attestation --type spdxjson \
+  --certificate-identity "$IDENTITY" --certificate-oidc-issuer "$ISSUER" \
   ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest>
 ```
 

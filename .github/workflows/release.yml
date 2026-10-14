@@ -296,12 +296,36 @@ jobs:
             exit 1
           fi
           echo "DIGEST=$DIGEST" >> "$GITHUB_ENV"
-      - name: Generate SBOM (syft)
-        uses: anchore/sbom-action@v0
-        with:
-          image: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}@${{ env.DIGEST }}
-          format: spdx-json
-          output-file: sbom-${{ matrix.image }}-${{ steps.meta.outputs.version }}.json
+      - name: Resolve the index and platform manifest digests
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ matrix.image }}
+        run: |
+          set -euo pipefail
+          scripts/image-digests.sh "$REGISTRY/$OWNER/$IMAGE:v$VERSION" > "DIGESTS-$IMAGE"
+          cat "DIGESTS-$IMAGE"
+          got=$(awk '$1 == "index" { print $2 }' "DIGESTS-$IMAGE")
+          if [ "$got" != "$DIGEST" ]; then
+            echo "❌ index digest $got is not the composed manifest $DIGEST" >&2
+            exit 1
+          fi
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+      - name: Generate one SBOM per platform manifest (syft)
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ matrix.image }}
+        run: |
+          set -euo pipefail
+          # Each platform manifest gets the SBOM of its own digest. There is
+          # no SBOM for the index: one SPDX document cannot describe every
+          # platform it names.
+          while read -r kind digest platform; do
+            [ "$kind" = "child" ] || continue
+            out="sbom-$IMAGE-$VERSION-${platform//\//-}.json"
+            syft scan "registry:$REGISTRY/$OWNER/$IMAGE@$digest" -o "spdx-json=$out"
+            echo "$out ← $digest $platform"
+          done < "DIGESTS-$IMAGE"
       - name: Generate SHA256SUMS
         env:
           OWNER: ${{ github.repository_owner }}
@@ -314,8 +338,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            sbom-${{ matrix.image }}-${{ steps.meta.outputs.version }}.json
+            sbom-${{ matrix.image }}-${{ steps.meta.outputs.version }}-*.json
             SHA256SUMS-${{ matrix.image }}
+            DIGESTS-${{ matrix.image }}
           tag_name: v${{ steps.meta.outputs.version }}
           name: v${{ steps.meta.outputs.version }}
           prerelease: ${{ contains(steps.meta.outputs.version, '-') }}
@@ -380,7 +405,17 @@ jobs:
         uses: sigstore/cosign-installer@v3
         with:
           cosign-release: "v2.4.0"
-      - name: Sign and attest images (keyless)
+      - name: Download the digests and per-platform SBOMs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          IMAGE: ${{ matrix.image }}
+        run: |
+          set -euo pipefail
+          mkdir -p sboms
+          gh release download "v$VERSION" --repo "$GITHUB_REPOSITORY" --dir sboms \
+            --pattern "DIGESTS-$IMAGE" --pattern "sbom-$IMAGE-$VERSION-*.json"
+          cat "sboms/DIGESTS-$IMAGE"
+      - name: Sign every published name (index and platform manifests; SBOM per platform)
         env:
           COSIGN_YES: "true"
           OWNER: ${{ github.repository_owner }}
@@ -388,27 +423,16 @@ jobs:
           ALIASES: ${{ matrix.aliases }}
         run: |
           set -euo pipefail
-
-          sbom="sbom-$IMAGE-$VERSION.json"
-          curl -fsSL "https://github.com/$OWNER/fulmen-toolbox/releases/download/v$VERSION/$sbom" -o "$sbom"
-
-          names=("$IMAGE")
-          if [ -n "${ALIASES}" ]; then
-            while IFS= read -r alias; do
-              [ -n "$alias" ] || continue
-              names+=("$alias")
-            done <<< "$ALIASES"
-          fi
-
-          for name in "${names[@]}"; do
-            ref="$REGISTRY/$OWNER/$name:v$VERSION"
-            digest=$(docker manifest inspect "$ref" -v 2>/dev/null | \
-              jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end') || true
-            if [ -z "$digest" ] || [ "$digest" = "null" ]; then
-              echo "❌ Unable to resolve digest for $ref" >&2
-              exit 1
-            fi
-
-            cosign sign "$REGISTRY/$OWNER/$name@$digest"
-            cosign attest --predicate "$sbom" --type spdxjson "$REGISTRY/$OWNER/$name@$digest"
-          done
+          # shellcheck disable=SC2086 # one alias per word
+          scripts/cosign-release.sh sign "$IMAGE" "$VERSION" "sboms/DIGESTS-$IMAGE" sboms $ALIASES
+      - name: Verify every published name against the release workflow identity
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ matrix.image }}
+          ALIASES: ${{ matrix.aliases }}
+          CERT_ISSUER: https://token.actions.githubusercontent.com
+        run: |
+          set -euo pipefail
+          export CERT_IDENTITY="https://github.com/$OWNER/fulmen-toolbox/.github/workflows/release.yml@refs/tags/v$VERSION"
+          # shellcheck disable=SC2086 # one alias per word
+          scripts/cosign-release.sh verify "$IMAGE" "$VERSION" "sboms/DIGESTS-$IMAGE" sboms $ALIASES
