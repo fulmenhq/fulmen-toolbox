@@ -65,21 +65,10 @@ jobs:
 2. **Collect digests** with `scripts/image-digests.sh <image>:<tag>`:
    - Use the manifest-derived image list (from `manifests/tools.json`) to avoid per-variant hand edits.
    - It prints the index digest and each platform manifest digest; buildx attestation-manifest entries are skipped. Never take the first entry of the platform list.
-3. **Sign + attest in CI** using cosign keyless:
-   - Set `COSIGN_YES=true` to avoid prompts.
-   - Use `cosign sign` and `cosign attest --type spdxjson` per digest.
-4. **(Optional) Attach SBOM** if legacy discovery is desired:
-   - Use `cosign attach sbom --sbom <file> --type spdx --input-format json`.
-
-## Example CI Step (Skeleton)
-
-```bash
-export COSIGN_YES=true
-for ref in ${IMAGE_DIGESTS}; do
-  cosign sign "${ref}"
-  cosign attest --predicate "${SBOM_FILE}" --type spdxjson "${ref}"
-done
-```
+3. **Sign + attest in CI** with `scripts/cosign-release.sh sign`, for every published name (the image and each alias; each is its own registry repository, so equal digests do not share signatures):
+   - Sign the index digest and every platform manifest digest.
+   - Attest each platform manifest with its own SBOM (`sbom-<image>-<version>-<os>-<arch>.json`, generated from that digest). The index gets no SBOM attestation.
+4. **Verify in CI** with `scripts/cosign-release.sh verify`: every name resolves to the same index, and every signature and attestation verifies against the release workflow identity at the tag.
 
 ## Release Checklist Integration
 

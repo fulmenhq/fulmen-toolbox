@@ -19,7 +19,8 @@ set -euo pipefail
 #
 # Trust comes from the release-key pin committed in this repository, read as
 # git objects from the pin ref (default refs/tags/<tag>), never from the
-# working tree and never from <dir>:
+# working tree and never from <dir>. With the default ref, the tag itself
+# must carry one good signature by the pinned signing subkey:
 #   keys/expected-fingerprints.txt   "gpg <primary>" then "minisign <sha256>"
 #   docs/security/release-signing-keys.asc
 #   docs/security/release-minisign.pub
@@ -134,7 +135,33 @@ load_pin_trust() {
 	import_pgp "${TRUST_PGP}"
 	[ "${PRIMARY}" = "${want_primary}" ] || die "pinned PGP primary ${PRIMARY} differs from its anchor ${want_primary}"
 
-	TRUST_SOURCE="committed release-key pin at ${ref} (${commit:0:12})"
+	if [ -z "${FULMEN_TOOLBOX_RELEASE_PIN_REF:-}" ]; then
+		verify_tag_signature "${ref}"
+		TRUST_SOURCE="committed release-key pin at ${ref} (${commit:0:12}), tag signed by ${SUBKEY}"
+	else
+		TRUST_SOURCE="committed release-key pin at ${ref} (${commit:0:12}); tag signature not checked (FULMEN_TOOLBOX_RELEASE_PIN_REF)"
+	fi
+}
+
+# The release tag must be an annotated tag for <tag>, with exactly one good
+# signature by the pinned signing subkey under the pinned primary, checked
+# with the keys it pins.
+verify_tag_signature() {
+	local ref=$1 status record
+	[ "$(git -C "${ROOT}" cat-file -t "${ref}" 2>/dev/null)" = "tag" ] ||
+		die "${TAG} is not an annotated tag"
+	[ "$(git -C "${ROOT}" cat-file -p "${ref}" | sed -n '/^$/q; s/^tag //p')" = "${TAG}" ] ||
+		die "${TAG} tag object records a different tag name"
+	status=$(GNUPGHOME="${TRUST_HOME}/gpg" git -C "${ROOT}" -c gpg.format=openpgp -c gpg.program=gpg \
+		verify-tag --raw "${TAG}" 2>&1) || die "${TAG} tag signature does not verify with the pinned keys"
+	if printf '%s\n' "${status}" | grep -qE '^\[GNUPG:\] (BADSIG|ERRSIG|EXPSIG|EXPKEYSIG|REVKEYSIG|KEYREVOKED) '; then
+		die "${TAG} tag has an expired, revoked, bad or unverifiable signature"
+	fi
+	[ "$(printf '%s\n' "${status}" | grep -c '^\[GNUPG:\] VALIDSIG ')" -eq 1 ] ||
+		die "${TAG} tag is not exactly one good signature"
+	read -r -a record < <(printf '%s\n' "${status}" | grep '^\[GNUPG:\] VALIDSIG ')
+	[ "${record[2]}" = "${SUBKEY}" ] || die "${TAG} tag was not signed by the pinned signing subkey ${SUBKEY}"
+	[ "${record[${#record[@]} - 1]}" = "${PRIMARY}" ] || die "${TAG} tag is not bound to the pinned primary ${PRIMARY}"
 }
 
 # Fails when <path> resolves inside <dir>.

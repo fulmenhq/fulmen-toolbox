@@ -26,12 +26,11 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
 - [ ] Ensure `VERSION` reflects the intended semver (`make bump-*` to adjust)
 - [ ] Set release env vars (avoid cross-repo collisions):
   - `FULMEN_TOOLBOX_RELEASE_TAG` (must be `v<semver>`, e.g. `v0.2.2`)
-  - `FULMEN_TOOLBOX_PGP_KEY_ID` (GPG key ID, with `!` suffix to force subkey)
+  - `FULMEN_TOOLBOX_PGP_KEY_ID` (selects the pinned key; `release-sign` always signs with the pinned signing subkey)
   - `FULMEN_TOOLBOX_MINISIGN_KEY` (path to minisign secret key)
   - `FULMEN_TOOLBOX_GPG_HOMEDIR` (isolated gpg homedir holding the signing key; required for `make release-tag`, optional for manifest signing)
   - `FULMEN_TOOLBOX_TAGGER_NAME` (tagger name recorded on the release tag)
   - `FULMEN_TOOLBOX_TAGGER_EMAIL` (tagger email; must be a uid email on the signing key)
-  - `FULMEN_TOOLBOX_ATTACH_SBOM=1` (optional; enable OCI SBOM attach)
   - `FULMEN_TOOLBOX_IMAGES` (optional; override default image set for digests/signing)
 - [ ] Ensure GitHub Packages access for verification (for local `gh api`):
   - CI publishing should use `GITHUB_TOKEN` (short-lived) with workflow `permissions: packages: write`.
@@ -109,11 +108,11 @@ These gates catch issues that PR status does not. Even if all pre-flight items w
   - Builds multi-arch images for all matrix entries
   - Manifest job composes multi-arch tags (`max-parallel: 2` + imagetools retry; do not raise concurrency without re-validating GHCR 429 behavior)
   - Pushes to GHCR (`:latest`, `:v<major>`, and semver tag)
-  - Generates SBOMs and SHA256SUMS per-image
+  - Resolves `DIGESTS-<image>` (index + each platform manifest), generates one SBOM per platform manifest (`sbom-<image>-<version>-<os>-<arch>.json`) and `SHA256SUMS-<image>`
   - Uploads artifacts to GitHub Release
 - [ ] Approve the `release-signing` environment for the cosign job:
   - GitHub → Actions → **Release (build, sbom, checksums)** → “Review deployments”
-  - Approve the `release-signing` job so keyless cosign signing/attestation runs once
+  - Approve the `release-signing` job so keyless cosign signing/attestation runs once: every published name (image + aliases) gets a signature on the index and on each platform manifest, and each platform manifest an SPDX attestation of its own SBOM; the job then verifies all of them with the release workflow identity
 - [ ] Verify release artifacts appear on GitHub Release page
 
 ## Manual Signing Workflow
@@ -141,8 +140,6 @@ export FULMEN_TOOLBOX_MINISIGN_KEY="$HOME/.minisign/minisign.key"
 #   public key=/path/to/minisign.pub
 [ -f "${FULMEN_TOOLBOX_MINISIGN_KEY%.key}.pub" ] || echo "⚠️ minisign pubkey missing: ${FULMEN_TOOLBOX_MINISIGN_KEY%.key}.pub"
 
-# OPTIONAL: disable cosign if needed
-# export FULMEN_TOOLBOX_COSIGN=0
 ```
 
 ### Phase 1: Automated Setup (AI/CLI friendly)
@@ -180,8 +177,6 @@ Required:
 Optional:
 
 - `FULMEN_TOOLBOX_GPG_HOMEDIR` (recommended if you use multiple keyrings)
-- `FULMEN_TOOLBOX_COSIGN=0` (disable all cosign operations)
-- `FULMEN_TOOLBOX_ATTACH_SBOM=1` (enable OCI SBOM attachment; deprecated upstream; off by default)
 
 #### Step 2.2: Run signing helper (checksums only)
 
@@ -194,16 +189,7 @@ This wraps the interactive signing steps:
 - GPG signs `dist/release/SHA256SUMS-*` (passphrase prompts)
 - Minisign signs `dist/release/SHA256SUMS-*` (passphrase prompts)
 
-Optional skips (debugging/partial runs):
-
-```bash
-FULMEN_TOOLBOX_GPG=0 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
-FULMEN_TOOLBOX_MINISIGN=0 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
-
-# (equivalents)
-FULMEN_TOOLBOX_SKIP_GPG=1 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
-FULMEN_TOOLBOX_SKIP_MINISIGN=1 make release-sign FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
-```
+Before any existing signature is touched, `release-sign` checks the operator keys against the release-key pin committed at the tag (the PGP selection must be the pinned key, the minisign key must match its anchor). It signs into a staging directory, verifies the staged signatures against the pin, and only then moves them into `dist/release`. PGP and minisign are both required; there is no partial run.
 
 Verify signatures created:
 
@@ -295,6 +281,7 @@ cosign verify --certificate-identity "$IDENTITY" --certificate-oidc-issuer "$ISS
 
 - Note: `--type` is a predicate-type label (string); it must match the value used during attestation.
 - Fulmen Toolbox standard: `--type spdxjson` for SPDX-JSON SBOM attestations.
+- Attestations are on the **platform manifest** digests (`child` lines in `DIGESTS-<image>`), each with the SBOM of that platform. The index is signed but has no SBOM attestation: one SPDX document cannot describe every platform it names. Verify the index signature, then the platform you run.
 
 ```bash
 cosign verify-attestation --type spdxjson \
@@ -308,14 +295,6 @@ cosign verify-attestation --type spdxjson \
   | jq -r '.payload' \
   | base64 -d \
   | jq -r '.predicate'
-```
-
-### Cosign SBOM (OCI-attached, optional)
-
-OCI attachment is a discovery convenience but is deprecated upstream (`cosign attach sbom`).
-
-```bash
-cosign download sbom ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest>
 ```
 
 ### GPG and minisign

@@ -3,7 +3,7 @@
 fulmen-toolbox releases carry two kinds of signature:
 
 - **Checksum manifests.** Each `SHA256SUMS-<image>` lists the image references for that image and the digest each resolves to. It is signed with PGP (`.asc`) and minisign (`.minisig`).
-- **Images.** The release workflow signs and attests, with keyless cosign, the multi-arch index digest of every image and each platform manifest the index names. `DIGESTS-<image>` on the release lists those digests.
+- **Images.** The release workflow signs, with keyless cosign, the multi-arch index digest and each platform manifest the index names, under every published name (image and aliases). Each platform manifest also carries an SPDX attestation of its own SBOM; the index carries none. `DIGESTS-<image>` on the release lists the digests.
 
 ## Release keys
 
@@ -23,6 +23,8 @@ These are the same keys that sign goneat releases.
 
 `scripts/release-verify.sh` (`make release-verify-signatures`, run by `make release-upload`) reads the three pin files as git objects from the release tag, not from the working tree or `dist/release`, and requires:
 
+- the release tag to be an annotated tag for that version with one good signature by the pinned signing subkey (not checked when `FULMEN_TOOLBOX_RELEASE_PIN_REF` overrides the ref)
+
 - the anchors file to name the pinned PGP primary and minisign key, and the key files to match it
 - the PGP keys file to hold exactly one primary, exactly one signing subkey and no secret key material
 - every manifest to have exactly one good, unexpired, unrevoked PGP signature by the pinned signing subkey, bound to the pinned primary
@@ -39,6 +41,10 @@ Overrides, for explicit use only:
 `make release-verify-pin` checks the pin at `HEAD`. CI runs it, together with `make test-release-tag` and `make test-release-verify`, on every change to the release scripts or keys.
 
 Tags before v0.5.10 predate the pin. To verify one, set `FULMEN_TOOLBOX_RELEASE_PIN_REF` to a ref that has the pin; those releases were signed with the same keys.
+
+## Signing
+
+`make release-sign` checks the operator keys against the pin at the tag before touching any signature, signs into a staging directory, verifies the result against the pin, and only then promotes it into `dist/release`.
 
 ## Rotating a key
 

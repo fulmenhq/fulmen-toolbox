@@ -165,7 +165,12 @@ class VerifyTestCase(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.root, True)
         self.repo = self.root / "repo"
         (self.repo / "scripts").mkdir(parents=True)
-        for name in ("release-verify.sh", "image-digests.sh"):
+        for name in (
+            "release-verify.sh",
+            "image-digests.sh",
+            "release-sign.sh",
+            "cosign-release.sh",
+        ):
             shutil.copy(SCRIPTS / name, self.repo / "scripts" / name)
         self.commit_pin(self.real)
         self.dist = self.root / "dist"
@@ -208,7 +213,37 @@ class VerifyTestCase(unittest.TestCase):
         self.git("add", "-A")
         self.git("commit", "-q", "-m", "pin", "--allow-empty")
         if tag:
-            self.git("tag", "-f", tag)
+            self.signed_tag(tag, signer)
+
+    def signed_tag(self, tag, signer, subkey=None, ref="HEAD"):
+        """An annotated tag signed by the signer's signing subkey."""
+        env = clean_env()
+        env.update(
+            GNUPGHOME=signer.home,
+            GIT_AUTHOR_NAME="t",
+            GIT_AUTHOR_EMAIL="t@example.test",
+            GIT_COMMITTER_NAME="t",
+            GIT_COMMITTER_EMAIL="t@example.test",
+        )
+        run(
+            [
+                "git",
+                "-C",
+                self.repo,
+                "-c",
+                "gpg.program=gpg",
+                "tag",
+                "-f",
+                "-s",
+                "-u",
+                f"{subkey or signer.sign}!",
+                "-m",
+                tag,
+                tag,
+                ref,
+            ],
+            env=env,
+        )
 
     def verify(self, cmd="signatures", tag=TAG, **env):
         e = clean_env()
@@ -231,6 +266,7 @@ class TestPinnedTrust(VerifyTestCase):
         self.assertEqual(rc, 0, out)
         self.assertIn("verified: 2 manifest(s)", out)
         self.assertIn("committed release-key pin at refs/tags/v1.2.3", out)
+        self.assertIn(f"tag signed by {self.real.sign}", out)
 
     def test_pin_command(self):
         out, rc = self.verify("pin")
@@ -287,7 +323,7 @@ class TestPinnedTrust(VerifyTestCase):
             )
             self.git("add", "-A")
             self.git("commit", "-q", "-m", "two signing subkeys")
-            self.git("tag", "-f", TAG)
+            self.signed_tag(TAG, self.real)
             self.assert_fails("exactly one signing subkey")
         finally:
             newest = self.real.fprs(self.real.primary)[-1]
@@ -310,11 +346,36 @@ class TestPinnedTrust(VerifyTestCase):
         self.assert_fails("has no manifest")
 
     def test_tag_without_pin(self):
-        self.git("tag", "-f", "v0.0.1", "HEAD")
         self.git("rm", "-q", "-r", "keys")
         self.git("commit", "-q", "-m", "drop pin")
-        self.git("tag", "-f", "v0.0.1")
+        self.signed_tag("v0.0.1", self.real)
         self.assert_fails("is not committed in the pin ref", tag="v0.0.1")
+
+    def test_lightweight_tag_is_refused(self):
+        self.git("tag", "-d", TAG)
+        self.git("tag", TAG)
+        self.assert_fails("is not an annotated tag")
+
+    def test_unsigned_annotated_tag_is_refused(self):
+        self.git("tag", "-d", TAG)
+        self.git("tag", "-a", "-m", TAG, TAG)
+        self.assert_fails("does not verify with the pinned keys")
+
+    def test_tag_signed_by_another_key_is_refused(self):
+        self.signed_tag(TAG, self.rogue)
+        self.assert_fails("does not verify with the pinned keys")
+
+    def test_tag_object_for_another_name_is_refused(self):
+        self.signed_tag("v9.9.9", self.real)
+        self.git("tag", "-d", TAG)
+        tag_obj = self.git("rev-parse", "refs/tags/v9.9.9").strip()
+        self.git("update-ref", f"refs/tags/{TAG}", tag_obj)
+        self.assert_fails("records a different tag name")
+
+    def test_pin_ref_override_skips_tag_signature(self):
+        out, rc = self.verify(RELEASE_PIN_REF="HEAD")
+        self.assertEqual(rc, 0, out)
+        self.assertIn("tag signature not checked", out)
 
     def test_missing_pin_ref(self):
         self.assert_fails("pin ref not found", RELEASE_PIN_REF="refs/tags/nope")
@@ -350,6 +411,211 @@ class TestPinnedTrust(VerifyTestCase):
         )
         out, rc = self.verify()
         self.assertEqual(rc, 0, out)
+
+
+class TestReleaseSign(VerifyTestCase):
+    """release-sign.sh refuses operator keys that are not the pin, before
+    touching any existing signature, and only promotes verified signatures."""
+
+    def sign(self, gpg_home, key_id, mini_key):
+        e = clean_env()
+        e.update(
+            FULMEN_TOOLBOX_IMAGES=" ".join(IMAGES),
+            FULMEN_TOOLBOX_GPG_HOMEDIR=gpg_home,
+            FULMEN_TOOLBOX_PGP_KEY_ID=key_id,
+            FULMEN_TOOLBOX_MINISIGN_KEY=str(mini_key),
+        )
+        return run(
+            ["bash", self.repo / "scripts" / "release-sign.sh", TAG, self.dist],
+            env=e,
+            check=False,
+        )
+
+    def snapshot(self):
+        return {p.name: p.read_bytes() for p in sorted(self.dist.iterdir())}
+
+    def test_pinned_keys_sign_and_verify(self):
+        for image in IMAGES:
+            for ext in ("asc", "minisig"):
+                (self.dist / f"SHA256SUMS-{image}.{ext}").unlink()
+        out, rc = self.sign(self.real.home, f"{self.real.sign}!", self.real.mini_key)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("Release signing complete", out)
+        out, rc = self.verify()
+        self.assertEqual(rc, 0, out)
+
+    def test_primary_selector_signs_with_pinned_subkey(self):
+        out, rc = self.sign(self.real.home, self.real.primary, self.real.mini_key)
+        self.assertEqual(rc, 0, out)
+
+    def test_rogue_pgp_key_changes_nothing(self):
+        before = self.snapshot()
+        out, rc = self.sign(self.rogue.home, f"{self.rogue.sign}!", self.real.mini_key)
+        self.assertNotEqual(rc, 0, out)
+        self.assertIn("not the pinned primary", out)
+        self.assertEqual(self.snapshot(), before)
+
+    def test_rogue_minisign_key_changes_nothing(self):
+        before = self.snapshot()
+        out, rc = self.sign(self.real.home, f"{self.real.sign}!", self.rogue.mini_key)
+        self.assertNotEqual(rc, 0, out)
+        self.assertIn("not the pinned minisign key", out)
+        self.assertEqual(self.snapshot(), before)
+
+    def test_other_subkey_selector_changes_nothing(self):
+        before = self.snapshot()
+        out, rc = self.sign(self.real.home, f"{self.real.encr}!", self.real.mini_key)
+        self.assertNotEqual(rc, 0, out)
+        self.assertIn("is not the pinned signing subkey", out)
+        self.assertEqual(self.snapshot(), before)
+
+
+COSIGN_STUB = """#!/usr/bin/env bash
+echo "$*" >> "$COSIGN_LOG"
+"""
+
+DIGESTS_STUB = """#!/usr/bin/env bash
+case "$1" in
+*/$STUB_ODD_NAME:*) echo "index sha256:$(printf 'e%.0s' $(seq 64))" ;;
+*) echo "index $STUB_INDEX" ;;
+esac
+"""
+
+
+class TestCosignRelease(unittest.TestCase):
+    """cosign-release.sh covers every published name x (index + each child);
+    each child is attested with its own SBOM; the index is never attested."""
+
+    INDEX = "sha256:" + "f" * 64
+    ARM = "sha256:" + "1" * 64
+    AMD = "sha256:" + "3" * 64
+
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp(prefix="rv-cosign-"))
+        self.addCleanup(shutil.rmtree, self.root, True)
+        self.log = self.root / "cosign.log"
+        for name, body in (("cosign", COSIGN_STUB), ("digests", DIGESTS_STUB)):
+            (self.root / name).write_text(body)
+            (self.root / name).chmod(0o755)
+        self.digests = self.root / "DIGESTS-img"
+        self.digests.write_text(
+            f"index {self.INDEX}\nchild {self.ARM} linux/arm64\nchild {self.AMD} linux/amd64\n"
+        )
+        self.sboms = self.root / "sboms"
+        self.sboms.mkdir()
+        for arch in ("arm64", "amd64"):
+            (self.sboms / f"sbom-img-1.2.3-linux-{arch}.json").write_text(arch)
+
+    def cosign(self, cmd, *aliases, odd=""):
+        e = clean_env()
+        e.update(
+            COSIGN=str(self.root / "cosign"),
+            IMAGE_DIGESTS=str(self.root / "digests"),
+            COSIGN_LOG=str(self.log),
+            STUB_INDEX=self.INDEX,
+            STUB_ODD_NAME=odd or "none",
+            REGISTRY="reg",
+            OWNER="own",
+            CERT_IDENTITY="id",
+            CERT_ISSUER="iss",
+        )
+        args = [
+            "bash",
+            SCRIPTS / "cosign-release.sh",
+            cmd,
+            "img",
+            "1.2.3",
+            self.digests,
+            self.sboms,
+            *aliases,
+        ]
+        out, rc = run(args, env=e, check=False)
+        calls = self.log.read_text().splitlines() if self.log.exists() else []
+        return out, rc, calls
+
+    def test_sign_covers_every_name_and_digest(self):
+        out, rc, calls = self.cosign("sign", "alias-a", "alias-b")
+        self.assertEqual(rc, 0, out)
+        for name in ("img", "alias-a", "alias-b"):
+            ref = f"reg/own/{name}"
+            self.assertIn(f"sign {ref}@{self.INDEX}", calls)
+            self.assertIn(f"sign {ref}@{self.ARM}", calls)
+            self.assertIn(f"sign {ref}@{self.AMD}", calls)
+            self.assertIn(
+                f"attest --predicate {self.sboms}/sbom-img-1.2.3-linux-arm64.json --type spdxjson {ref}@{self.ARM}",
+                calls,
+            )
+            self.assertIn(
+                f"attest --predicate {self.sboms}/sbom-img-1.2.3-linux-amd64.json --type spdxjson {ref}@{self.AMD}",
+                calls,
+            )
+            self.assertFalse(
+                any(
+                    c.startswith("attest") and c.endswith(f"{ref}@{self.INDEX}")
+                    for c in calls
+                )
+            )
+        self.assertEqual(len(calls), 3 * 5)
+
+    def test_verify_covers_every_name_and_digest(self):
+        out, rc, calls = self.cosign("verify", "alias-a")
+        self.assertEqual(rc, 0, out)
+        for name in ("img", "alias-a"):
+            ref = f"reg/own/{name}"
+            for d in (self.INDEX, self.ARM, self.AMD):
+                self.assertIn(
+                    f"verify --certificate-identity id --certificate-oidc-issuer iss {ref}@{d}",
+                    calls,
+                )
+            for d in (self.ARM, self.AMD):
+                self.assertIn(
+                    f"verify-attestation --type spdxjson --certificate-identity id --certificate-oidc-issuer iss {ref}@{d}",
+                    calls,
+                )
+            self.assertFalse(
+                any(
+                    c.startswith("verify-attestation")
+                    and c.endswith(f"{ref}@{self.INDEX}")
+                    for c in calls
+                )
+            )
+
+    def test_alias_on_another_index_fails(self):
+        out, rc, _ = self.cosign("verify", "alias-a", odd="alias-a")
+        self.assertNotEqual(rc, 0, out)
+        self.assertIn("alias-a:v1.2.3 resolves to", out)
+
+    def test_missing_child_sbom_fails_before_signing(self):
+        (self.sboms / "sbom-img-1.2.3-linux-amd64.json").unlink()
+        out, rc, calls = self.cosign("sign")
+        self.assertNotEqual(rc, 0, out)
+        self.assertIn("missing SBOM for linux/amd64", out)
+        self.assertEqual(calls, [])
+
+    def test_digests_file_without_children_fails(self):
+        self.digests.write_text(f"index {self.INDEX}\n")
+        out, rc, calls = self.cosign("sign")
+        self.assertNotEqual(rc, 0, out)
+        self.assertEqual(calls, [])
+
+    def test_verify_needs_identity(self):
+        e = clean_env()
+        e.update(COSIGN=str(self.root / "cosign"), COSIGN_LOG=str(self.log))
+        out, rc = run(
+            [
+                "bash",
+                SCRIPTS / "cosign-release.sh",
+                "verify",
+                "img",
+                "1.2.3",
+                self.digests,
+                self.sboms,
+            ],
+            env=e,
+            check=False,
+        )
+        self.assertNotEqual(rc, 0, out)
+        self.assertIn("CERT_IDENTITY", out)
 
 
 class TestEnvTrust(VerifyTestCase):
