@@ -2,6 +2,20 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
+## 0.5.10 - 2026-10-14
+
+### Changed
+
+- **`goneat` `v0.6.3` → `v0.6.4`** and **`sfetch` `v0.4.9` → `v0.4.13`** in the musl slim image and both full runners (Dockerfile ARGs, Makefile bootstrap minimum, `manifests/tools.json`, image README, and built-image version greps).
+- **`syft` `v1.54.0` → `v1.54.1`** and **`grype` `v0.120.0` → `v0.120.1`** on goneat runners and sbom-tools. The grype `docker/docker` waiver in `.trivyignore` is re-dated; v0.120.1 still vendors v28.5.2.
+- **Release verification** reads the release keys committed in `keys/expected-fingerprints.txt`, `docs/security/release-signing-keys.asc` and `docs/security/release-minisign.pub` from the release tag, requires the tag to be signed by the pinned signing subkey, and never trusts keys in `dist/release`. `FULMEN_TOOLBOX_PGP_FINGERPRINT` is removed; `FULMEN_TOOLBOX_RELEASE_PIN_REF` and `FULMEN_TOOLBOX_RELEASE_TRUST=env` are explicit overrides.
+- **`make release-sign`** signs checksum manifests only. It checks the operator keys against the pin before touching any signature, signs into a staging directory, verifies there, and then promotes. Local cosign signing and the partial-run toggles are removed.
+- **Image signing** covers the multi-arch index and every platform manifest under every published name; each platform manifest is attested with its own SBOM. The release publishes `DIGESTS-<image>` and `sbom-<image>-<version>-<os>-<arch>.json`; the single per-image SBOM is no longer published.
+
+### Added
+
+- `scripts/image-digests.sh`, `scripts/cosign-release.sh`, `scripts/verify-release-pgp.sh`, `make release-verify-pin`, `make test-release-verify`, and the `Release trust` workflow (pin check plus release-tag and release-verify tests).
+
 ## 0.5.9 - 2026-10-12
 
 ### Changed

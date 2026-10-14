@@ -1,5 +1,24 @@
 # Release Notes
 
+## v0.5.10 (2026-10-14)
+
+**goneat v0.6.4, pinned release keys, every image platform signed**
+
+Every image ships goneat v0.6.4, sfetch v0.4.13, syft v1.54.1 and grype v0.120.1. Go stays at 1.26.9. Release keys are committed in the repository, and each image's multi-arch index and every platform manifest is signed under every published name.
+
+### Changes
+
+| Area                                         | Change                                                                                                                 |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `goneat-tools-slim-musl` + both full runners | `goneat` `v0.6.3` → `v0.6.4`; `sfetch` `v0.4.9` → `v0.4.13`                                                            |
+| goneat runners + sbom-tools                  | `syft` `v1.54.0` → `v1.54.1`; `grype` `v0.120.0` → `v0.120.1`                                                          |
+| Release verification                         | Keys committed in `keys/` and `docs/security/`; verification reads them from the signed release tag                    |
+| Image signing                                | Index and every platform manifest signed under every name; per-platform SBOM attestations; `DIGESTS-<image>` published |
+
+### Upgrade notes
+
+Consumers pinned to `:v0.5.9` should retag to `:v0.5.10` after GA. Verify with the release workflow identity at the tag. Full detail: `docs/releases/v0.5.10.md`.
+
 ## v0.5.9 (2026-10-12)
 
 **goneat v0.6.3**
@@ -24,14 +43,14 @@ The musl slim image and both full runners ship goneat v0.6.2 and Go 1.26.9. syft
 
 ### Changes
 
-| Area                                         | Change                                                                                          |
-| -------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `goneat-tools-slim-musl` + both full runners | `goneat` `v0.6.1` → `v0.6.2`                                                                    |
-| slim + both full runners                     | Go toolchain `1.26.6` → `1.26.9` (version + tarball checksums + coupled `GO_IMAGE`)             |
-| goneat runners + sbom-tools                  | `syft` `v1.50.0` → `v1.54.0`; `grype` `v0.116.1` → `v0.120.0`                                   |
-| sbom-tools                                   | `trivy` `v0.72.0` → `v0.75.0`                                                                   |
-| musl slim + runner                           | `libssl3`/`libcrypto3` remain `3.5.9-r0` (confirmed still current in Alpine 3.24)               |
-| CI runners                                   | amd64/arm64 medium labels already on main via #23; no `runs-on` change in this cut              |
+| Area                                         | Change                                                                              |
+| -------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `goneat-tools-slim-musl` + both full runners | `goneat` `v0.6.1` → `v0.6.2`                                                        |
+| slim + both full runners                     | Go toolchain `1.26.6` → `1.26.9` (version + tarball checksums + coupled `GO_IMAGE`) |
+| goneat runners + sbom-tools                  | `syft` `v1.50.0` → `v1.54.0`; `grype` `v0.116.1` → `v0.120.0`                       |
+| sbom-tools                                   | `trivy` `v0.72.0` → `v0.75.0`                                                       |
+| musl slim + runner                           | `libssl3`/`libcrypto3` remain `3.5.9-r0` (confirmed still current in Alpine 3.24)   |
+| CI runners                                   | amd64/arm64 medium labels already on main via #23; no `runs-on` change in this cut  |
 
 ### Upgrade notes
 
