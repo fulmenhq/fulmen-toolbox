@@ -337,7 +337,7 @@
     },
     {
       "name": "goneat",
-      "version": "v0.6.3",
+      "version": "v0.6.4",
       "source": "go",
       "images": [
         "goneat-tools-slim-musl",
@@ -353,7 +353,7 @@
     },
     {
       "name": "sfetch",
-      "version": "v0.4.9",
+      "version": "v0.4.13",
       "source": "go",
       "images": [
         "goneat-tools-slim-musl",
@@ -626,7 +626,7 @@
     },
     {
       "name": "syft",
-      "version": "v1.54.0",
+      "version": "v1.54.1",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",
@@ -643,7 +643,7 @@
     },
     {
       "name": "grype",
-      "version": "v0.120.0",
+      "version": "v0.120.1",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",

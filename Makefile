@@ -92,7 +92,7 @@ YAMLLINT ?= yamllint
 
 # Bootstrap tooling (sfetch -> goneat trust chain)
 # Note: GONEAT_VERSION is a minimum version; if goneat is already installed, it is used as-is.
-GONEAT_VERSION ?= v0.6.3
+GONEAT_VERSION ?= v0.6.4
 BINDIR ?= $(HOME)/.local/bin
 SFETCH_BIN = $(shell command -v sfetch 2>/dev/null || echo "")
 GONEAT_BIN = $(shell command -v goneat 2>/dev/null || echo "")
@@ -264,7 +264,7 @@ test-goneat-tools-runner:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version | grep -q 'goneat v0.6.3' && \
+		goneat version | grep -q 'goneat v0.6.4' && \
 		sfetch --help >/dev/null 2>&1 && \
 		shellsentry --version >/dev/null 2>&1 && \
 		syft version >/dev/null 2>&1 && \
@@ -327,7 +327,7 @@ test-goneat-tools-slim:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version | grep -q 'goneat v0.6.3' && \
+		goneat version | grep -q 'goneat v0.6.4' && \
 		sfetch --help >/dev/null 2>&1 && \
 		! command -v shellsentry >/dev/null 2>&1 && \
 		! command -v syft >/dev/null 2>&1 && \
@@ -371,7 +371,7 @@ test-goneat-tools-runner-glibc:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version | grep -q 'goneat v0.6.3' && \
+		goneat version | grep -q 'goneat v0.6.4' && \
 		sfetch --help >/dev/null 2>&1 && \
 		shellsentry --version >/dev/null 2>&1 && \
 		syft version >/dev/null 2>&1 && \

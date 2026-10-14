@@ -22,8 +22,8 @@
 # ---------------------------------------------------------------------------
 
 # --- Go stdlib embedded in PREBUILT upstream binaries ------------------------
-# yq v4.53.3 remains built with go1.26.4 (unchanged pin). syft v1.54.0 and
-# grype v0.120.0 require go 1.26.8; trivy v0.75.0 requires go 1.27.0 — those
+# yq v4.53.3 remains built with go1.26.4 (unchanged pin). syft v1.54.1 and
+# grype v0.120.1 require go 1.26.8; trivy v0.75.0 requires go 1.27.0 — those
 # carriers are past the go1.26.5 stdlib fix line. This leftover needs go1.26.5.
 CVE-2026-39822  # 2026-10-10: stdlib in prebuilt yq v4.53.3 (go1.26.4); needs go1.26.5; yq pin unchanged; review by 2026-12-31
 
@@ -39,9 +39,9 @@ CVE-2026-56852  # 2026-10-10: x/text in golangci-lint v2.12.2 (v0.36.0) and yq v
 
 # --- Vendored dependencies in prebuilt upstream binaries ---------------------
 # grype still vendors github.com/docker/docker v28.5.2 (fixed in v29.3.1).
-# Re-checked 2026-10-10 against grype v0.120.0 go.mod — the dependency is
+# Re-checked 2026-10-14 against grype v0.120.1 go.mod — the dependency is
 # unchanged, so the version bump taken this cycle did not clear it.
-CVE-2026-34040  # 2026-10-10: grype v0.120.0 vendors docker/docker v28.5.2; fixed in 29.3.1; on-latest-upstream; review by 2026-12-31
+CVE-2026-34040  # 2026-10-14: grype v0.120.1 vendors docker/docker v28.5.2; fixed in 29.3.1; on-latest-upstream; review by 2026-12-31
 
 # --- Bundled npm dependency tree --------------------------------------------
 # We pin npm to 12.0.1 (see the npm stage in the goneat Dockerfiles), which
