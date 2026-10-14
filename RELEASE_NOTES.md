@@ -4,7 +4,7 @@
 
 **goneat v0.6.4, pinned release keys, every image platform signed**
 
-Every image ships goneat v0.6.4, sfetch v0.4.13, syft v1.54.1 and grype v0.120.1. Go stays at 1.26.9. Release keys are committed in the repository, and each image's multi-arch index and every platform manifest is signed under every published name.
+The musl slim image and both full goneat runners ship goneat v0.6.4 and sfetch v0.4.13. The goneat runners and the sbom-tools images ship syft v1.54.1 and grype v0.120.1. Go stays at 1.26.9; valkey-server is rebuilt with unchanged contents. Release keys are committed in the repository, and each image's multi-arch index and every platform manifest is signed under every published name.
 
 ### Changes
 
