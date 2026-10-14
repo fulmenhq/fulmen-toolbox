@@ -101,13 +101,11 @@ fi
 
 VERSION=${TAG#v}
 
-resolve_digest() {
+# Prints the digests to sign for an image: the index and each platform
+# manifest it names (see scripts/image-digests.sh), one per line.
+resolve_digests() {
 	local image="$1"
-	local ref="$REGISTRY/$OWNER/$image:$TAG"
-
-	# This mirrors the existing Makefile release-digests logic.
-	docker manifest inspect "$ref" -v 2>/dev/null |
-		jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end' 2>/dev/null
+	bash "$ROOT/scripts/image-digests.sh" "$REGISTRY/$OWNER/$image:$TAG" | awk '{ print $2 }'
 }
 
 resolve_sbom_file() {
@@ -290,27 +288,26 @@ for image in $IMAGES; do
 	echo "  - $image:"
 	echo "    - checksum: $checksum_file"
 	if [ "$SKIP_COSIGN" != "1" ] || [ "$ATTACH_SBOM" != "0" ]; then
-		digest=$(resolve_digest "$image")
-		if [ -z "$digest" ] || [ "$digest" = "null" ]; then
-			fail "Unable to resolve digest for $image (need registry auth? waiting for push?)"
-		fi
+		digests=$(resolve_digests "$image") ||
+			fail "Unable to resolve digests for $image (need registry auth? waiting for push?)"
 		sbom_file=$(resolve_sbom_file "$image")
-		echo "    - digest:   $digest"
 		echo "    - sbom:     $sbom_file"
-		echo "    - ref:      $REGISTRY/$OWNER/$image@$digest"
+		for digest in $digests; do
+			echo "    - ref:      $REGISTRY/$OWNER/$image@$digest"
+		done
 	fi
 done
 
 # Cosign signing/attestation (interactive)
 if [ "$SKIP_COSIGN" != "1" ]; then
 	for image in $IMAGES; do
-		digest=$(resolve_digest "$image")
-		if [ -z "$digest" ] || [ "$digest" = "null" ]; then
-			fail "Unable to resolve digest for $image (need registry auth? waiting for push?)"
-		fi
-
+		digests=$(resolve_digests "$image") ||
+			fail "Unable to resolve digests for $image (need registry auth? waiting for push?)"
 		sbom_file=$(resolve_sbom_file "$image")
-		sign_cosign "$image" "$digest" "$sbom_file"
+		# The index and every platform manifest it names.
+		for digest in $digests; do
+			sign_cosign "$image" "$digest" "$sbom_file"
+		done
 	done
 else
 	echo "⚠️  FULMEN_TOOLBOX_SKIP_COSIGN=1 set; skipping cosign signing/attestation"

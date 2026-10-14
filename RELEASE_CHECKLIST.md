@@ -220,9 +220,12 @@ Recommended verification before upload:
 - `make verify-release-key` (verifies exported GPG public key contains no private material)
 - `make verify-minisign-key` (verifies minisign public key was exported/copied)
 - `make verify-release-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (fails if any expected image tag is missing)
-- `make release-verify-signatures FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (every `SHA256SUMS-*` manifest has a good PGP and minisign signature by the exported keys; also run by `make release-upload`)
+- `make release-verify-signatures FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (every `SHA256SUMS-*` manifest has exactly one good PGP signature by the pinned signing subkey and a good minisign signature by the pinned minisign key; the keys are read from `keys/expected-fingerprints.txt`, `docs/security/release-signing-keys.asc` and `docs/security/release-minisign.pub` at the release tag, never from `dist/release`, and the exported key assets must match them; also run by `make release-upload`)
 - `make release-verify-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (every image reference in the signed manifests resolves to its signed digest; `verify-release-digests` above only checks that the tags exist)
-- `make release-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (prints digests for copy/paste)
+- `make release-digests FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG` (prints the index digest and each platform manifest digest per image)
+- `make release-verify-pin` (the committed release-key pin is self-consistent; CI runs it on every change)
+
+`FULMEN_TOOLBOX_RELEASE_PIN_REF` reads the pin from another ref (for example a tag that predates the pin). `FULMEN_TOOLBOX_RELEASE_TRUST=env` with `FULMEN_TOOLBOX_TRUST_PGP_KEYS` and `FULMEN_TOOLBOX_TRUST_MINISIGN_PUB` (both outside `dist/release`) replaces the pin for key-rotation testing.
 
 #### Step 3.1: Stage release notes (optional)
 
@@ -274,14 +277,17 @@ Document these in release notes for consumers:
 
 ### Cosign (keyless)
 
-Repeat for each variant image:
+The release workflow signs and attests, for every image, the multi-arch index digest and each platform manifest the index names. `DIGESTS-<image>` on the release lists them (`index <digest>` and `child <digest> <os>/<arch>`). Verify against the release workflow identity at the tag:
 
 ```bash
-cosign verify \
-  --certificate-oidc-issuer https://accounts.google.com \
-  --certificate-identity-regexp ".*@.*" \
-  ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest>
+IDENTITY="https://github.com/fulmenhq/fulmen-toolbox/.github/workflows/release.yml@refs/tags/$FULMEN_TOOLBOX_RELEASE_TAG"
+ISSUER="https://token.actions.githubusercontent.com"
+
+cosign verify --certificate-identity "$IDENTITY" --certificate-oidc-issuer "$ISSUER" \
+  ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<index-or-platform-digest>
 ```
+
+`scripts/image-digests.sh ghcr.io/fulmenhq/<image>:$FULMEN_TOOLBOX_RELEASE_TAG` prints the same digests from the registry.
 
 ### Cosign SBOM (attestation, recommended)
 
@@ -291,12 +297,14 @@ cosign verify \
 - Fulmen Toolbox standard: `--type spdxjson` for SPDX-JSON SBOM attestations.
 
 ```bash
-cosign verify-attestation \
-  --type spdxjson \
+cosign verify-attestation --type spdxjson \
+  --certificate-identity "$IDENTITY" --certificate-oidc-issuer "$ISSUER" \
   ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest>
 
 # Extract the predicate JSON (SPDX) from the attestation:
-cosign verify-attestation --type spdxjson ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest> \
+cosign verify-attestation --type spdxjson \
+  --certificate-identity "$IDENTITY" --certificate-oidc-issuer "$ISSUER" \
+  ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest> \
   | jq -r '.payload' \
   | base64 -d \
   | jq -r '.predicate'
@@ -310,29 +318,31 @@ OCI attachment is a discovery convenience but is deprecated upstream (`cosign at
 cosign download sbom ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest>
 ```
 
-### GPG
+### GPG and minisign
+
+Take the keys from the repository at the release tag, not from the release assets. Compare `expected-fingerprints.txt` with the fingerprints in [`docs/security/release-signing.md`](docs/security/release-signing.md) before trusting it.
 
 ```bash
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner-musl
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner-musl.asc
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/fulmen-toolbox-release-signing-key.asc
+BASE="https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG"
+KEYS="https://raw.githubusercontent.com/fulmenhq/fulmen-toolbox/$FULMEN_TOOLBOX_RELEASE_TAG"
+M=SHA256SUMS-goneat-tools-runner-musl
 
-# Use temp keyring to avoid polluting user's GPG home
-GPG_TMPDIR=$(mktemp -d)
-gpg --homedir "$GPG_TMPDIR" --import fulmen-toolbox-release-signing-key.asc
-gpg --homedir "$GPG_TMPDIR" --verify SHA256SUMS-goneat-tools-runner-musl.asc SHA256SUMS-goneat-tools-runner-musl
-rm -rf "$GPG_TMPDIR"
+curl -LO "$BASE/$M"
+curl -LO "$BASE/$M.asc"
+curl -LO "$BASE/$M.minisig"
+curl -L -o expected-fingerprints.txt "$KEYS/keys/expected-fingerprints.txt"
+curl -L -o release-signing-keys.asc "$KEYS/docs/security/release-signing-keys.asc"
+curl -L -o release-minisign.pub "$KEYS/docs/security/release-minisign.pub"
+curl -L -o verify-release-pgp.sh "$KEYS/scripts/verify-release-pgp.sh"
+
+# PGP: throwaway keyring; one good, unexpired, unrevoked signature by the pinned signing subkey
+bash verify-release-pgp.sh expected-fingerprints.txt release-signing-keys.asc "$M.asc" "$M"
+
+# Minisign: the trusted comment names the image and version
+minisign -Vm "$M" -p release-minisign.pub
 ```
 
-### Minisign
-
-```bash
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner-musl
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/SHA256SUMS-goneat-tools-runner-musl.minisig
-curl -LO https://github.com/fulmenhq/fulmen-toolbox/releases/download/$FULMEN_TOOLBOX_RELEASE_TAG/fulmenhq-release-signing.pub
-
-minisign -Vm SHA256SUMS-goneat-tools-runner-musl -p fulmenhq-release-signing.pub
-```
+From a checkout, `make release-verify-signatures FULMEN_TOOLBOX_RELEASE_TAG=<tag>` checks every manifest in `dist/release` the same way.
 
 ## Post-release
 

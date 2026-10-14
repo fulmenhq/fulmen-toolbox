@@ -62,9 +62,9 @@ jobs:
 ## CI Signing Flow (Recommended)
 
 1. **Build & push images** (existing release workflow).
-2. **Collect digests** from the build outputs:
+2. **Collect digests** with `scripts/image-digests.sh <image>:<tag>`:
    - Use the manifest-derived image list (from `manifests/tools.json`) to avoid per-variant hand edits.
-   - For each image, record the pushed digest (`ghcr.io/...@sha256:...`).
+   - It prints the index digest and each platform manifest digest; buildx attestation-manifest entries are skipped. Never take the first entry of the platform list.
 3. **Sign + attest in CI** using cosign keyless:
    - Set `COSIGN_YES=true` to avoid prompts.
    - Use `cosign sign` and `cosign attest --type spdxjson` per digest.
@@ -91,15 +91,17 @@ When CI signing is enabled:
 
 ## Verification (Consumer)
 
-Document these commands in release notes:
+The release workflow signs and attests each image's multi-arch index digest and every platform manifest the index names, then verifies all of them before the job succeeds. `DIGESTS-<image>` on the release lists the digests. Verify against the workflow identity at the tag, not any identity:
 
 ```bash
-cosign verify \
-  --certificate-oidc-issuer https://accounts.google.com \
-  --certificate-identity-regexp ".*@.*" \
+IDENTITY="https://github.com/fulmenhq/fulmen-toolbox/.github/workflows/release.yml@refs/tags/<tag>"
+ISSUER="https://token.actions.githubusercontent.com"
+
+cosign verify --certificate-identity "$IDENTITY" --certificate-oidc-issuer "$ISSUER" \
   ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest>
 
 cosign verify-attestation --type spdxjson \
+  --certificate-identity "$IDENTITY" --certificate-oidc-issuer "$ISSUER" \
   ghcr.io/fulmenhq/goneat-tools-runner-musl@sha256:<digest>
 ```
 

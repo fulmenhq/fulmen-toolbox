@@ -24,7 +24,7 @@
 .PHONY: catalog
 .PHONY: release-plan release-clean release-download release-notes release-sign release-upload release-digests release-signing-help
 .PHONY: release-export-keys release-export-gpg-key release-export-minisign-key
-.PHONY: release-tag release-tag-verify release-tag-push test-release-tag
+.PHONY: release-tag release-tag-verify release-tag-push test-release-tag test-release-verify release-verify-pin
 .PHONY: verify-release-key verify-minisign-key verify-release-digests
 .PHONY: release-verify-key release-verify-signatures release-verify-digests
 .PHONY: validate-subsystems validate-subsystem-echo-proxy-fixture validate-subsystem-authentik-idp
@@ -859,6 +859,12 @@ release-tag-push: ## Verify the release tag and push only that tag to origin (st
 test-release-tag: ## Run the release-tag script tests (fails, rather than skips, without git/gpg)
 	FULMEN_TOOLBOX_REQUIRE_CRYPTO_TOOLS=1 python3 -I scripts/test_release_tag.py -v
 
+test-release-verify: ## Run the release-verify and image-digests tests with throwaway keys (fails, rather than skips, without git/gpg/minisign)
+	FULMEN_TOOLBOX_REQUIRE_CRYPTO_TOOLS=1 python3 -I scripts/test_release_verify.py -v
+
+release-verify-pin: ## Check the committed release-key pin is self-consistent (default ref: HEAD)
+	@FULMEN_TOOLBOX_RELEASE_PIN_REF="$${FULMEN_TOOLBOX_RELEASE_PIN_REF:-HEAD}" scripts/release-verify.sh pin $(FULMEN_TOOLBOX_RELEASE_TAG)
+
 ## Clean release artifacts directory (run before release-download)
 release-clean:
 	@echo "🧹 Cleaning $(DIST_RELEASE)..."
@@ -888,33 +894,34 @@ release-notes:
 
 ## Get image digests for manual cosign signing (FULMEN_TOOLBOX_RELEASE_TAG=vX.Y.Z)
 #
+# Lists the index and every platform manifest per image (scripts/image-digests.sh).
 # Images can be overridden via FULMEN_TOOLBOX_IMAGES env var (space-delimited). Defaults to manifest list.
 release-digests:
 	@echo "Image digests for $(FULMEN_TOOLBOX_RELEASE_TAG):"
 	@echo ""
 	@IMAGES="$${FULMEN_TOOLBOX_IMAGES:-$$(bash scripts/list-images.sh --format space)}"; \
 	for image in $$IMAGES; do \
-	  DIGEST=$$(docker manifest inspect ghcr.io/fulmenhq/$$image:$(FULMEN_TOOLBOX_RELEASE_TAG) -v 2>/dev/null | \
-	    jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end' 2>/dev/null) || true; \
-	  if [ -n "$$DIGEST" ] && [ "$$DIGEST" != "null" ]; then \
-	    echo "$$image: $$DIGEST"; \
-	    echo "  cosign sign ghcr.io/fulmenhq/$$image@$$DIGEST"; \
+	  ref="ghcr.io/fulmenhq/$$image:$(FULMEN_TOOLBOX_RELEASE_TAG)"; \
+	  if out=$$(bash scripts/image-digests.sh "$$ref" 2>/dev/null); then \
+	    echo "$$image:"; \
+	    printf '%s\n' "$$out" | while read -r kind digest platform; do \
+	      echo "  $$kind $$digest $$platform"; \
+	      echo "    cosign sign ghcr.io/fulmenhq/$$image@$$digest"; \
+	    done; \
 	  else \
 	    echo "$$image: (waiting for image push or auth required)"; \
 	  fi; \
 	done
 
 ## Verify all expected images exist for a release tag
-# Fails if any image digest cannot be resolved.
+# Fails if any image, or any platform manifest its index names, cannot be resolved.
 verify-release-digests:
 	@IMAGES="$${FULMEN_TOOLBOX_IMAGES:-$$(bash scripts/list-images.sh --format space)}"; \
 	missing=0; \
 	echo "Verifying image digests for $(FULMEN_TOOLBOX_RELEASE_TAG)..."; \
 	for image in $$IMAGES; do \
-	  DIGEST=$$(docker manifest inspect ghcr.io/fulmenhq/$$image:$(FULMEN_TOOLBOX_RELEASE_TAG) -v 2>/dev/null | \
-	    jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end' 2>/dev/null) || true; \
-	  if [ -n "$$DIGEST" ] && [ "$$DIGEST" != "null" ]; then \
-	    echo "✅ $$image: $$DIGEST"; \
+	  if out=$$(bash scripts/image-digests.sh "ghcr.io/fulmenhq/$$image:$(FULMEN_TOOLBOX_RELEASE_TAG)"); then \
+	    echo "✅ $$image: $$(printf '%s\n' "$$out" | awk '$$1 == "index" { print $$2 }') ($$(printf '%s\n' "$$out" | awk '$$1 == "child" { print $$3 }' | paste -sd, -))"; \
 	  else \
 	    echo "❌ $$image: missing tag $(FULMEN_TOOLBOX_RELEASE_TAG) or auth required" >&2; \
 	    missing=1; \
@@ -978,7 +985,7 @@ verify-minisign-key: release-export-minisign-key
 
 release-verify-key: verify-release-key ## Verify the exported GPG public key holds no private key material
 
-release-verify-signatures: ## Verify PGP and minisign signatures on every SHA256SUMS-* manifest (FULMEN_TOOLBOX_RELEASE_TAG=vX.Y.Z)
+release-verify-signatures: ## Verify every SHA256SUMS-* manifest against the release-key pin committed at the tag (FULMEN_TOOLBOX_RELEASE_TAG=vX.Y.Z)
 	@scripts/release-verify.sh signatures $(FULMEN_TOOLBOX_RELEASE_TAG) $(DIST_RELEASE)
 
 release-verify-digests: ## Verify each image ref in the signed manifests resolves to its signed digest (cf. verify-release-digests: tags exist)

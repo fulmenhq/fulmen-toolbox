@@ -359,7 +359,7 @@ jobs:
     permissions:
       id-token: write
       packages: write
-      contents: read
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -380,7 +380,7 @@ jobs:
         uses: sigstore/cosign-installer@v3
         with:
           cosign-release: "v2.4.0"
-      - name: Sign and attest images (keyless)
+      - name: Sign and attest the index and every platform manifest (keyless)
         env:
           COSIGN_YES: "true"
           OWNER: ${{ github.repository_owner }}
@@ -392,23 +392,50 @@ jobs:
           sbom="sbom-$IMAGE-$VERSION.json"
           curl -fsSL "https://github.com/$OWNER/fulmen-toolbox/releases/download/v$VERSION/$sbom" -o "$sbom"
 
-          names=("$IMAGE")
+          # The canonical tag decides what is signed: the index digest and
+          # each platform manifest it names. Attestation-manifest entries are
+          # not platforms and are skipped by image-digests.sh.
+          canon="$REGISTRY/$OWNER/$IMAGE:v$VERSION"
+          scripts/image-digests.sh "$canon" > digests.txt
+          cat digests.txt
+          index=$(awk '$1 == "index" { print $2 }' digests.txt)
+
+          # Every alias must resolve to the same index; the signatures are
+          # bound to the digest, so they cover every name for it.
           if [ -n "${ALIASES}" ]; then
             while IFS= read -r alias; do
               [ -n "$alias" ] || continue
-              names+=("$alias")
+              got=$(scripts/image-digests.sh "$REGISTRY/$OWNER/$alias:v$VERSION" | awk '$1 == "index" { print $2 }')
+              if [ "$got" != "$index" ]; then
+                echo "❌ $alias:v$VERSION resolves to $got, not $index" >&2
+                exit 1
+              fi
             done <<< "$ALIASES"
           fi
 
-          for name in "${names[@]}"; do
-            ref="$REGISTRY/$OWNER/$name:v$VERSION"
-            digest=$(docker manifest inspect "$ref" -v 2>/dev/null | \
-              jq -r 'if type == "array" then .[0].Descriptor.digest else .config.digest end') || true
-            if [ -z "$digest" ] || [ "$digest" = "null" ]; then
-              echo "❌ Unable to resolve digest for $ref" >&2
-              exit 1
-            fi
-
-            cosign sign "$REGISTRY/$OWNER/$name@$digest"
-            cosign attest --predicate "$sbom" --type spdxjson "$REGISTRY/$OWNER/$name@$digest"
-          done
+          while read -r _ digest _; do
+            cosign sign "$REGISTRY/$OWNER/$IMAGE@$digest"
+            cosign attest --predicate "$sbom" --type spdxjson "$REGISTRY/$OWNER/$IMAGE@$digest"
+          done < digests.txt
+      - name: Verify signatures and attestations on the index and every platform manifest
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ matrix.image }}
+        run: |
+          set -euo pipefail
+          identity="https://github.com/$OWNER/fulmen-toolbox/.github/workflows/release.yml@refs/tags/v$VERSION"
+          issuer="https://token.actions.githubusercontent.com"
+          while read -r kind digest platform; do
+            ref="$REGISTRY/$OWNER/$IMAGE@$digest"
+            cosign verify --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" "$ref" >/dev/null
+            cosign verify-attestation --type spdxjson --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" "$ref" >/dev/null
+            echo "✅ $kind $digest ${platform:-}"
+          done < digests.txt
+      - name: Publish the signed digests
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          IMAGE: ${{ matrix.image }}
+        run: |
+          set -euo pipefail
+          cp digests.txt "DIGESTS-$IMAGE"
+          gh release upload "v$VERSION" "DIGESTS-$IMAGE" --repo "$GITHUB_REPOSITORY" --clobber

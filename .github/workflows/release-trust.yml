@@ -1,0 +1,56 @@
+name: Release trust
+on:
+  pull_request:
+    paths:
+      - "scripts/release-*.sh"
+      - "scripts/image-digests.sh"
+      - "scripts/verify-release-pgp.sh"
+      - "scripts/test_release_*.py"
+      - "keys/**"
+      - "docs/security/**"
+      - "Makefile"
+      - ".github/workflows/release.yml"
+      - ".github/workflows/release-trust.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  release-trust:
+    runs-on: ubuntu-latest-x64-m
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install gnupg and minisign
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y gnupg minisign jq
+          gpg --version | head -1
+          minisign -v
+      - name: Check the committed release-key pin
+        run: make release-verify-pin
+      - name: Run release-tag tests
+        run: |
+          set -euo pipefail
+          log="${RUNNER_TEMP}/release-tag-tests.log"
+          make test-release-tag 2>&1 | tee "${log}"
+          if grep -qE -- '(--- SKIP|skipped)' "${log}"; then
+            echo "::error::release-tag tests skipped"
+            exit 1
+          fi
+      - name: Run release-verify tests with throwaway keys
+        run: |
+          set -euo pipefail
+          log="${RUNNER_TEMP}/release-verify-tests.log"
+          make test-release-verify 2>&1 | tee "${log}"
+          if grep -qE -- '(--- SKIP|skipped)' "${log}"; then
+            echo "::error::release-verify tests skipped"
+            exit 1
+          fi
