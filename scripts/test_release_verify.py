@@ -732,7 +732,12 @@ upload)
 		echo "tampered" > "$GH_REMOTE/$GH_TAMPER_AFTER_UPLOAD"; touch "$GH_REMOTE/.tampered"
 	fi
 	;;
-edit) ;;
+edit)
+	case " $* " in *" --draft=false "*) [ -n "${GH_EDIT_NOOP:-}" ] || touch "$GH_REMOTE/.published" ;; esac
+	;;
+view)
+	if [ -e "$GH_REMOTE/.published" ]; then echo false; else echo true; fi
+	;;
 esac
 """
 
@@ -764,16 +769,34 @@ class TestReleaseUpload(VerifyTestCase):
         calls = self.log.read_text().splitlines() if self.log.exists() else []
         return out, rc, calls
 
+    def notes(self, text="# notes\n"):
+        (self.repo / "docs" / "releases").mkdir(parents=True, exist_ok=True)
+        (self.repo / "docs" / "releases" / f"{TAG}.md").write_text(text)
+
     def published(self, calls):
         return [
             c for c in calls if c.startswith("release edit") and "--draft=false" in c
         ]
 
-    def test_matching_release_is_published_last(self):
+    def test_matching_release_is_published_and_confirmed(self):
+        self.notes()
         out, rc, calls = self.upload()
         self.assertEqual(rc, 0, out)
         self.assertEqual(len(self.published(calls)), 1, calls)
-        self.assertTrue(calls[-1].startswith("release edit"), calls)
+        self.assertTrue(calls[-2].startswith("release edit"), calls)
+        self.assertTrue(calls[-1].startswith("release view"), calls)
+
+    def test_missing_release_notes_leaves_draft(self):
+        out, rc, calls = self.upload()
+        self.assertNotEqual(rc, 0, out)
+        self.assertIn("left as draft", out)
+        self.assertEqual(self.published(calls), [])
+
+    def test_publish_that_does_not_take_effect_fails(self):
+        self.notes()
+        out, rc, _ = self.upload(GH_EDIT_NOOP="1")
+        self.assertNotEqual(rc, 0, out)
+        self.assertIn("still a draft after publishing", out)
 
     def test_remote_manifest_differs_nothing_uploaded(self):
         (self.remote / f"SHA256SUMS-{IMAGES[0]}").write_text(
@@ -793,6 +816,7 @@ class TestReleaseUpload(VerifyTestCase):
         self.assertEqual(self.published(calls), [])
 
     def test_change_after_upload_leaves_draft(self):
+        self.notes()
         out, rc, calls = self.upload(GH_TAMPER_AFTER_UPLOAD=f"SHA256SUMS-{IMAGES[0]}")
         self.assertNotEqual(rc, 0, out)
         self.assertIn("left as draft", out)

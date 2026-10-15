@@ -153,10 +153,11 @@ FULMEN_TOOLBOX_RELEASE_TRUST=pin bash "$ROOT/scripts/release-verify.sh" signatur
 
 # Publish: notes from docs/releases/<tag>.md as the release description.
 NOTES_FILE="$ROOT/docs/releases/$TAG.md"
-publish=(--draft=false)
-if [ -f "$NOTES_FILE" ]; then
-	publish+=(--notes-file "$NOTES_FILE")
-fi
+[ -s "$NOTES_FILE" ] || {
+	echo "❌ $NOTES_FILE is missing or empty; release $TAG left as draft" >&2
+	exit 1
+}
+publish=(--draft=false --notes-file "$NOTES_FILE")
 case "$TAG" in
 *-*) publish+=(--prerelease --latest=false) ;;
 *) publish+=(--latest) ;;
@@ -164,6 +165,15 @@ esac
 echo ""
 echo "🚀 Publishing release ${TAG}..."
 "$GH" release edit "$TAG" "${publish[@]}"
+state=$("$GH" release view "$TAG" --json isDraft --jq .isDraft) ||
+	{
+		echo "❌ cannot read release $TAG after publishing" >&2
+		exit 1
+	}
+[ "$state" = "false" ] || {
+	echo "❌ release $TAG is still a draft after publishing" >&2
+	exit 1
+}
 
 echo ""
 echo "✅ Release ${TAG} signed and published"
