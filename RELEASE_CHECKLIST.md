@@ -109,11 +109,11 @@ These gates catch issues that PR status does not. Even if all pre-flight items w
   - Manifest job composes multi-arch tags (`max-parallel: 2` + imagetools retry; do not raise concurrency without re-validating GHCR 429 behavior)
   - Pushes to GHCR (`:latest`, `:v<major>`, and semver tag)
   - Resolves `DIGESTS-<image>` (index + each platform manifest), generates one SBOM per platform manifest (`sbom-<image>-<version>-<os>-<arch>.json`) and `SHA256SUMS-<image>`
-  - Uploads artifacts to GitHub Release
+  - Uploads artifacts to a **draft** GitHub Release (created once by the `draft-release` job; the workflow refuses to add assets to an already published release)
 - [ ] Approve the `release-signing` environment for the cosign job:
   - GitHub → Actions → **Release (build, sbom, checksums)** → “Review deployments”
   - Approve the `release-signing` job so keyless cosign signing/attestation runs once: every published name (image + aliases) gets a signature on the index and on each platform manifest, and each platform manifest an SPDX attestation of its own SBOM; the job then verifies all of them with the release workflow identity
-- [ ] Verify release artifacts appear on GitHub Release page
+- [ ] Verify release artifacts appear on the draft GitHub Release (it stays a draft, not public, until `make release-upload`)
 
 ## Manual Signing Workflow
 
@@ -241,12 +241,14 @@ make release-export-keys
 
 (These exports are also run automatically by `make release-upload` via Makefile dependencies; this step is here to make the workflow explicit and easier to debug.)
 
-#### Step 3.3: Upload signatures + keys (+ optional release notes)
+#### Step 3.3: Upload signatures + keys, then publish
 
 ```bash
-# Uploads signatures and keys to GitHub Release
+# Uploads signatures and keys to the draft GitHub Release
 # (automatically exports public keys, verifies the GPG key is safe, and
-# verifies every manifest has a good PGP and minisign signature)
+# verifies every manifest against the release-key pin), then publishes the
+# release with docs/releases/<tag>.md as its notes and marks it latest
+# (prereleases are not marked latest)
 make release-upload FULMEN_TOOLBOX_RELEASE_TAG=$FULMEN_TOOLBOX_RELEASE_TAG
 ```
 

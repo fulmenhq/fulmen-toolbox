@@ -7,6 +7,32 @@ on:
 env:
   REGISTRY: ghcr.io
 jobs:
+  draft-release:
+    # Create the release as a draft once, before any job uploads to it. It
+    # stays a draft until make release-upload has verified and uploaded the
+    # signatures; only then is it published.
+    runs-on: ubuntu-latest-x64-m
+    permissions:
+      contents: write
+    steps:
+      - name: Create or confirm the draft release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          if state=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft 2>/dev/null); then
+            if [ "$state" != "true" ]; then
+              echo "❌ release $TAG is already published; refusing to add unsigned assets" >&2
+              exit 1
+            fi
+            echo "draft release $TAG exists"
+          else
+            pre=()
+            case "$TAG" in *-*) pre=(--prerelease) ;; esac
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --draft --verify-tag \
+              --title "$TAG" --notes "Draft: signatures pending." "${pre[@]}"
+          fi
   build:
     # Per-arch build on a native runner. Each cell pushes by digest only;
     # the manifest job composes the multi-arch manifest at the public tags.
@@ -95,7 +121,7 @@ jobs:
     # Compose per-arch digests into a multi-arch manifest at every public
     # tag (canonical + aliases). Generate SBOM and SHA256SUMS against the
     # composed manifest digest; upload to the GitHub release page.
-    needs: build
+    needs: [draft-release, build]
     runs-on: ubuntu-latest-x64-m
     strategy:
       fail-fast: false
@@ -334,19 +360,14 @@ jobs:
           printf "%s\n" "${{ steps.tags.outputs.tags }}" | sed '/^\s*$/d' | while IFS= read -r ref; do
             echo "$DIGEST  $ref"
           done > SHA256SUMS-${{ matrix.image }}
-      - name: Upload release assets
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            sbom-${{ matrix.image }}-${{ steps.meta.outputs.version }}-*.json
-            SHA256SUMS-${{ matrix.image }}
-            DIGESTS-${{ matrix.image }}
-          tag_name: v${{ steps.meta.outputs.version }}
-          name: v${{ steps.meta.outputs.version }}
-          prerelease: ${{ contains(steps.meta.outputs.version, '-') }}
-          make_latest: ${{ contains(steps.meta.outputs.version, '-') && 'false' || 'true' }}
+      - name: Upload release assets to the draft
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          IMAGE: ${{ matrix.image }}
+        run: |
+          set -euo pipefail
+          gh release upload "v$VERSION" --repo "$GITHUB_REPOSITORY" --clobber \
+            sbom-"$IMAGE"-"$VERSION"-*.json "SHA256SUMS-$IMAGE" "DIGESTS-$IMAGE"
   cosign:
     needs: manifest
     runs-on: ubuntu-latest-x64-m

@@ -3,7 +3,10 @@
 #
 # Usage: ./scripts/release-upload.sh <tag> [dir]
 #
-# Uploads signatures (.asc, .minisig) and public keys to GitHub Release.
+# Uploads signatures (.asc, .minisig) and public keys to the draft GitHub
+# Release, then publishes it with docs/releases/<tag>.md as its notes. The
+# release workflow creates the release as a draft; it becomes public only
+# here, after make release-upload has verified the signatures.
 # Run after manual signing is complete.
 
 set -euo pipefail
@@ -90,7 +93,22 @@ else
 	echo "   To stage: make release-notes FULMEN_TOOLBOX_RELEASE_TAG=$TAG"
 fi
 
+# Publish: notes from docs/releases/<tag>.md as the release description.
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+NOTES_FILE="$ROOT/docs/releases/$TAG.md"
+publish=(--draft=false)
+if [ -f "$NOTES_FILE" ]; then
+	publish+=(--notes-file "$NOTES_FILE")
+fi
+case "$TAG" in
+*-*) publish+=(--prerelease --latest=false) ;;
+*) publish+=(--latest) ;;
+esac
 echo ""
-echo "✅ Release ${TAG} updated with signatures"
+echo "🚀 Publishing release ${TAG}..."
+gh release edit "$TAG" "${publish[@]}"
+
+echo ""
+echo "✅ Release ${TAG} signed and published"
 echo ""
 echo "Verify with: gh release view ${TAG} --json assets -q '.assets[].name'"
