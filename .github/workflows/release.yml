@@ -360,6 +360,15 @@ jobs:
           printf "%s\n" "${{ steps.tags.outputs.tags }}" | sed '/^\s*$/d' | while IFS= read -r ref; do
             echo "$DIGEST  $ref"
           done > SHA256SUMS-${{ matrix.image }}
+      - name: Hand the digests and SBOMs to the cosign job
+        uses: actions/upload-artifact@v4
+        with:
+          name: signing-inputs-${{ matrix.image }}
+          path: |
+            DIGESTS-${{ matrix.image }}
+            sbom-${{ matrix.image }}-${{ steps.meta.outputs.version }}-*.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload release assets to the draft
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -426,15 +435,19 @@ jobs:
         uses: sigstore/cosign-installer@v3
         with:
           cosign-release: "v2.4.0"
+      # The release is a draft until signing completes, and a read-only token
+      # cannot see drafts, so the inputs come from the manifest job's artifact.
       - name: Download the digests and per-platform SBOMs
+        uses: actions/download-artifact@v4
+        with:
+          name: signing-inputs-${{ matrix.image }}
+          path: sboms
+      - name: Show the signing inputs
         env:
-          GITHUB_TOKEN: ${{ github.token }}
           IMAGE: ${{ matrix.image }}
         run: |
           set -euo pipefail
-          mkdir -p sboms
-          gh release download "v$VERSION" --repo "$GITHUB_REPOSITORY" --dir sboms \
-            --pattern "DIGESTS-$IMAGE" --pattern "sbom-$IMAGE-$VERSION-*.json"
+          ls -l sboms
           cat "sboms/DIGESTS-$IMAGE"
       - name: Sign every published name (index and platform manifests; SBOM per platform)
         env:

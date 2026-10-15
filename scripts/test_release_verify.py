@@ -169,6 +169,7 @@ class VerifyTestCase(unittest.TestCase):
             "release-verify.sh",
             "image-digests.sh",
             "release-sign.sh",
+            "release-upload.sh",
             "cosign-release.sh",
         ):
             shutil.copy(SCRIPTS / name, self.repo / "scripts" / name)
@@ -691,6 +692,111 @@ class TestCosignRelease(unittest.TestCase):
         )
         self.assertNotEqual(rc, 0, out)
         self.assertIn("CERT_IDENTITY", out)
+
+
+GH_STUB = """#!/usr/bin/env bash
+# A release held in $GH_REMOTE: download copies matching files out, upload
+# copies files in, edit records the call. A file named in $GH_TAMPER_AFTER_UPLOAD
+# is overwritten after the first upload (a race with another writer).
+set -euo pipefail
+echo "$*" >> "$GH_LOG"
+op=$2
+shift 3
+case "$op" in
+download)
+	dir=""; pats=()
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		--dir) dir=$2; shift 2 ;;
+		--pattern) pats+=("$2"); shift 2 ;;
+		*) shift ;;
+		esac
+	done
+	mkdir -p "$dir"
+	found=0
+	for p in "${pats[@]}"; do
+		for f in "$GH_REMOTE"/$p; do
+			[ -e "$f" ] || continue
+			cp "$f" "$dir/"; found=1
+		done
+	done
+	[ "$found" = 1 ] || { echo "no assets match" >&2; exit 1; }
+	;;
+upload)
+	for f in "$@"; do
+		case "$f" in --*) continue ;; esac
+		[ -e "$f" ] || { echo "no such file: $f" >&2; exit 1; }
+		cp "$f" "$GH_REMOTE/"
+	done
+	if [ -n "${GH_TAMPER_AFTER_UPLOAD:-}" ] && [ ! -e "$GH_REMOTE/.tampered" ]; then
+		echo "tampered" > "$GH_REMOTE/$GH_TAMPER_AFTER_UPLOAD"; touch "$GH_REMOTE/.tampered"
+	fi
+	;;
+edit) ;;
+esac
+"""
+
+
+class TestReleaseUpload(VerifyTestCase):
+    """release-upload.sh publishes only when the release holds exactly the
+    signed local manifests and verifies against the pin."""
+
+    def setUp(self):
+        super().setUp()
+        self.remote = self.root / "remote"
+        self.remote.mkdir()
+        for image in IMAGES:
+            shutil.copy(self.dist / f"SHA256SUMS-{image}", self.remote)
+        self.stub = self.root / "gh"
+        self.stub.write_text(GH_STUB)
+        self.stub.chmod(0o755)
+        self.log = self.root / "gh.log"
+
+    def upload(self, **env):
+        e = clean_env()
+        e.update(GH=str(self.stub), GH_REMOTE=str(self.remote), GH_LOG=str(self.log))
+        e.update(env)
+        out, rc = run(
+            ["bash", self.repo / "scripts" / "release-upload.sh", TAG, self.dist],
+            env=e,
+            check=False,
+        )
+        calls = self.log.read_text().splitlines() if self.log.exists() else []
+        return out, rc, calls
+
+    def published(self, calls):
+        return [
+            c for c in calls if c.startswith("release edit") and "--draft=false" in c
+        ]
+
+    def test_matching_release_is_published_last(self):
+        out, rc, calls = self.upload()
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(len(self.published(calls)), 1, calls)
+        self.assertTrue(calls[-1].startswith("release edit"), calls)
+
+    def test_remote_manifest_differs_nothing_uploaded(self):
+        (self.remote / f"SHA256SUMS-{IMAGES[0]}").write_text(
+            "sha256:" + "b" * 64 + "  other\n"
+        )
+        out, rc, calls = self.upload()
+        self.assertNotEqual(rc, 0, out)
+        self.assertIn("differs from the signed local copy", out)
+        self.assertFalse(any(c.startswith("release upload") for c in calls), calls)
+        self.assertEqual(self.published(calls), [])
+
+    def test_remote_manifest_missing_nothing_uploaded(self):
+        (self.remote / f"SHA256SUMS-{IMAGES[1]}").unlink()
+        out, rc, calls = self.upload()
+        self.assertNotEqual(rc, 0, out)
+        self.assertFalse(any(c.startswith("release upload") for c in calls), calls)
+        self.assertEqual(self.published(calls), [])
+
+    def test_change_after_upload_leaves_draft(self):
+        out, rc, calls = self.upload(GH_TAMPER_AFTER_UPLOAD=f"SHA256SUMS-{IMAGES[0]}")
+        self.assertNotEqual(rc, 0, out)
+        self.assertIn("left as draft", out)
+        self.assertEqual(self.published(calls), [])
 
 
 class TestEnvTrust(VerifyTestCase):
