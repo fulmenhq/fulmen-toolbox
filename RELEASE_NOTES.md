@@ -1,5 +1,22 @@
 # Release Notes
 
+## v0.5.11 (2026-10-17)
+
+**goneat v0.6.5, release stays a draft until signed**
+
+The musl slim image and both full goneat runners ship goneat v0.6.5. syft v1.54.1, grype v0.120.1 and trivy v0.75.0 are unchanged. Go stays at 1.26.9; sbom-tools and valkey-server are rebuilt with unchanged contents. The GitHub release stays a draft until its signatures are uploaded and verified.
+
+### Changes
+
+| Area                                         | Change                                                                                                |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `goneat-tools-slim-musl` + both full runners | `goneat` `v0.6.4` → `v0.6.5` (Rust license inventory matches cargo-deny)                              |
+| Release workflow                             | Release created as a draft; `make release-upload` publishes only after the signatures verify in place |
+
+### Upgrade notes
+
+Consumers pinned to `:v0.5.10` should retag to `:v0.5.11` after GA. Verify with the release workflow identity at the tag. Full detail: `docs/releases/v0.5.11.md`.
+
 ## v0.5.10 (2026-10-14)
 
 **goneat v0.6.4, pinned release keys, every image platform signed**

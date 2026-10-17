@@ -2,6 +2,14 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
+## 0.5.11 - 2026-10-17
+
+### Changed
+
+- **`goneat` `v0.6.4` → `v0.6.5`** in the musl slim image and both full runners (Dockerfile ARGs, Makefile bootstrap minimum, `manifests/tools.json`, image README, and built-image version checks). goneat v0.6.5 fixes false "incomplete Rust license inventory" failures in `goneat dependencies --licenses`.
+- **Alpine `yq-go` `4.53.3-r1` → `4.53.3-r2`** in the musl slim image (Dockerfile ARG, `manifests/tools.json`, image README, runner checks). Alpine rebuilt the package and no longer serves `-r1`; the yq version is unchanged.
+- **Release stays a draft until signed.** A `draft-release` job creates the GitHub release as a draft before any manifest job uploads release assets; manifest jobs upload into it and hand digests and per-platform SBOMs to the cosign job as workflow artifacts. `make release-upload` checks manifests before and after upload, verifies against the committed release keys, and publishes with `docs/releases/<tag>.md` as the notes. A failed check leaves the release a draft.
+
 ## 0.5.10 - 2026-10-14
 
 ### Changed
