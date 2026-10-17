@@ -92,7 +92,7 @@ YAMLLINT ?= yamllint
 
 # Bootstrap tooling (sfetch -> goneat trust chain)
 # Note: GONEAT_VERSION is a minimum version; if goneat is already installed, it is used as-is.
-GONEAT_VERSION ?= v0.6.4
+GONEAT_VERSION ?= v0.6.5
 BINDIR ?= $(HOME)/.local/bin
 SFETCH_BIN = $(shell command -v sfetch 2>/dev/null || echo "")
 GONEAT_BIN = $(shell command -v goneat 2>/dev/null || echo "")
@@ -250,7 +250,7 @@ build-goneat-tools-multi: build-goneat-tools-runner-multi
 # NOTE: cargo-audit and cargo-nextest are skipped on arm64 musl (glibc binaries only).
 test-goneat-tools-runner:
 	docker run --rm $(GONEAT_RUNNER_TAG_LOCAL) -c "\
-		apk info -e yq-go=4.53.3-r1 >/dev/null && \
+		apk info -e yq-go=4.53.3-r2 >/dev/null && \
 		apk info -e curl=8.22.0-r0 >/dev/null && \
 		prettier --version && \
 		biome --version && \
@@ -264,7 +264,7 @@ test-goneat-tools-runner:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version | grep -q 'goneat v0.6.4' && \
+		goneat version | grep -q 'goneat v0.6.5' && \
 		sfetch --help >/dev/null 2>&1 && \
 		shellsentry --version >/dev/null 2>&1 && \
 		syft version >/dev/null 2>&1 && \
@@ -314,7 +314,7 @@ test-goneat-tools-runner-rust:
 # Ensures tool payload works and runner baseline packages are absent.
 test-goneat-tools-slim:
 	docker run --rm $(GONEAT_SLIM_TAG_LOCAL) -c "\
-		apk info -e yq-go=4.53.3-r1 >/dev/null && \
+		apk info -e yq-go=4.53.3-r2 >/dev/null && \
 		prettier --version && \
 		biome --version && \
 		yamlfmt --version && \
@@ -327,7 +327,7 @@ test-goneat-tools-slim:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version | grep -q 'goneat v0.6.4' && \
+		goneat version | grep -q 'goneat v0.6.5' && \
 		sfetch --help >/dev/null 2>&1 && \
 		! command -v shellsentry >/dev/null 2>&1 && \
 		! command -v syft >/dev/null 2>&1 && \
@@ -371,7 +371,7 @@ test-goneat-tools-runner-glibc:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version | grep -q 'goneat v0.6.4' && \
+		goneat version | grep -q 'goneat v0.6.5' && \
 		sfetch --help >/dev/null 2>&1 && \
 		shellsentry --version >/dev/null 2>&1 && \
 		syft version >/dev/null 2>&1 && \

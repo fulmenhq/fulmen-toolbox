@@ -100,7 +100,7 @@
     },
     {
       "name": "yq-go",
-      "version": "4.53.3-r1",
+      "version": "4.53.3-r2",
       "source": "apk",
       "images": [
         "goneat-tools-slim-musl",
@@ -337,7 +337,7 @@
     },
     {
       "name": "goneat",
-      "version": "v0.6.4",
+      "version": "v0.6.5",
       "source": "go",
       "images": [
         "goneat-tools-slim-musl",
