@@ -2,6 +2,13 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
+## 0.5.12 - 2026-10-20
+
+### Changed
+
+- **`biome` `2.3.11` → `2.5.15`** in the musl slim image and both full runners (Dockerfile ARGs, `manifests/tools.json`, image README, and built-image version checks). goneat stays at `v0.6.5`. Biome 2.5 can reformat TypeScript, JavaScript, and JSON relative to 2.3. A `biome.json` `$schema` for an older release is reported as a mismatch, and `linter.rules.recommended` is reported as deprecated in favor of `preset`.
+- **Alpine `curl` `8.14.1-r2` → `8.14.1-r3`** in `sbom-tools-runner-musl` (Dockerfile ARG and `manifests/tools.json`). Alpine 3.21 publishes `-r3` on x86_64 and aarch64 and no longer serves `-r2`. The curl version is unchanged. `validate-apk-pins` checks every apk pin on linux/amd64 and linux/arm64, and the validate workflow runs that check.
+
 ## 0.5.11 - 2026-10-17
 
 ### Changed

@@ -5,6 +5,8 @@
 # are actually available in the Alpine package repositories.
 #
 # This catches version drift (e.g., 0.12-r0 → 0.12-r1) before CI fails.
+# Each pin is checked on linux/amd64 and linux/arm64. The host architecture
+# and DOCKER_DEFAULT_PLATFORM do not choose which index is queried.
 
 set -euo pipefail
 
@@ -30,6 +32,30 @@ echo "Validating APK package availability..."
 
 fail=0
 
+check_pkg() {
+	local alpine_img="$1" platform="$2" pkg_name="$3" pkg_version="$4"
+	local policy_output available_ver
+
+	# Query Alpine repo for available version using apk policy.
+	# --platform selects the index; do not follow DOCKER_DEFAULT_PLATFORM.
+	policy_output=$(docker run --rm --platform "$platform" "$alpine_img" sh -c "apk update >/dev/null 2>&1 && apk policy '$pkg_name' 2>/dev/null" 2>/dev/null || true)
+
+	if echo "$policy_output" | grep -qF "$pkg_version"; then
+		echo "    ✓ $pkg_name=$pkg_version ($platform)"
+		return 0
+	fi
+
+	echo "    ❌ $pkg_name=$pkg_version not available ($platform)"
+	# Extract available version from policy output (second line, trimmed)
+	available_ver=$(echo "$policy_output" | sed -n '2p' | tr -d ' :')
+	if [ -n "$available_ver" ]; then
+		echo "       Available: $available_ver"
+	else
+		echo "       Package not found in repository"
+	fi
+	fail=1
+}
+
 # Process each unique Alpine base image
 for alpine_img in "node:22-alpine" "alpine:3.21"; do
 	# Extract APK pins for this Alpine image
@@ -54,29 +80,15 @@ for alpine_img in "node:22-alpine" "alpine:3.21"; do
 		continue
 	fi
 
-	echo "  Checking against $alpine_img..."
+	for platform in linux/amd64 linux/arm64; do
+		echo "  Checking against $alpine_img ($platform)..."
 
-	# Check each package individually for clear error reporting
-	for pkg_spec in $packages; do
-		pkg_name="${pkg_spec%%=*}"
-		pkg_version="${pkg_spec#*=}"
-
-		# Query Alpine repo for available version using apk policy
-		policy_output=$(docker run --rm "$alpine_img" sh -c "apk update >/dev/null 2>&1 && apk policy '$pkg_name' 2>/dev/null" 2>/dev/null || true)
-
-		if echo "$policy_output" | grep -qF "$pkg_version"; then
-			echo "    ✓ $pkg_name=$pkg_version"
-		else
-			echo "    ❌ $pkg_name=$pkg_version not available"
-			# Extract available version from policy output (second line, trimmed)
-			available_ver=$(echo "$policy_output" | sed -n '2p' | tr -d ' :')
-			if [ -n "$available_ver" ]; then
-				echo "       Available: $available_ver"
-			else
-				echo "       Package not found in repository"
-			fi
-			fail=1
-		fi
+		# Check each package individually for clear error reporting
+		for pkg_spec in $packages; do
+			pkg_name="${pkg_spec%%=*}"
+			pkg_version="${pkg_spec#*=}"
+			check_pkg "$alpine_img" "$platform" "$pkg_name" "$pkg_version"
+		done
 	done
 done
 

@@ -253,7 +253,7 @@ test-goneat-tools-runner:
 		apk info -e yq-go=4.53.3-r2 >/dev/null && \
 		apk info -e curl=8.22.0-r0 >/dev/null && \
 		prettier --version && \
-		biome --version && \
+		biome --version | grep -q '2.5.15' && \
 		yamlfmt --version && \
 		yamllint --version && \
 		shfmt --version && \
@@ -316,7 +316,7 @@ test-goneat-tools-slim:
 	docker run --rm $(GONEAT_SLIM_TAG_LOCAL) -c "\
 		apk info -e yq-go=4.53.3-r2 >/dev/null && \
 		prettier --version && \
-		biome --version && \
+		biome --version | grep -q '2.5.15' && \
 		yamlfmt --version && \
 		! command -v yamllint >/dev/null 2>&1 && \
 		shfmt --version && \
@@ -360,7 +360,7 @@ test-goneat-tools: test-goneat-tools-runner
 test-goneat-tools-runner-glibc:
 	docker run --rm $(GONEAT_GLIBC_TAG_LOCAL) -c "\
 		prettier --version && \
-		biome --version && \
+		biome --version | grep -q '2.5.15' && \
 		yamlfmt --version && \
 		yamllint --version && \
 		shfmt --version && \

@@ -31,7 +31,7 @@
     },
     {
       "name": "biome",
-      "version": "2.3.11",
+      "version": "2.5.15",
       "source": "npm",
       "images": [
         "goneat-tools-slim-musl",
@@ -695,12 +695,12 @@
     },
     {
       "name": "curl",
-      "version": "8.14.1-r2",
+      "version": "8.14.1-r3",
       "source": "apk",
       "images": [
         "sbom-tools-runner-musl"
       ],
-      "notes": "HTTP client for CI workflows (MIT-like license)"
+      "notes": "HTTP client for CI workflows (MIT-like license). Alpine 3.21 no longer serves 8.14.1-r2 on x86_64 or aarch64."
     },
     {
       "name": "valkey",
