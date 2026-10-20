@@ -4,14 +4,15 @@
 
 **biome 2.5.15**
 
-The musl slim image and both full goneat runners ship biome 2.5.15. goneat stays at v0.6.5. syft v1.54.1, grype v0.120.1, trivy v0.75.0, and Go 1.26.9 are unchanged. sbom-tools and valkey-server are rebuilt with unchanged contents.
+The musl slim image and both full goneat runners ship biome 2.5.15. goneat stays at v0.6.5. syft v1.54.1, grype v0.120.1, trivy v0.75.0, and Go 1.26.9 are unchanged. `sbom-tools-runner-musl` installs Alpine curl `8.14.1-r3` on x86_64 and `8.14.1-r2` on aarch64. The other sbom-tools images and valkey-server are rebuilt with unchanged contents.
 
 ### Changes
 
-| Area                                         | Change                      |
-| -------------------------------------------- | --------------------------- |
-| `goneat-tools-slim-musl` + both full runners | `biome` `2.3.11` → `2.5.15` |
-| goneat                                       | Unchanged at **v0.6.5**     |
+| Area                                         | Change                                                    |
+| -------------------------------------------- | --------------------------------------------------------- |
+| `goneat-tools-slim-musl` + both full runners | `biome` `2.3.11` → `2.5.15`                               |
+| `sbom-tools-runner-musl`                     | Alpine curl `8.14.1-r3` on x86_64, `8.14.1-r2` on aarch64 |
+| goneat                                       | Unchanged at **v0.6.5**                                   |
 
 ### Upgrade notes
 

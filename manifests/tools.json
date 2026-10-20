@@ -700,7 +700,7 @@
       "images": [
         "sbom-tools-runner-musl"
       ],
-      "notes": "HTTP client for CI workflows (MIT-like license)"
+      "notes": "HTTP client for CI workflows (MIT-like license). aarch64 pin. x86_64 installs 8.14.1-r3 (CURL_VERSION_X86_64); Alpine 3.21 does not publish the same revision on both arches."
     },
     {
       "name": "valkey",
