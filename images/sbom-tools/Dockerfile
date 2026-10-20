@@ -16,11 +16,7 @@ ARG SHELLSENTRY_VERSION=v0.1.5
 
 # Runner-baseline pinned packages (subset)
 ARG GIT_VERSION=2.47.3-r0
-# Alpine 3.21 does not publish one curl revision for both release arches:
-# x86_64 has 8.14.1-r3, aarch64 still has 8.14.1-r2. CURL_VERSION is the
-# aarch64 pin (manifest). The runner stage selects the x86_64 pin by arch.
-ARG CURL_VERSION=8.14.1-r2
-ARG CURL_VERSION_X86_64=8.14.1-r3
+ARG CURL_VERSION=8.14.1-r3
 ARG JQ_VERSION=1.7.1-r0
 ARG YQ_VERSION=4.44.5-r5
 
@@ -134,35 +130,27 @@ ENTRYPOINT ["/bin/sh"]
 FROM slim AS runner
 ARG GIT_VERSION
 ARG CURL_VERSION
-ARG CURL_VERSION_X86_64
 
 USER root
 
-# Install runner baseline packages (pin git/curl to match manifests/tools.json).
-# curl's apk revision differs by architecture; see the ARG comment above.
-RUN set -eux; \
-    case "$(apk --print-arch)" in \
-      x86_64) curl_ver="${CURL_VERSION_X86_64}" ;; \
-      aarch64) curl_ver="${CURL_VERSION}" ;; \
-      *) echo "unsupported arch: $(apk --print-arch)" >&2; exit 1 ;; \
-    esac; \
-    apk add --no-cache \
-      bash \
-      git="${GIT_VERSION}" \
-      curl="${curl_ver}" \
-      build-base \
-      pkgconf \
-      python3 \
-      yamllint \
-      coreutils \
-      findutils \
-      diffutils \
-      make \
-      tar \
-      gzip \
-      xz \
-      unzip \
-      openssh-client
+# Install runner baseline packages (pin git/curl to match manifests/tools.json)
+RUN apk add --no-cache \
+    bash \
+    git=${GIT_VERSION} \
+    curl=${CURL_VERSION} \
+    build-base \
+    pkgconf \
+    python3 \
+    yamllint \
+    coreutils \
+    findutils \
+    diffutils \
+    make \
+    tar \
+    gzip \
+    xz \
+    unzip \
+    openssh-client
 
 COPY --from=shellsentry-builder /out/bin/shellsentry /usr/local/bin/shellsentry
 COPY --from=shellsentry-builder /out/licenses/github/3leaps/shellsentry/LICENSE /licenses/github/3leaps/shellsentry/LICENSE
