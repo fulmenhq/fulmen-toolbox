@@ -1,5 +1,22 @@
 # Release Notes
 
+## v0.5.12 (2026-10-20)
+
+**biome 2.5.15**
+
+The musl slim image and both full goneat runners ship biome 2.5.15. goneat stays at v0.6.5. syft v1.54.1, grype v0.120.1, trivy v0.75.0, and Go 1.26.9 are unchanged. sbom-tools and valkey-server are rebuilt with unchanged contents.
+
+### Changes
+
+| Area                                         | Change                      |
+| -------------------------------------------- | --------------------------- |
+| `goneat-tools-slim-musl` + both full runners | `biome` `2.3.11` → `2.5.15` |
+| goneat                                       | Unchanged at **v0.6.5**     |
+
+### Upgrade notes
+
+Consumers pinned to `:v0.5.11` should retag to `:v0.5.12` after GA. Biome 2.5 can reformat TypeScript, JavaScript, and JSON relative to 2.3; re-run format on trees that biome checks, and point `biome.json` `$schema` at 2.5.15. `linter.rules.recommended` is reported as deprecated in favor of `preset`. Full detail: `docs/releases/v0.5.12.md`.
+
 ## v0.5.11 (2026-10-17)
 
 **goneat v0.6.5, release stays a draft until signed**

@@ -14,7 +14,7 @@ This image bundles upstream license texts under `/licenses/` and upstream notice
 | Tool                                               | Purpose                           | Source     |
 | -------------------------------------------------- | --------------------------------- | ---------- |
 | Prettier (3.9.6)                                   | JSON, Markdown, YAML formatting   | npm        |
-| Biome (2.3.11)                                     | JS/TS/JSON lint/format            | npm        |
+| Biome (2.5.15)                                     | JS/TS/JSON lint/format            | npm        |
 | yamlfmt (v0.21.0)                                  | Dedicated YAML formatting/linting | Go binary  |
 | shfmt (v3.13.1)                                    | Shell script formatting           | Go binary  |
 | checkmake (v0.3.2)                                 | Makefile linting                  | Go binary  |

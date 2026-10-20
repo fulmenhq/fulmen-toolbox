@@ -22,7 +22,7 @@ ARG SHFMT_VERSION=v3.13.1
 ARG CHECKMAKE_VERSION=v0.3.2
 ARG ACTIONLINT_VERSION=v1.7.12
 ARG PRETTIER_VERSION=3.9.6
-ARG BIOME_VERSION=2.3.11
+ARG BIOME_VERSION=2.5.15
 # Overrides the npm bundled in the node base. See the npm stage below for the
 # maintenance obligation this pin creates.
 ARG NPM_VERSION=12.0.1
