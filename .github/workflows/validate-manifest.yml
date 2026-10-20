@@ -38,6 +38,8 @@ jobs:
           df -h /
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
       - name: Resolve Go version (from manifests)
         id: go-version
         run: |
@@ -65,6 +67,8 @@ jobs:
         run: echo "${{ github.workspace }}/bin" >> "$GITHUB_PATH"
       - name: Validate manifest schema
         run: make validate-manifest
+      - name: Validate APK pins on amd64 and arm64
+        run: make validate-apk-pins
       - name: Validate baseline profiles
         run: make validate-profiles
       - name: Validate curated licenses
