@@ -14,8 +14,8 @@
 # golang:1.X-alpine tag containing the same Go patch version. The two ARGs
 # must stay in sync — a mismatch silently ships a runner whose builder Go
 # differs from its runtime Go, defeating the consumer fix landed in v0.4.0.
-ARG GO_IMAGE=golang:1.26.9-alpine@sha256:3082400e369fa24d5fc60bca20edab3f6d604e0c5a690ec66b295eff4dd87ade
-ARG NODE_IMAGE=node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32
+ARG GO_IMAGE=golang:1.26.10-alpine@sha256:9ce231b28998b32e116927c61aa5c406183061d4f3f2d61b292c88e7f6bdf7ca
+ARG NODE_IMAGE=node:22.23.4-alpine@sha256:ce8d97f7cfc7c5386421eb932df20a29df99b1a7f469f6157d5c9956702ffadc
 ARG YAMLFMT_VERSION=v0.21.0
 ARG SHFMT_VERSION=v3.13.1
 ARG CHECKMAKE_VERSION=v0.3.2
@@ -29,7 +29,7 @@ ARG NPM_VERSION=12.0.1
 # per-architecture checksums.
 ARG JQ_VERSION=1.8.2-r0
 # Security pins for the openssl libs bundled in the node base. The pinned
-# node:22-alpine digest ships 3.5.7-r0 and `apk add` does not upgrade
+# node:22.23.4-alpine digest ships 3.5.8-r0 and `apk add` does not upgrade
 # satisfied dependencies, so an explicit pin is required to pull the patched
 # 3.5.9-r0 from the Alpine 3.24 repos (validate-apk-pins verifies availability).
 ARG LIBSSL_VERSION=3.5.9-r0
@@ -39,10 +39,10 @@ ARG RIPGREP_VERSION=15.1.0-r0
 ARG TAPLO_VERSION=0.10.0-r0
 
 # DX tools (Go)
-ARG GONEAT_VERSION=v0.6.5
+ARG GONEAT_VERSION=v0.6.6
 ARG SFETCH_VERSION=v0.4.13
 ARG SHELLSENTRY_VERSION=v0.1.5
-ARG GOLANGCI_LINT_VERSION=v2.12.2
+ARG GOLANGCI_LINT_VERSION=v2.14.0
 
 # Runner-baseline pinned packages (subset)
 ARG BASH_VERSION=5.3.9-r1
@@ -53,9 +53,9 @@ ARG CURL_VERSION=8.22.0-r0
 ARG MINISIGN_VERSION=0.12-r2
 
 # Toolchain pins (runner-only)
-ARG GO_VERSION=1.26.9
-ARG GO_SHA256_AMD64=42d158b4d8f7b61ac0a830567c940a86098fb7aac52e467a5ebec03ef5cc2f8d
-ARG GO_SHA256_ARM64=4a97373d49fcacdcf3694fea368a500b00ee3e963974f3e7514132717632f052
+ARG GO_VERSION=1.26.10
+ARG GO_SHA256_AMD64=ccfe7ae822d2c2f41f4fe7c956199967a4dac22d0ee0d2b2bfdb440aab3b20c5
+ARG GO_SHA256_ARM64=3f4227ce7b206a513e794f1393adb473a07b46e94d18bd15d1c684bbb7319797
 ARG RUST_VERSION=1.94.1
 ARG RUSTUP_VERSION=1.28.2
 ARG RUST_TARGETS="x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu aarch64-unknown-linux-musl x86_64-apple-darwin aarch64-apple-darwin x86_64-pc-windows-gnu"

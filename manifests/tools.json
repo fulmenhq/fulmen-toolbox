@@ -247,22 +247,22 @@
     },
     {
       "name": "node-base",
-      "version": "node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32",
+      "version": "node:22.23.4-alpine@sha256:ce8d97f7cfc7c5386421eb932df20a29df99b1a7f469f6157d5c9956702ffadc",
       "source": "other",
       "images": [
         "goneat-tools-slim-musl",
         "goneat-tools-runner-musl"
       ],
-      "notes": "Pinned base image digest for multi-arch. Ships node 22.23.2 / npm 10.9.8."
+      "notes": "Pinned base image digest for multi-arch. Ships node 22.23.4. Base npm stays below the pinned npm 12.0.1 override."
     },
     {
       "name": "node-base-glibc",
-      "version": "node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5",
+      "version": "node:22.23.4-bookworm-slim@sha256:de170b39439eb0e5a3444ad7d60b015614a381e10fecae2e30ec9e735122f38d",
       "source": "other",
       "images": [
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Pinned base image tag for glibc runner. Ships node 22.23.2 / npm 10.9.8."
+      "notes": "Pinned base image tag for glibc runner. Ships node 22.23.4. Base npm stays below the pinned npm 12.0.1 override."
     },
     {
       "name": "libgnutls30",
@@ -276,22 +276,22 @@
     },
     {
       "name": "golang-builder",
-      "version": "golang:1.26.9-alpine@sha256:3082400e369fa24d5fc60bca20edab3f6d604e0c5a690ec66b295eff4dd87ade",
+      "version": "golang:1.26.10-alpine@sha256:9ce231b28998b32e116927c61aa5c406183061d4f3f2d61b292c88e7f6bdf7ca",
       "source": "other",
       "images": [
         "goneat-tools-slim-musl",
         "goneat-tools-runner-musl"
       ],
-      "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint). Patch-pinned tag: the GO_IMAGE ↔ GO_VERSION coupling requires the same patch version (1.26.9)."
+      "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint). Patch-pinned tag: the GO_IMAGE ↔ GO_VERSION coupling requires the same patch version (1.26.10)."
     },
     {
       "name": "golang-builder-glibc",
-      "version": "golang:1.26.9-bookworm@sha256:d9c68c2c51161e12fd77e4c6320687c9cd86e1af1e3ad6e6cd63ff970641453c",
+      "version": "golang:1.26.10-bookworm@sha256:632dff7351799a5a9954a48dc06670ade72ee44e8c351cdc0e5a57af2fea21af",
       "source": "other",
       "images": [
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Pinned builder image tag for Go tools in glibc runner. Patch-pinned tag; verified to resolve go1.26.9."
+      "notes": "Pinned builder image tag for Go tools in glibc runner. Patch-pinned tag; index digest for golang:1.26.10-bookworm."
     },
     {
       "name": "shfmt",
@@ -337,7 +337,7 @@
     },
     {
       "name": "goneat",
-      "version": "v0.6.5",
+      "version": "v0.6.6",
       "source": "go",
       "images": [
         "goneat-tools-slim-musl",
@@ -367,7 +367,7 @@
     },
     {
       "name": "go",
-      "version": "1.26.9",
+      "version": "1.26.10",
       "source": "binary",
       "images": [
         "goneat-tools-runner-musl",
@@ -613,13 +613,13 @@
     },
     {
       "name": "golangci-lint",
-      "version": "v2.12.2",
+      "version": "v2.14.0",
       "source": "go",
       "images": [
         "goneat-tools-runner-musl",
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Go linter aggregator. Built in-runner against the runner's pinned Go (currently 1.26.9) so consumer configs targeting that Go version don't fail with 'language version too low'. Runner is copyleft-by-design; bundled GPL-3.0 binary aligns with that posture.",
+      "notes": "Go linter aggregator. Built in-runner against the runner's pinned Go (currently 1.26.10) so consumer configs targeting that Go version don't fail with 'language version too low'. Runner is copyleft-by-design; bundled GPL-3.0 binary aligns with that posture.",
       "license_spdx": "GPL-3.0-only",
       "license_source": "gomodcache",
       "license_path": "/licenses/github/golangci/golangci-lint/LICENSE"

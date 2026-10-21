@@ -14,8 +14,8 @@
 # golang:1.X-bookworm tag containing the same Go patch version. The two ARGs
 # must stay in sync — a mismatch silently ships a runner whose builder Go
 # differs from its runtime Go, defeating the consumer fix landed in v0.4.0.
-ARG GO_IMAGE=golang:1.26.9-bookworm@sha256:d9c68c2c51161e12fd77e4c6320687c9cd86e1af1e3ad6e6cd63ff970641453c
-ARG NODE_IMAGE=node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5
+ARG GO_IMAGE=golang:1.26.10-bookworm@sha256:632dff7351799a5a9954a48dc06670ade72ee44e8c351cdc0e5a57af2fea21af
+ARG NODE_IMAGE=node:22.23.4-bookworm-slim@sha256:de170b39439eb0e5a3444ad7d60b015614a381e10fecae2e30ec9e735122f38d
 ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b7ea838a042bbd5acbfca6ec875818
 ARG YAMLFMT_VERSION=v0.21.0
 ARG SHFMT_VERSION=v3.13.1
@@ -36,18 +36,18 @@ ARG RIPGREP_VERSION=15.1.0
 ARG TAPLO_VERSION=0.10.0
 
 # DX tools (Go)
-ARG GONEAT_VERSION=v0.6.5
+ARG GONEAT_VERSION=v0.6.6
 ARG SFETCH_VERSION=v0.4.13
 ARG SHELLSENTRY_VERSION=v0.1.5
-ARG GOLANGCI_LINT_VERSION=v2.12.2
+ARG GOLANGCI_LINT_VERSION=v2.14.0
 
 # Non-runner tool pins
 ARG MINISIGN_VERSION=0.12
 
 # Toolchain pins (runner-only)
-ARG GO_VERSION=1.26.9
-ARG GO_SHA256_AMD64=42d158b4d8f7b61ac0a830567c940a86098fb7aac52e467a5ebec03ef5cc2f8d
-ARG GO_SHA256_ARM64=4a97373d49fcacdcf3694fea368a500b00ee3e963974f3e7514132717632f052
+ARG GO_VERSION=1.26.10
+ARG GO_SHA256_AMD64=ccfe7ae822d2c2f41f4fe7c956199967a4dac22d0ee0d2b2bfdb440aab3b20c5
+ARG GO_SHA256_ARM64=3f4227ce7b206a513e794f1393adb473a07b46e94d18bd15d1c684bbb7319797
 ARG RUST_VERSION=1.94.1
 ARG RUSTUP_VERSION=1.28.2
 ARG RUST_TARGETS="x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu aarch64-unknown-linux-musl x86_64-apple-darwin aarch64-apple-darwin x86_64-pc-windows-gnu"
