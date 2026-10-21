@@ -11,7 +11,9 @@ ARG ALPINE_IMAGE=alpine:3.21@sha256:48b0309ca019d89d40f670aa1bc06e426dc093194845
 ARG GO_IMAGE=golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2
 ARG SYFT_VERSION=v1.54.1
 ARG GRYPE_VERSION=v0.120.1
-ARG TRIVY_VERSION=v0.75.0
+ARG TRIVY_VERSION=v0.76.1
+ARG TRIVY_SHA256_AMD64=c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0
+ARG TRIVY_SHA256_ARM64=e174dff2a6dba5e3ae41f8d0537a6324405bd08132497340304c6b20e0f16a1f
 ARG SHELLSENTRY_VERSION=v0.1.5
 
 # Runner-baseline pinned packages (subset)
@@ -25,6 +27,8 @@ FROM ${ALPINE_IMAGE} AS fetcher
 ARG SYFT_VERSION
 ARG GRYPE_VERSION
 ARG TRIVY_VERSION
+ARG TRIVY_SHA256_AMD64
+ARG TRIVY_SHA256_ARM64
 RUN apk add --no-cache ca-certificates curl tar gzip wget
 RUN set -eux; \
     mkdir -p \
@@ -64,10 +68,11 @@ RUN set -eux; \
     tar -xzf /tmp/grype.tar.gz -C /out/bin grype; \
     rm /tmp/grype.tar.gz; \
     case "${UNAME_ARCH}" in \
-        x86_64) TRIVY_ARCH="64bit" ;; \
-        aarch64) TRIVY_ARCH="ARM64" ;; \
+        x86_64) TRIVY_ARCH="64bit"; TRIVY_SHA256="${TRIVY_SHA256_AMD64}" ;; \
+        aarch64) TRIVY_ARCH="ARM64"; TRIVY_SHA256="${TRIVY_SHA256_ARM64}" ;; \
     esac; \
     wget -q "https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/trivy_${TRIVY_VERSION#v}_Linux-${TRIVY_ARCH}.tar.gz" -O /tmp/trivy.tar.gz; \
+    echo "${TRIVY_SHA256}  /tmp/trivy.tar.gz" | sha256sum -c -; \
     tar -xzf /tmp/trivy.tar.gz -C /out/bin trivy; \
     rm /tmp/trivy.tar.gz; \
     chmod +x /out/bin/syft /out/bin/grype /out/bin/trivy
