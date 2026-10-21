@@ -12,8 +12,8 @@ Trivy v0.76.1 is inside the 7-day cooling window. The pin is approved until 2026
 
 ## Archives
 
-| Archive     | SHA256                                                           |
-| ----------- | ---------------------------------------------------------------- |
+| Archive     | SHA256                                                             |
+| ----------- | ------------------------------------------------------------------ |
 | Linux-64bit | `c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0` |
 | Linux-ARM64 | `e174dff2a6dba5e3ae41f8d0537a6324405bd08132497340304c6b20e0f16a1f` |
 
