@@ -8,7 +8,9 @@
 # - runner (default): slim + runner baseline + build tools
 
 ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b7ea838a042bbd5acbfca6ec875818
-ARG GO_IMAGE=golang:1.26-bookworm@sha256:1ecb7edf62a0408027bd5729dfd6b1b8766e578e8df93995b225dfd0944eb651
+# shellsentry is built from this image. Keep it on the same Go patch as the
+# goneat-tools builder (currently 1.26.10).
+ARG GO_IMAGE=golang:1.26.10-bookworm@sha256:632dff7351799a5a9954a48dc06670ade72ee44e8c351cdc0e5a57af2fea21af
 ARG SYFT_VERSION=v1.54.1
 ARG GRYPE_VERSION=v0.120.1
 ARG TRIVY_VERSION=v0.76.1

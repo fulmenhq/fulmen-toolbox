@@ -4,16 +4,18 @@
 
 **Go 1.26.10, goneat v0.6.6, Node 22.23.4**
 
-The musl slim image and both full goneat runners ship Go 1.26.10, goneat v0.6.6, Node 22.23.4, and golangci-lint 2.14.0. Go 1.26.10 includes the standard-library fix for CVE-2026-111943 (`crypto/x509`). The sbom-tools images ship trivy v0.76.1. syft v1.54.1 and grype v0.120.1 are unchanged.
+The musl slim image rebuilds its Go-built tools with Go 1.26.10 and ships goneat v0.6.6 and Node 22.23.4. Both full goneat runners ship the Go 1.26.10 toolchain and golangci-lint 2.14.0. Go 1.26.10 includes the standard-library fix for CVE-2026-111943 (`crypto/x509`). The sbom-tools images ship trivy v0.76.1 and rebuild shellsentry v0.1.5 with Go 1.26.10. syft v1.54.1 and grype v0.120.1 are unchanged.
 
 ### Changes
 
 | Area                     | Change                                                                               |
 | ------------------------ | ------------------------------------------------------------------------------------ |
-| slim + both full runners | Go toolchain `1.26.9` → `1.26.10` (version + tarball checksums + coupled `GO_IMAGE`) |
+| slim                     | Go-built tools rebuilt with Go 1.26.10                                               |
+| both full runners        | Go toolchain `1.26.9` → `1.26.10` (`/opt/go`, tarball checksums, coupled `GO_IMAGE`) |
 | slim + both full runners | `goneat` `v0.6.5` → `v0.6.6`                                                         |
 | slim + both full runners | Node bases pin `22.23.4`                                                             |
 | both full runners        | `golangci-lint` `v2.12.2` → `v2.14.0`, built against Go 1.26.10                      |
+| sbom-tools               | `shellsentry` `v0.1.5` rebuilt with Go 1.26.10                                       |
 | sbom-tools               | `trivy` `v0.75.0` → `v0.76.1`                                                        |
 
 ### Upgrade notes

@@ -6,10 +6,11 @@ Adheres to Keep a Changelog format. Versions follow semver.
 
 ### Changed
 
-- **Go toolchain `1.26.9` → `1.26.10`** on the musl slim image and both full goneat runners (`GO_VERSION`, tarball SHA256, and the coupled `GO_IMAGE` builder digest). This includes the Go 1.26.10 standard-library fix for CVE-2026-111943 (`crypto/x509`).
+- **Go `1.26.9` → `1.26.10`.** The musl slim image rebuilds its Go-built tools with Go 1.26.10. Both full goneat runners ship the Go 1.26.10 toolchain at `/opt/go` (`GO_VERSION`, tarball SHA256, and the coupled `GO_IMAGE`). This includes the Go 1.26.10 standard-library fix for CVE-2026-111943 (`crypto/x509`). The slim image does not ship `/opt/go` or golangci-lint.
 - **`goneat` `v0.6.5` → `v0.6.6`** in the musl slim image and both full runners (Dockerfile ARGs, Makefile bootstrap minimum, `manifests/tools.json`, image README, and built-image version checks).
 - **Node base digests** move to `node:22.23.4-alpine` and `node:22.23.4-bookworm-slim`. The images stay on the Node 22 line. The npm 12.0.1 override stays.
 - **`golangci-lint` `v2.12.2` → `v2.14.0`** on both full runners. Built in-runner against Go 1.26.10.
+- **sbom-tools `shellsentry`** is rebuilt with the same Go 1.26.10 builder images. `shellsentry` stays at `v0.1.5`.
 - **`trivy` `v0.75.0` → `v0.76.1`** on the sbom-tools images. The Linux archives are SHA256-checked in the Dockerfiles. The cooling exception runs until 2026-10-28T11:18:34Z (`docs/operations/2026-10-21-trivy-v0761-cooling-exception.md`). syft stays at `v1.54.1` and grype stays at `v0.120.1`.
 
 ## 0.5.12 - 2026-10-20

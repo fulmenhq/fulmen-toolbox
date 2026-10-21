@@ -280,18 +280,20 @@
       "source": "other",
       "images": [
         "goneat-tools-slim-musl",
-        "goneat-tools-runner-musl"
+        "goneat-tools-runner-musl",
+        "sbom-tools-runner-musl"
       ],
-      "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint). Patch-pinned tag: the GO_IMAGE ↔ GO_VERSION coupling requires the same patch version (1.26.10)."
+      "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint) and for shellsentry. Patch-pinned tag: the GO_IMAGE ↔ GO_VERSION coupling requires the same patch version (1.26.10). sbom-tools-runner-musl uses the same digest to build shellsentry."
     },
     {
       "name": "golang-builder-glibc",
       "version": "golang:1.26.10-bookworm@sha256:632dff7351799a5a9954a48dc06670ade72ee44e8c351cdc0e5a57af2fea21af",
       "source": "other",
       "images": [
-        "goneat-tools-runner-glibc"
+        "goneat-tools-runner-glibc",
+        "sbom-tools-runner-glibc"
       ],
-      "notes": "Pinned builder image tag for Go tools in glibc runner. Patch-pinned tag; index digest for golang:1.26.10-bookworm."
+      "notes": "Pinned builder image tag for Go tools in the glibc runner and for shellsentry in sbom-tools-runner-glibc. Patch-pinned tag; index digest for golang:1.26.10-bookworm."
     },
     {
       "name": "shfmt",

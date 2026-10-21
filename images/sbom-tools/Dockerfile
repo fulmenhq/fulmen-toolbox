@@ -8,7 +8,9 @@
 # - runner (default): slim + runner baseline packages
 
 ARG ALPINE_IMAGE=alpine:3.21@sha256:48b0309ca019d89d40f670aa1bc06e426dc0931948452e8491e3d65087abc07d
-ARG GO_IMAGE=golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2
+# shellsentry is built from this image. Keep it on the same Go patch as the
+# goneat-tools builder (currently 1.26.10).
+ARG GO_IMAGE=golang:1.26.10-alpine@sha256:9ce231b28998b32e116927c61aa5c406183061d4f3f2d61b292c88e7f6bdf7ca
 ARG SYFT_VERSION=v1.54.1
 ARG GRYPE_VERSION=v0.120.1
 ARG TRIVY_VERSION=v0.76.1
