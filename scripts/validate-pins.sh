@@ -46,9 +46,10 @@ sbom_jq=$(get_version "jq" "sbom-tools-slim-musl")
 sbom_yq=$(get_version "yq-go" "sbom-tools-slim-musl")
 sbom_git=$(get_version "git" "sbom-tools-runner-musl")
 sbom_curl=$(get_version "curl" "sbom-tools-runner-musl")
+sbom_shellsentry=$(get_version "shellsentry" "sbom-tools-runner-musl")
 sbom_go=$(get_version "golang-builder" "sbom-tools-runner-musl")
 
-for name in sbom_alpine sbom_syft sbom_grype sbom_trivy sbom_jq sbom_yq sbom_git sbom_curl; do
+for name in sbom_alpine sbom_syft sbom_grype sbom_trivy sbom_jq sbom_yq sbom_git sbom_curl sbom_shellsentry; do
 	if [ -z "${!name:-}" ]; then
 		echo "❌ Missing manifest entry for ${name#sbom_}"
 		fail=1
@@ -63,6 +64,7 @@ check_pin "$sbom_df" "sbom-tools jq" "ARG JQ_VERSION=${sbom_jq}" || fail=1
 check_pin "$sbom_df" "sbom-tools yq-go" "ARG YQ_VERSION=${sbom_yq}" || fail=1
 check_pin "$sbom_df" "sbom-tools git" "ARG GIT_VERSION=${sbom_git}" || fail=1
 check_pin "$sbom_df" "sbom-tools curl" "ARG CURL_VERSION=${sbom_curl}" || fail=1
+check_pin "$sbom_df" "sbom-tools shellsentry" "ARG SHELLSENTRY_VERSION=${sbom_shellsentry}" || fail=1
 if [ -z "${sbom_go}" ]; then
 	echo "❌ Missing manifest entry for sbom-tools golang builder"
 	fail=1
@@ -78,9 +80,10 @@ sbom_glibc_grype=$(get_version "grype" "sbom-tools-runner-glibc")
 sbom_glibc_trivy=$(get_version "trivy" "sbom-tools-runner-glibc")
 sbom_glibc_jq=$(get_version "jq" "sbom-tools-runner-glibc")
 sbom_glibc_yq=$(get_version "yq-go" "sbom-tools-runner-glibc")
+sbom_glibc_shellsentry=$(get_version "shellsentry" "sbom-tools-runner-glibc")
 sbom_glibc_go=$(get_version "golang-builder-glibc" "sbom-tools-runner-glibc")
 
-for name in sbom_glibc_base sbom_glibc_syft sbom_glibc_grype sbom_glibc_trivy sbom_glibc_jq sbom_glibc_yq; do
+for name in sbom_glibc_base sbom_glibc_syft sbom_glibc_grype sbom_glibc_trivy sbom_glibc_jq sbom_glibc_yq sbom_glibc_shellsentry; do
 	if [ -z "${!name:-}" ]; then
 		echo "❌ Missing manifest entry for ${name#sbom_glibc_}"
 		fail=1
@@ -93,6 +96,7 @@ check_pin "$sbom_glibc_df" "sbom-tools-glibc grype" "ARG GRYPE_VERSION=${sbom_gl
 check_pin "$sbom_glibc_df" "sbom-tools-glibc trivy" "ARG TRIVY_VERSION=${sbom_glibc_trivy}" || fail=1
 check_pin "$sbom_glibc_df" "sbom-tools-glibc jq" "ARG JQ_VERSION=${sbom_glibc_jq}" || fail=1
 check_pin "$sbom_glibc_df" "sbom-tools-glibc yq-go" "ARG YQ_VERSION=${sbom_glibc_yq}" || fail=1
+check_pin "$sbom_glibc_df" "sbom-tools-glibc shellsentry" "ARG SHELLSENTRY_VERSION=${sbom_glibc_shellsentry}" || fail=1
 if [ -z "${sbom_glibc_go}" ]; then
 	echo "❌ Missing manifest entry for sbom-tools-glibc golang builder"
 	fail=1
@@ -118,6 +122,7 @@ goneat_taplo=$(get_version "taplo" "goneat-tools-slim-musl")
 goneat_minisign=$(get_version "minisign" "goneat-tools-slim-musl")
 goneat_goneat=$(get_version "goneat" "goneat-tools-slim-musl")
 goneat_sfetch=$(get_version "sfetch" "goneat-tools-slim-musl")
+goneat_shellsentry=$(get_version "shellsentry" "goneat-tools-runner-musl")
 goneat_bash=$(get_version "bash" "goneat-tools-runner-musl")
 goneat_libssl=$(get_version "libssl3" "goneat-tools-slim-musl")
 goneat_libcrypto=$(get_version "libcrypto3" "goneat-tools-slim-musl")
@@ -129,7 +134,7 @@ goneat_rust=$(get_version "rustc" "goneat-tools-runner-musl")
 goneat_pytest=$(get_version "pytest" "goneat-tools-runner-musl")
 goneat_golangci=$(get_version "golangci-lint" "goneat-tools-runner-musl")
 
-for name in goneat_node goneat_go goneat_prettier goneat_biome goneat_npm goneat_yamlfmt goneat_shfmt goneat_checkmake goneat_actionlint goneat_jq goneat_yq goneat_ripgrep goneat_taplo goneat_bash goneat_libssl goneat_libcrypto goneat_git goneat_curl goneat_minisign goneat_goneat goneat_sfetch goneat_ruff goneat_gover goneat_rust goneat_pytest goneat_golangci; do
+for name in goneat_node goneat_go goneat_prettier goneat_biome goneat_npm goneat_yamlfmt goneat_shfmt goneat_checkmake goneat_actionlint goneat_jq goneat_yq goneat_ripgrep goneat_taplo goneat_bash goneat_libssl goneat_libcrypto goneat_git goneat_curl goneat_minisign goneat_goneat goneat_sfetch goneat_shellsentry goneat_ruff goneat_gover goneat_rust goneat_pytest goneat_golangci; do
 	if [ -z "${!name:-}" ]; then
 		echo "❌ Missing manifest entry for ${name#goneat_}"
 		fail=1
@@ -157,6 +162,7 @@ check_pin "$goneat_df" "goneat-tools curl" "ARG CURL_VERSION=${goneat_curl}" || 
 check_pin "$goneat_df" "goneat-tools minisign" "ARG MINISIGN_VERSION=${goneat_minisign}" || fail=1
 check_pin "$goneat_df" "goneat-tools goneat" "ARG GONEAT_VERSION=${goneat_goneat}" || fail=1
 check_pin "$goneat_df" "goneat-tools sfetch" "ARG SFETCH_VERSION=${goneat_sfetch}" || fail=1
+check_pin "$goneat_df" "goneat-tools shellsentry" "ARG SHELLSENTRY_VERSION=${goneat_shellsentry}" || fail=1
 check_pin "$goneat_df" "goneat-tools ruff" "ARG RUFF_VERSION=${goneat_ruff}" || fail=1
 # The Go toolchain shipped at /opt/go. Kept in lockstep with GO_IMAGE (see the
 # GO_IMAGE <-> GO_VERSION rule); unchecked until v0.5.0, during which the
@@ -184,13 +190,14 @@ goneat_glibc_taplo=$(get_version "taplo" "goneat-tools-runner-glibc")
 goneat_glibc_minisign=$(get_version "minisign" "goneat-tools-runner-glibc")
 goneat_glibc_goneat=$(get_version "goneat" "goneat-tools-runner-glibc")
 goneat_glibc_sfetch=$(get_version "sfetch" "goneat-tools-runner-glibc")
+goneat_glibc_shellsentry=$(get_version "shellsentry" "goneat-tools-runner-glibc")
 goneat_glibc_ruff=$(get_version "ruff" "goneat-tools-runner-glibc")
 goneat_glibc_gover=$(get_version "go" "goneat-tools-runner-glibc")
 goneat_glibc_rust=$(get_version "rustc" "goneat-tools-runner-glibc")
 goneat_glibc_pytest=$(get_version "pytest" "goneat-tools-runner-glibc")
 goneat_glibc_golangci=$(get_version "golangci-lint" "goneat-tools-runner-glibc")
 
-for name in goneat_glibc_node goneat_glibc_go goneat_glibc_prettier goneat_glibc_biome goneat_glibc_npm goneat_glibc_yamlfmt goneat_glibc_shfmt goneat_glibc_checkmake goneat_glibc_actionlint goneat_glibc_jq goneat_glibc_yq goneat_glibc_ripgrep goneat_glibc_taplo goneat_glibc_minisign goneat_glibc_goneat goneat_glibc_sfetch goneat_glibc_ruff goneat_glibc_gover goneat_glibc_rust goneat_glibc_pytest goneat_glibc_golangci; do
+for name in goneat_glibc_node goneat_glibc_go goneat_glibc_prettier goneat_glibc_biome goneat_glibc_npm goneat_glibc_yamlfmt goneat_glibc_shfmt goneat_glibc_checkmake goneat_glibc_actionlint goneat_glibc_jq goneat_glibc_yq goneat_glibc_ripgrep goneat_glibc_taplo goneat_glibc_minisign goneat_glibc_goneat goneat_glibc_sfetch goneat_glibc_shellsentry goneat_glibc_ruff goneat_glibc_gover goneat_glibc_rust goneat_glibc_pytest goneat_glibc_golangci; do
 	if [ -z "${!name:-}" ]; then
 		echo "❌ Missing manifest entry for ${name#goneat_glibc_}"
 		fail=1
@@ -213,6 +220,7 @@ check_pin "$goneat_glibc_df" "goneat-tools-glibc taplo" "ARG TAPLO_VERSION=${gon
 check_pin "$goneat_glibc_df" "goneat-tools-glibc minisign" "ARG MINISIGN_VERSION=${goneat_glibc_minisign}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc goneat" "ARG GONEAT_VERSION=${goneat_glibc_goneat}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc sfetch" "ARG SFETCH_VERSION=${goneat_glibc_sfetch}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc shellsentry" "ARG SHELLSENTRY_VERSION=${goneat_glibc_shellsentry}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc ruff" "ARG RUFF_VERSION=${goneat_glibc_ruff}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc go toolchain" "ARG GO_VERSION=${goneat_glibc_gover}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc rust toolchain" "ARG RUST_VERSION=${goneat_glibc_rust}" || fail=1
