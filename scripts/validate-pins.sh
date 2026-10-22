@@ -46,6 +46,7 @@ sbom_jq=$(get_version "jq" "sbom-tools-slim-musl")
 sbom_yq=$(get_version "yq-go" "sbom-tools-slim-musl")
 sbom_git=$(get_version "git" "sbom-tools-runner-musl")
 sbom_curl=$(get_version "curl" "sbom-tools-runner-musl")
+sbom_go=$(get_version "golang-builder" "sbom-tools-runner-musl")
 
 for name in sbom_alpine sbom_syft sbom_grype sbom_trivy sbom_jq sbom_yq sbom_git sbom_curl; do
 	if [ -z "${!name:-}" ]; then
@@ -62,6 +63,12 @@ check_pin "$sbom_df" "sbom-tools jq" "ARG JQ_VERSION=${sbom_jq}" || fail=1
 check_pin "$sbom_df" "sbom-tools yq-go" "ARG YQ_VERSION=${sbom_yq}" || fail=1
 check_pin "$sbom_df" "sbom-tools git" "ARG GIT_VERSION=${sbom_git}" || fail=1
 check_pin "$sbom_df" "sbom-tools curl" "ARG CURL_VERSION=${sbom_curl}" || fail=1
+if [ -z "${sbom_go}" ]; then
+	echo "❌ Missing manifest entry for sbom-tools golang builder"
+	fail=1
+else
+	check_pin "$sbom_df" "sbom-tools golang builder" "ARG GO_IMAGE=${sbom_go}" || fail=1
+fi
 
 # sbom-tools-glibc pins
 sbom_glibc_df="$ROOT/images/sbom-tools-glibc/Dockerfile"
@@ -71,6 +78,7 @@ sbom_glibc_grype=$(get_version "grype" "sbom-tools-runner-glibc")
 sbom_glibc_trivy=$(get_version "trivy" "sbom-tools-runner-glibc")
 sbom_glibc_jq=$(get_version "jq" "sbom-tools-runner-glibc")
 sbom_glibc_yq=$(get_version "yq-go" "sbom-tools-runner-glibc")
+sbom_glibc_go=$(get_version "golang-builder-glibc" "sbom-tools-runner-glibc")
 
 for name in sbom_glibc_base sbom_glibc_syft sbom_glibc_grype sbom_glibc_trivy sbom_glibc_jq sbom_glibc_yq; do
 	if [ -z "${!name:-}" ]; then
@@ -85,6 +93,12 @@ check_pin "$sbom_glibc_df" "sbom-tools-glibc grype" "ARG GRYPE_VERSION=${sbom_gl
 check_pin "$sbom_glibc_df" "sbom-tools-glibc trivy" "ARG TRIVY_VERSION=${sbom_glibc_trivy}" || fail=1
 check_pin "$sbom_glibc_df" "sbom-tools-glibc jq" "ARG JQ_VERSION=${sbom_glibc_jq}" || fail=1
 check_pin "$sbom_glibc_df" "sbom-tools-glibc yq-go" "ARG YQ_VERSION=${sbom_glibc_yq}" || fail=1
+if [ -z "${sbom_glibc_go}" ]; then
+	echo "❌ Missing manifest entry for sbom-tools-glibc golang builder"
+	fail=1
+else
+	check_pin "$sbom_glibc_df" "sbom-tools-glibc golang builder" "ARG GO_IMAGE=${sbom_glibc_go}" || fail=1
+fi
 
 # goneat-tools pins
 goneat_df="$ROOT/images/goneat-tools/Dockerfile"

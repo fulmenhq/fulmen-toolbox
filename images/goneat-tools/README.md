@@ -19,7 +19,7 @@ This image bundles upstream license texts under `/licenses/` and upstream notice
 | shfmt (v3.13.1)                                    | Shell script formatting           | Go binary  |
 | checkmake (v0.3.2)                                 | Makefile linting                  | Go binary  |
 | actionlint (v1.7.12)                               | GitHub Actions workflow linting   | Go binary  |
-| goneat (v0.6.5)                                    | Format, lint and assessment CLI   | Go binary  |
+| goneat (v0.6.6)                                    | Format, lint and assessment CLI   | Go binary  |
 | jq (1.8.2-r0)                                      | JSON processing/filtering         | Alpine pkg |
 | yq-go (4.53.3-r2)                                  | YAML processing/filtering         | Alpine pkg |
 | ripgrep (15.1.0-r0)                                | Fast text search/search & replace | Alpine pkg |
@@ -27,7 +27,7 @@ This image bundles upstream license texts under `/licenses/` and upstream notice
 | bash (5.3.9-r1), git (2.54.0-r0), curl (8.22.0-r0) | Shell & Git utilities (runner)    | Alpine pkg |
 | minisign (0.12-r2)                                 | File signing/verification         | Alpine pkg |
 
-**Base Image:** `node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2` (multi-arch digest pinned)
+**Base Image:** `node:22.23.4-alpine@sha256:ce8d97f7cfc7c5386421eb932df20a29df99b1a7f469f6157d5c9956702ffadc` (multi-arch digest pinned)
 
 See `docs/images/goneat-tools.md` and `manifests/tools.json` for pinning details.
 

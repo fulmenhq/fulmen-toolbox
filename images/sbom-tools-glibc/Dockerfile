@@ -8,10 +8,14 @@
 # - runner (default): slim + runner baseline + build tools
 
 ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b7ea838a042bbd5acbfca6ec875818
-ARG GO_IMAGE=golang:1.26-bookworm@sha256:1ecb7edf62a0408027bd5729dfd6b1b8766e578e8df93995b225dfd0944eb651
+# shellsentry is built from this image. Keep it on the same Go patch as the
+# goneat-tools builder (currently 1.26.10).
+ARG GO_IMAGE=golang:1.26.10-bookworm@sha256:632dff7351799a5a9954a48dc06670ade72ee44e8c351cdc0e5a57af2fea21af
 ARG SYFT_VERSION=v1.54.1
 ARG GRYPE_VERSION=v0.120.1
-ARG TRIVY_VERSION=v0.75.0
+ARG TRIVY_VERSION=v0.76.1
+ARG TRIVY_SHA256_AMD64=c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0
+ARG TRIVY_SHA256_ARM64=e174dff2a6dba5e3ae41f8d0537a6324405bd08132497340304c6b20e0f16a1f
 ARG SHELLSENTRY_VERSION=v0.1.5
 ARG JQ_VERSION=1.8.1
 ARG YQ_VERSION=v4.53.3
@@ -21,6 +25,8 @@ FROM ${DEBIAN_IMAGE} AS fetcher
 ARG SYFT_VERSION
 ARG GRYPE_VERSION
 ARG TRIVY_VERSION
+ARG TRIVY_SHA256_AMD64
+ARG TRIVY_SHA256_ARM64
 ARG JQ_VERSION
 ARG YQ_VERSION
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl tar gzip xz-utils && \
@@ -52,8 +58,8 @@ RUN set -eux; \
 RUN set -eux; \
     UNAME_ARCH="$(uname -m)"; \
     case "${UNAME_ARCH}" in \
-        x86_64) ARCH="amd64"; TRIVY_ARCH="64bit" ;; \
-        aarch64) ARCH="arm64"; TRIVY_ARCH="ARM64" ;; \
+        x86_64) ARCH="amd64"; TRIVY_ARCH="64bit"; TRIVY_SHA256="${TRIVY_SHA256_AMD64}" ;; \
+        aarch64) ARCH="arm64"; TRIVY_ARCH="ARM64"; TRIVY_SHA256="${TRIVY_SHA256_ARM64}" ;; \
         *) echo "Unsupported arch: ${UNAME_ARCH}" && exit 1 ;; \
     esac; \
     curl -fsSL "https://github.com/anchore/syft/releases/download/${SYFT_VERSION}/syft_${SYFT_VERSION#v}_linux_${ARCH}.tar.gz" -o /tmp/syft.tar.gz; \
@@ -63,6 +69,7 @@ RUN set -eux; \
     tar -xzf /tmp/grype.tar.gz -C /out/bin grype; \
     rm /tmp/grype.tar.gz; \
     curl -fsSL "https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/trivy_${TRIVY_VERSION#v}_Linux-${TRIVY_ARCH}.tar.gz" -o /tmp/trivy.tar.gz; \
+    echo "${TRIVY_SHA256}  /tmp/trivy.tar.gz" | sha256sum -c -; \
     tar -xzf /tmp/trivy.tar.gz -C /out/bin trivy; \
     rm /tmp/trivy.tar.gz; \
     curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${ARCH}" -o /out/bin/jq; \

@@ -12,7 +12,7 @@ run() {
 }
 
 echo "▶ bundled goneat, Rust and scanner versions in $TAG"
-run 'goneat version | grep -q "goneat v0.6.5" && cargo --version && rustfmt --version && cargo clippy --version && cargo deny --version | grep -q "0.20.2"'
+run 'goneat version | grep -q "goneat v0.6.6" && cargo --version && rustfmt --version && cargo clippy --version && cargo deny --version | grep -q "0.20.2"'
 run 'cd /fixture/good && cargo deny check licenses'
 
 case "$TAG" in
