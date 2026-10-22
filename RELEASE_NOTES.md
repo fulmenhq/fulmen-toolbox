@@ -4,7 +4,7 @@
 
 **sfetch v0.4.14, shellsentry v0.1.7**
 
-The musl slim image and both full goneat runners ship sfetch v0.4.14. Both full goneat runners and both sbom-tools runners ship shellsentry v0.1.7. goneat stays at v0.6.6. Go 1.26.10, Node 22.23.4, golangci-lint 2.14.0, trivy v0.76.1, syft v1.54.1, and grype v0.120.1 are unchanged.
+The musl slim image and both full goneat runners ship sfetch v0.4.14. Both full goneat runners and both sbom-tools runners ship shellsentry v0.1.7. goneat stays at v0.6.6. Both tags are inside the 7-day cooling window. The exception runs until 2026-10-29T12:23:37Z. Go 1.26.10, Node 22.23.4, golangci-lint 2.14.0, trivy v0.76.1, syft v1.54.1, and grype v0.120.1 are unchanged.
 
 ### Changes
 
