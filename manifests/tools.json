@@ -355,7 +355,7 @@
     },
     {
       "name": "sfetch",
-      "version": "v0.4.13",
+      "version": "v0.4.14",
       "source": "go",
       "images": [
         "goneat-tools-slim-musl",
@@ -598,7 +598,7 @@
     },
     {
       "name": "shellsentry",
-      "version": "v0.1.5",
+      "version": "v0.1.7",
       "source": "go",
       "images": [
         "goneat-tools-runner-musl",

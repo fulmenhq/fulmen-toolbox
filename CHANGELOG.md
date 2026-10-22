@@ -2,6 +2,13 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
+## 0.5.14 - 2026-10-22
+
+### Changed
+
+- **`sfetch` `v0.4.13` → `v0.4.14`** in the musl slim image and both full goneat runners (Dockerfile ARGs and `manifests/tools.json`).
+- **`shellsentry` `v0.1.5` → `v0.1.7`** in both full goneat runners and both sbom-tools runners (Dockerfile ARGs and `manifests/tools.json`). The repository tool catalog installs the same tag. goneat stays at `v0.6.6`.
+
 ## 0.5.13 - 2026-10-21
 
 ### Changed
