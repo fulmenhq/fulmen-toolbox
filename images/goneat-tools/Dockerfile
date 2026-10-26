@@ -47,7 +47,7 @@ ARG GOLANGCI_LINT_VERSION=v2.14.0
 # Runner-baseline pinned packages (subset)
 ARG BASH_VERSION=5.3.9-r1
 ARG GIT_VERSION=2.54.0-r0
-ARG CURL_VERSION=8.22.0-r0
+ARG CURL_VERSION=8.23.0-r0
 
 # Non-runner tool pins
 ARG MINISIGN_VERSION=0.12-r2
