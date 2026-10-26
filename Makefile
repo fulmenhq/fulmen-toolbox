@@ -251,7 +251,7 @@ build-goneat-tools-multi: build-goneat-tools-runner-multi
 test-goneat-tools-runner:
 	docker run --rm $(GONEAT_RUNNER_TAG_LOCAL) -c "\
 		apk info -e yq-go=4.53.3-r2 >/dev/null && \
-		apk info -e curl=8.22.0-r0 >/dev/null && \
+		apk info -e curl=8.23.0-r0 >/dev/null && \
 		prettier --version && \
 		biome --version | grep -q '2.5.15' && \
 		yamlfmt --version && \

@@ -213,7 +213,7 @@
     },
     {
       "name": "curl",
-      "version": "8.22.0-r0",
+      "version": "8.23.0-r0",
       "source": "apk",
       "images": [
         "goneat-tools-runner-musl"
