@@ -38,6 +38,8 @@ jobs:
           df -h /
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Assert license-check CI split and cache key
+        run: make test-validate-licenses-ci
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Resolve Go version (from manifests)
@@ -71,12 +73,22 @@ jobs:
         run: make validate-apk-pins
       - name: Validate baseline profiles
         run: make validate-profiles
-      - name: Validate curated licenses
-        run: make validate-licenses
       - name: Lint workflows (yamlfmt)
         run: make lint-workflows
+  docker-build:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest-x64-m
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          docker image prune -af || true
+          sudo apt-get clean || true
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
       - name: "Optional: quick docker build (PR confidence)"
-        if: "github.event_name == 'pull_request'"
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -84,3 +96,54 @@ jobs:
           target: runner
           push: false
           platforms: linux/amd64
+  # Dedicated job so license image builds run in parallel with schema/pin
+  # checks and the PR docker-build job. Do not add a `needs:` gate: the
+  # checker builds its own images from this checkout.
+  validate-licenses:
+    runs-on: ubuntu-latest-x64-m
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Restore license-check cache
+        id: license-cache
+        continue-on-error: true
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache/license-validation
+          key: license-validation-v1-${{ runner.os }}-${{ hashFiles('manifests/tools.json', 'scripts/validate-licenses.sh', 'images/**', 'Makefile') }}
+      - name: Validate curated licenses
+        id: license-check
+        run: |
+          set -euo pipefail
+          RESULT_DIR=".cache/license-validation"
+          RESULT_FILE="${RESULT_DIR}/result"
+          cache_hit="${{ steps.license-cache.outputs.cache-hit }}"
+          if [ "$cache_hit" = "true" ] && [ -f "$RESULT_FILE" ]; then
+            got="$(cat "$RESULT_FILE")"
+            if [ "$got" = "ok" ]; then
+              echo "License validation cache hit; skipping make validate-licenses"
+              echo "cache_used=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Cached license result is invalid; failing closed and running full check"
+          else
+            echo "License validation cache miss or restore error; running full check"
+          fi
+          echo "cache_used=false" >> "$GITHUB_OUTPUT"
+          echo "=== Disk usage before cleanup ==="
+          df -h /
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          docker image prune -af || true
+          sudo apt-get clean || true
+          echo "=== Disk usage after cleanup ==="
+          df -h /
+          rm -rf "$RESULT_DIR"
+          make validate-licenses
+          mkdir -p "$RESULT_DIR"
+          printf '%s\n' "ok" > "$RESULT_FILE"
+      - name: Save license-check cache
+        if: success() && steps.license-check.outputs.cache_used != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/license-validation
+          key: license-validation-v1-${{ runner.os }}-${{ hashFiles('manifests/tools.json', 'scripts/validate-licenses.sh', 'images/**', 'Makefile') }}

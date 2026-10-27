@@ -24,7 +24,7 @@
 .PHONY: catalog
 .PHONY: release-plan release-clean release-download release-notes release-sign release-upload release-digests release-signing-help
 .PHONY: release-export-keys release-export-gpg-key release-export-minisign-key
-.PHONY: release-tag release-tag-verify release-tag-push test-release-tag test-release-verify release-verify-pin
+.PHONY: release-tag release-tag-verify release-tag-push test-release-tag test-release-verify test-validate-licenses-ci release-verify-pin
 .PHONY: verify-release-key verify-minisign-key verify-release-digests
 .PHONY: release-verify-key release-verify-signatures release-verify-digests
 .PHONY: validate-subsystems validate-subsystem-echo-proxy-fixture validate-subsystem-authentik-idp
@@ -783,7 +783,7 @@ lint-dockerfiles:
 	fi
 
 ## Quality bundle: manifest validation + profile validation + workflow lint + dockerfile lint
-quality: validate-manifest validate-pins validate-apk-pins validate-apt-pins validate-profiles lint-workflows lint-dockerfiles lint-sh
+quality: test-validate-licenses-ci validate-manifest validate-pins validate-apk-pins validate-apt-pins validate-profiles lint-workflows lint-dockerfiles lint-sh
 
 ## Precommit bundle: quality checks
 precommit:
@@ -794,6 +794,7 @@ check-quick:
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo "Quick validation (no Docker required)..."
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@$(MAKE) test-validate-licenses-ci
 	@$(MAKE) validate-pins
 	@$(MAKE) lint-workflows
 	@$(MAKE) lint-dockerfiles
@@ -861,6 +862,9 @@ test-release-tag: ## Run the release-tag script tests (fails, rather than skips,
 
 test-release-verify: ## Run the release-verify and image-digests tests with throwaway keys (fails, rather than skips, without git/gpg/minisign)
 	FULMEN_TOOLBOX_REQUIRE_CRYPTO_TOOLS=1 python3 -I scripts/test_release_verify.py -v
+
+test-validate-licenses-ci: ## Assert license validation is a cached parallel CI job (fails if split/cache key is reverted)
+	python3 -I scripts/test_validate_licenses_ci.py -v
 
 release-verify-pin: ## Check the committed release-key pin is self-consistent (default ref: HEAD)
 	@FULMEN_TOOLBOX_RELEASE_PIN_REF="$${FULMEN_TOOLBOX_RELEASE_PIN_REF:-HEAD}" scripts/release-verify.sh pin $(FULMEN_TOOLBOX_RELEASE_TAG)
