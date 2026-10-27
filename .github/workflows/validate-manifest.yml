@@ -75,52 +75,14 @@ jobs:
         run: make validate-profiles
       - name: Lint workflows (yamlfmt)
         run: make lint-workflows
-  docker-build:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest-x64-m
-    steps:
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
-          docker image prune -af || true
-          sudo apt-get clean || true
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: "Optional: quick docker build (PR confidence)"
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: images/goneat-tools/Dockerfile
-          target: runner
-          push: false
-          platforms: linux/amd64
-          cache-from: type=gha,scope=pr-goneat-tools-runner
-          cache-to: type=gha,mode=max,scope=pr-goneat-tools-runner
   # Dedicated job so license image builds run in parallel with schema/pin
-  # checks and the PR docker-build job. Do not add a `needs:` gate: the
-  # checker builds its own images from this checkout.
+  # checks. Do not add a `needs:` gate: the checker builds its own images
+  # from this checkout. The old in-job PR docker build is omitted: it was
+  # a 1s no-op after licenses warmed layers, and as a sibling it became a
+  # 12m cold build that dominated wall time.
   validate-licenses:
     runs-on: ubuntu-latest-x64-m
     steps:
-      - name: Show initial disk usage
-        run: |
-          echo "=== Initial disk usage ==="
-          df -h /
-          echo "=== Docker images ==="
-          docker images 2>/dev/null || true
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
-          docker image prune -af || true
-          sudo apt-get clean || true
-      - name: Show disk usage after cleanup
-        run: |
-          echo "=== Disk usage after cleanup ==="
-          df -h /
       - name: Checkout
         uses: actions/checkout@v4
       - name: Restore license-check cache
@@ -149,6 +111,13 @@ jobs:
             echo "License validation cache miss or restore error; running full check"
           fi
           echo "cache_used=false" >> "$GITHUB_OUTPUT"
+          echo "=== Disk usage before cleanup ==="
+          df -h /
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          docker image prune -af || true
+          sudo apt-get clean || true
+          echo "=== Disk usage after cleanup ==="
+          df -h /
           rm -rf "$RESULT_DIR"
           make validate-licenses
           mkdir -p "$RESULT_DIR"

@@ -28,7 +28,7 @@ However, enforcement was largely manual and ad-hoc (tests asserted only a handfu
 2. Add automated verification:
    - `scripts/validate-licenses.sh` builds each supported image variant and asserts the declared license/notice paths exist.
    - The check is exposed as `make validate-licenses`.
-   - CI runs `make validate-licenses` in a dedicated `validate-licenses` job of the manifest validation workflow, in parallel with schema/pin checks and the PR image build. Results are cached by input hash; a cache miss or invalid cache always runs the full check.
+   - CI runs `make validate-licenses` in a dedicated `validate-licenses` job of the manifest validation workflow, in parallel with schema/pin checks. Results are cached by input hash; a cache miss or invalid cache always runs the full check.
 
 3. Scope of enforcement:
    - We only enforce license/notice presence for tools that explicitly declare `license_path`/`license_paths`.
