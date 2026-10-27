@@ -118,6 +118,15 @@ def license_ci_contract_errors(text):
     if "make test-validate-licenses-ci" not in validate_body:
         errors.append("validate job must run make test-validate-licenses-ci")
 
+    if "docker-build" not in jobs:
+        errors.append("missing docker-build job to run in parallel with license checks")
+    else:
+        docker_body = jobs["docker-build"]
+        if _job_has_needs(docker_body):
+            errors.append("docker-build must not set needs: (must run in parallel)")
+        if "docker/build-push-action" not in docker_body:
+            errors.append("docker-build must keep the PR build-push-action gate")
+
     other_jobs = [name for name in jobs if name != JOB_ID]
     if not other_jobs:
         errors.append(f"{JOB_ID} must run in parallel with at least one other job")

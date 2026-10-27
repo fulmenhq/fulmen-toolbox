@@ -75,11 +75,30 @@ jobs:
         run: make validate-profiles
       - name: Lint workflows (yamlfmt)
         run: make lint-workflows
+  docker-build:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest-x64-m
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          docker image prune -af || true
+          sudo apt-get clean || true
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: "Optional: quick docker build (PR confidence)"
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: images/goneat-tools/Dockerfile
+          target: runner
+          push: false
+          platforms: linux/amd64
   # Dedicated job so license image builds run in parallel with schema/pin
-  # checks. Do not add a `needs:` gate: the checker builds its own images
-  # from this checkout. The old in-job PR docker build is omitted: it was
-  # a 1s no-op after licenses warmed layers, and as a sibling it became a
-  # 12m cold build that dominated wall time.
+  # checks and the PR docker-build job. Do not add a `needs:` gate: the
+  # checker builds its own images from this checkout.
   validate-licenses:
     runs-on: ubuntu-latest-x64-m
     steps:
