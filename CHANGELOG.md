@@ -2,6 +2,12 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
+## Unreleased
+
+### Changed
+
+- Manifest CI runs `make validate-licenses` in a dedicated `validate-licenses` job, in parallel with schema/pin checks and the PR image build. Successful results are cached by input hash (`manifests/tools.json`, image sources, the checker script, Makefile) plus cache schema version `v1`. A cache miss, restore error, or invalid sentinel always runs the full check.
+
 ## 0.5.14 - 2026-10-22
 
 ### Changed
