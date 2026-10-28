@@ -396,6 +396,9 @@ test-goneat-tools-runner-glibc:
 		bash --version >/dev/null 2>&1 && \
 		git --version >/dev/null 2>&1 && \
 		curl --version >/dev/null 2>&1 && \
+		gpg --version | grep -q '2.2.40' && \
+		gpgconf --version >/dev/null 2>&1 && \
+		gpg-agent --version >/dev/null 2>&1 && \
 		gcc --version >/dev/null 2>&1 && \
 		pkg-config --version >/dev/null 2>&1 && \
 		[ -d /licenses ] && [ -d /licenses/debian ] && [ -d /notices ] && \

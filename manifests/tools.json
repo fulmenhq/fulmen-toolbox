@@ -275,6 +275,24 @@
       "notes": "Security pin: GnuTLS runtime, pinned to the patched debian bookworm-security build (CVE-2026-33845, CVE-2026-42010 CRITICAL; CVE-2026-33846, CVE-2026-3833, CVE-2026-42009 HIGH). The bookworm-slim base image lags the security repo (ships deb12u6); the explicit apt pin forces the patched deb12u7 at build time. Availability enforced by scripts/validate-apt-pins.sh; presence in the glibc Dockerfiles enforced by scripts/validate-pins.sh."
     },
     {
+      "name": "gpg",
+      "version": "2.2.40-1.1+deb12u2",
+      "source": "apt",
+      "images": [
+        "goneat-tools-runner-glibc"
+      ],
+      "notes": "Pinned for release-tooling CI. Availability enforced by scripts/validate-apt-pins.sh; presence by scripts/validate-pins.sh."
+    },
+    {
+      "name": "gpg-agent",
+      "version": "2.2.40-1.1+deb12u2",
+      "source": "apt",
+      "images": [
+        "goneat-tools-runner-glibc"
+      ],
+      "notes": "Pinned for release-tooling CI. Availability enforced by scripts/validate-apt-pins.sh; presence by scripts/validate-pins.sh."
+    },
+    {
       "name": "golang-builder",
       "version": "golang:1.26.10-alpine@sha256:9ce231b28998b32e116927c61aa5c406183061d4f3f2d61b292c88e7f6bdf7ca",
       "source": "other",

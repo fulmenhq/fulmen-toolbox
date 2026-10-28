@@ -237,6 +237,20 @@ fi
 check_pin "$goneat_glibc_df" "goneat-tools-glibc libgnutls30 security pin" "libgnutls30=${libgnutls30_ver}" || fail=1
 check_pin "$sbom_glibc_df" "sbom-tools-glibc libgnutls30 security pin" "libgnutls30=${libgnutls30_ver}" || fail=1
 
+gpg_ver=$(get_version "gpg" "goneat-tools-runner-glibc")
+if [ -z "${gpg_ver:-}" ]; then
+	echo "❌ Missing manifest entry for gpg"
+	fail=1
+fi
+check_pin "$goneat_glibc_df" "goneat-tools-glibc gpg pin" "gpg=${gpg_ver}" || fail=1
+
+gpg_agent_ver=$(get_version "gpg-agent" "goneat-tools-runner-glibc")
+if [ -z "${gpg_agent_ver:-}" ]; then
+	echo "❌ Missing manifest entry for gpg-agent"
+	fail=1
+fi
+check_pin "$goneat_glibc_df" "goneat-tools-glibc gpg-agent pin" "gpg-agent=${gpg_agent_ver}" || fail=1
+
 if [ "$fail" -ne 0 ]; then
 	echo "Pin validation failed."
 	exit 1

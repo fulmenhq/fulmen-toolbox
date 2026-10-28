@@ -539,6 +539,8 @@ USER root
 # enforced by validate-apt-pins.sh and presence by validate-pins.sh.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgnutls30=3.7.9-2+deb12u7 \
+    gpg=2.2.40-1.1+deb12u2 \
+    gpg-agent=2.2.40-1.1+deb12u2 \
     bash \
     git \
     curl \
