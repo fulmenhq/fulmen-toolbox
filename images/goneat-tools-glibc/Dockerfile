@@ -25,7 +25,7 @@ ARG PRETTIER_VERSION=3.9.6
 ARG BIOME_VERSION=2.5.15
 # Overrides the npm bundled in the node base. See the npm stage below for the
 # maintenance obligation this pin creates.
-ARG NPM_VERSION=12.0.1
+ARG NPM_VERSION=12.2.1
 # Upstream GitHub release binary (jqlang/jq), checksum-verified per arch below.
 # The musl runners keep the Alpine apk jq (1.8.1-r0) until Alpine 3.24 ships 1.8.2.
 ARG JQ_VERSION=1.8.2

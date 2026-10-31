@@ -3,7 +3,7 @@
   "tools": [
     {
       "name": "npm",
-      "version": "12.0.1",
+      "version": "12.2.1",
       "source": "npm",
       "images": [
         "goneat-tools-slim-musl",
@@ -253,7 +253,7 @@
         "goneat-tools-slim-musl",
         "goneat-tools-runner-musl"
       ],
-      "notes": "Pinned base image digest for multi-arch. Ships node 22.23.4. Base npm stays below the pinned npm 12.0.1 override."
+      "notes": "Pinned base image digest for multi-arch. Ships node 22.23.4. Base npm stays below the pinned npm 12.2.1 override."
     },
     {
       "name": "node-base-glibc",
@@ -262,7 +262,7 @@
       "images": [
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Pinned base image tag for glibc runner. Ships node 22.23.4. Base npm stays below the pinned npm 12.0.1 override."
+      "notes": "Pinned base image tag for glibc runner. Ships node 22.23.4. Base npm stays below the pinned npm 12.2.1 override."
     },
     {
       "name": "libgnutls30",
