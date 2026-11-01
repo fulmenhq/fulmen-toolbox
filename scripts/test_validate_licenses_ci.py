@@ -100,7 +100,9 @@ def license_ci_contract_errors(text):
     if "make validate-licenses" not in body:
         errors.append(f"{JOB_ID} must run make validate-licenses")
     if "continue-on-error: true" not in body:
-        errors.append("cache restore must continue-on-error so a miss/error still runs the check")
+        errors.append(
+            "cache restore must continue-on-error so a miss/error still runs the check"
+        )
     if ".cache/license-validation" not in body:
         errors.append("cached result path .cache/license-validation is required")
     if not re.search(r"\[ -f .*RESULT_FILE|\[ -f .*result", body):
@@ -110,7 +112,9 @@ def license_ci_contract_errors(text):
     if "cache_used" not in body and "cache-hit" not in body:
         errors.append("must branch on cache hit vs miss")
     if "success()" not in body:
-        errors.append("cache save must be gated on success() so a failed check is never cached")
+        errors.append(
+            "cache save must be gated on success() so a failed check is never cached"
+        )
 
     validate_body = jobs.get("validate", "")
     if "make validate-licenses" in validate_body:
@@ -154,7 +158,9 @@ class TestValidateLicensesCI(unittest.TestCase):
     def test_cache_key_without_tools_json_hash_fails(self):
         text = WORKFLOW.read_text(encoding="utf-8")
         mutated = text.replace("'manifests/tools.json', ", "")
-        self.assertNotEqual(mutated, text, "fixture must drop tools.json from the cache key")
+        self.assertNotEqual(
+            mutated, text, "fixture must drop tools.json from the cache key"
+        )
         errors = license_ci_contract_errors(mutated)
         self.assertTrue(
             any("manifests/tools.json" in e for e in errors),
@@ -185,7 +191,7 @@ class TestValidateLicensesCI(unittest.TestCase):
 
     def test_skip_without_result_file_check_fails(self):
         text = WORKFLOW.read_text(encoding="utf-8")
-        mutated = text.replace("[ -f \"$RESULT_FILE\" ]", "[ 1 = 1 ]")
+        mutated = text.replace('[ -f "$RESULT_FILE" ]', "[ 1 = 1 ]")
         self.assertNotEqual(mutated, text)
         errors = license_ci_contract_errors(mutated)
         self.assertTrue(
