@@ -2,11 +2,21 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
-## Unreleased
+## 0.5.15 - 2026-11-10
 
 ### Changed
 
-- Manifest CI runs `make validate-licenses` in a dedicated `validate-licenses` job, in parallel with schema/pin checks and the PR image build. Successful results are cached by input hash (`manifests/tools.json`, image sources, the checker script, Makefile) plus cache schema version `v1`. A cache miss, restore error, or invalid sentinel always runs the full check.
+- **`goneat` `v0.6.6` → `v0.6.8`** in the musl slim image and both full runners (Dockerfile ARGs, Makefile bootstrap minimum, `manifests/tools.json`, image README, and built-image version checks). goneat v0.6.8 is inside the 7-day cooling window. The exception runs until 2026-11-17T17:29:02Z (`docs/operations/2026-11-10-goneat-cooling-exception.md`).
+- **`sfetch` `v0.4.14` → `v0.4.15`** in the musl slim image and both full goneat runners (Dockerfile ARGs and `manifests/tools.json`). sfetch v0.4.15 was published at 2026-10-24T19:11:33Z (module proxy time), outside the cooling window.
+- **`npm` `12.0.1` → `12.2.1`** in the musl slim image and both full runners. npm 12.2.1 bundles the brace-expansion release that fixes CVE-2026-14257. The `.trivyignore` entry for it is removed.
+- **Alpine 3.24 `curl` `8.22.0-r0` → `8.23.0-r0`** in `goneat-tools-runner-musl` (Dockerfile ARG, `manifests/tools.json`, runner smoke check, and image README). Alpine 3.24 no longer serves 8.22.0-r0 on amd64 or arm64 (#35).
+- **`uv` `0.9.28` → `0.13.4`** in both full goneat runners (Dockerfile ARGs and `manifests/tools.json`). uv 0.13.4 carries the bundled CA store fix for GHSA-hq85-5cpj-mr62 and was published 2026-10-20T15:11:02Z, outside the cooling window. The images only run `uv --version`. The 0.10 to 0.13 breaking changes (venv clearing, index and hash handling, archive validation, default Python) do not touch that.
+- **undici overlay in npm's bundled tree.** npm 12.2.1 bundles undici 6.29.0, which carries CVE-2026-109383, CVE-2026-109869 and CVE-2026-87018. The slim image and both full runners unpack the registry tarball for undici 6.29.1 (published 2026-10-15T14:19:28Z) over npm's copy after checking its pinned sha512 integrity. The `undici` entry in `manifests/tools.json` records the removal condition: remove the overlay once an npm release bundles undici 6.29.1 or newer. `validate-pins` checks the new ARGs.
+- **`syft` `v1.54.1` → `v1.55.0`** and **`grype` `v0.120.1` → `v0.121.0`** on both full goneat runners and all three sbom-tools images. These are the latest upstream releases, published 2026-10-19. They do not clear findings: both are still built with go1.26.8 and pin go-jose v4.1.5. grype scans now also report docker/docker CVE-2026-41567 and CVE-2026-42306, which have no fixed version. See `docs/operations/2026-11-02-residual-findings-exception.md`.
+- **Base image digests** for the sbom-tools images move to `alpine:3.21@sha256:ee16d92f96db08d9d2d07da48555a27f3a69d8f0759021dbc601195ed0d2b5bd` (Docker Hub push 2026-10-23T05:24:18Z) and `debian:bookworm-slim@sha256:7ff6ba31527b9e336162fa061746c366c4b2032f4d2cff2078bea43f78efe3f8` (the `bookworm-20261020-slim` build, push 2026-10-21T01:36:39Z). Both were pushed more than 7 days before adoption. The newer `bookworm-20261027-slim` build was pushed 2026-10-28 and is not adopted. Alpine 3.21 reached end of life on 2026-11-01 and receives no further security updates.
+- **Residual findings.** `docs/operations/2026-11-02-residual-findings-exception.md` records the HIGH/CRITICAL findings that remain in the upstream syft, grype, trivy and glibc yq binaries, why the newest releases still carry them, and a 2026-11-16 recheck date. It is not a cooling exception and its approval is pending.
+- **`gpg` and `gpg-agent` `2.2.40-1.1+deb12u2`** are pinned in `goneat-tools-runner-glibc`, with manifest entries, `validate-pins` checks, and smoke coverage (#37).
+- Manifest CI runs `make validate-licenses` in a dedicated `validate-licenses` job, in parallel with schema/pin checks and the PR image build. Successful results are cached by input hash (`manifests/tools.json`, image sources, the checker script, Makefile) plus cache schema version `v1`. A cache miss, restore error, or invalid sentinel always runs the full check (#36).
 
 ## 0.5.14 - 2026-10-22
 

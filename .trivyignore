@@ -42,12 +42,3 @@ CVE-2026-56852  # 2026-10-10: x/text in golangci-lint v2.12.2 (v0.36.0) and yq v
 # Re-checked 2026-10-14 against grype v0.120.1 go.mod — the dependency is
 # unchanged, so the version bump taken this cycle did not clear it.
 CVE-2026-34040  # 2026-10-14: grype v0.120.1 vendors docker/docker v28.5.2; fixed in 29.3.1; on-latest-upstream; review by 2026-12-31
-
-# --- Bundled npm dependency tree --------------------------------------------
-# We pin npm to 12.0.1 (see the npm stage in the goneat Dockerfiles), which
-# cleared CRITICAL CVE-2026-59873 (tar) plus CVE-2026-59874, CVE-2026-48815
-# (sigstore), CVE-2026-13149 (brace-expansion) and CVE-2026-33671 (picomatch).
-# npm 12.0.1 bundles brace-expansion 5.0.7; this advisory needs 5.0.8, which no
-# published npm release ships yet. Clears on the next npm that bundles it — at
-# which point the pin bump closes this without further work.
-CVE-2026-14257  # 2026-07-30: brace-expansion 5.0.7 bundled inside pinned npm 12.0.1; fixed in 5.0.8; no npm release ships 5.0.8 yet; goneat-tools images only; review by 2026-10-30
