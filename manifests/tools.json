@@ -551,13 +551,13 @@
     },
     {
       "name": "uv",
-      "version": "0.9.28",
+      "version": "0.13.4",
       "source": "other",
       "images": [
         "goneat-tools-runner-musl",
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Fast Python package manager (installed via pip).",
+      "notes": "Fast Python package manager (installed via pip). 0.13.4 is the first release with the bundled CA store fix (GHSA-hq85-5cpj-mr62).",
       "license_spdx": "MIT",
       "license_source": "manual",
       "license_path": "/licenses/pypi/uv/LICENSE"
