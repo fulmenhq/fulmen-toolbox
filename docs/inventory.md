@@ -60,7 +60,7 @@ See `docs/images/goneat-tools.md` for usage patterns.
 
 **Base images**:
 
-- musl variants: `alpine:3.21`
+- musl variants: `alpine:3.21` (end of life since 2026-11-01; no further security updates)
 - glibc variant: `debian:bookworm-slim`
 
 **Output formats**: CycloneDX JSON (default), SPDX JSON.

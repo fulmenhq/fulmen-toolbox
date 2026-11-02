@@ -20,7 +20,7 @@ This image bundles upstream license texts under `/licenses/` and upstream notice
 | yq-go (4.49.2-r1) | YAML/JSON filtering                   | apk            |
 | git (2.52.0-r0)   | Repo checkout inside containerized CI | apk            |
 
-**Base Image:** `alpine:3.21@sha256:5405e8f3...` (multi-arch digest pinned)
+**Base Image:** `alpine:3.21@sha256:ee16d92f...` (multi-arch digest pinned). Alpine 3.21 reached end of life on 2026-11-01 and no longer receives security updates.
 
 See `manifests/tools.json` for pinning details and `docs/user-guide/container-usage-patterns.md` for usage patterns.
 
