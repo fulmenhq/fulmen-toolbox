@@ -11,8 +11,8 @@ ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b
 # shellsentry is built from this image. Keep it on the same Go patch as the
 # goneat-tools builder (currently 1.26.10).
 ARG GO_IMAGE=golang:1.26.10-bookworm@sha256:632dff7351799a5a9954a48dc06670ade72ee44e8c351cdc0e5a57af2fea21af
-ARG SYFT_VERSION=v1.54.1
-ARG GRYPE_VERSION=v0.120.1
+ARG SYFT_VERSION=v1.55.0
+ARG GRYPE_VERSION=v0.121.0
 ARG TRIVY_VERSION=v0.76.1
 ARG TRIVY_SHA256_AMD64=c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0
 ARG TRIVY_SHA256_ARM64=e174dff2a6dba5e3ae41f8d0537a6324405bd08132497340304c6b20e0f16a1f

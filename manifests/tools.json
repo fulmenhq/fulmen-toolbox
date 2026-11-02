@@ -660,7 +660,7 @@
     },
     {
       "name": "syft",
-      "version": "v1.54.1",
+      "version": "v1.55.0",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",
@@ -677,7 +677,7 @@
     },
     {
       "name": "grype",
-      "version": "v0.120.1",
+      "version": "v0.121.0",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",
