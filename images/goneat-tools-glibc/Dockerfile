@@ -26,6 +26,11 @@ ARG BIOME_VERSION=2.5.15
 # Overrides the npm bundled in the node base. See the npm stage below for the
 # maintenance obligation this pin creates.
 ARG NPM_VERSION=12.2.1
+# undici overlay inside npm's bundled tree; see the undici step below for the
+# removal condition. UNDICI_INTEGRITY is the registry sha512 (SRI) of the
+# undici-${UNDICI_VERSION}.tgz tarball.
+ARG UNDICI_VERSION=6.29.1
+ARG UNDICI_INTEGRITY=sha512-EvRlUt/QqAEvXdQeRMYUfwOQsfzpDztykrG2owGEE/rBOBoYv9uF39ZzsNDh4lTFHhTr2XOZjKkYgueD12ZmGA==
 # Upstream GitHub release binary (jqlang/jq), checksum-verified per arch below.
 # The musl runners keep the Alpine apk jq (1.8.1-r0) until Alpine 3.24 ships 1.8.2.
 ARG JQ_VERSION=1.8.2
@@ -475,6 +480,50 @@ RUN npm install -g npm@${NPM_VERSION} && \
     npm cache clean --force && \
     mkdir -p /licenses/npm/npm && \
     cp /usr/local/lib/node_modules/npm/LICENSE /licenses/npm/npm/LICENSE && \
+    chmod -R a+rX /licenses/npm
+
+# Overlay the undici bundled inside npm.
+#
+# npm ${NPM_VERSION} bundles undici 6.29.0 (a dependency of node-gyp), which
+# carries HIGH advisories fixed in 6.29.1 (CVE-2026-109383, CVE-2026-109869,
+# CVE-2026-87018). No npm release bundles the fix yet, and installing undici
+# from inside npm's tree does not replace a bundled dependency, so the registry
+# tarball for ${UNDICI_VERSION} is unpacked over npm's copy after its sha512
+# integrity is checked against ${UNDICI_INTEGRITY}. npm's own bundled node-tar unpacks it.
+#
+# REMOVAL CONDITION: delete this step, the UNDICI_* ARGs, the `undici` entry in
+# manifests/tools.json and its validate-pins checks once an npm release bundles
+# undici >= ${UNDICI_VERSION}. The step skips the overlay when the bundled copy
+# is already >= ${UNDICI_VERSION}, so it never downgrades.
+ARG UNDICI_VERSION
+ARG UNDICI_INTEGRITY
+RUN set -eux; \
+    NPM_ROOT=/usr/local/lib/node_modules/npm; \
+    UNDICI_DIR="${NPM_ROOT}/node_modules/undici"; \
+    ver_ge() { node -e 'const p=v=>v.split(".").map(Number);const a=p(process.argv[1]),b=p(process.argv[2]);for(let i=0;i<3;i++){if(a[i]!==b[i])process.exit(a[i]>b[i]?0:1)}process.exit(0)' "$1" "$2"; }; \
+    BUNDLED="$(node -p "require('${UNDICI_DIR}/package.json').version")"; \
+    if ver_ge "${BUNDLED}" "${UNDICI_VERSION}"; then \
+      echo "bundled undici ${BUNDLED} >= ${UNDICI_VERSION}; overlay skipped"; \
+    else \
+      WORK="$(mktemp -d)"; \
+      cd "${WORK}"; \
+      npm pack "undici@${UNDICI_VERSION}" --silent >/dev/null; \
+      ACTUAL="sha512-$(node -e 'process.stdout.write(require("crypto").createHash("sha512").update(require("fs").readFileSync(process.argv[1])).digest("base64"))' "undici-${UNDICI_VERSION}.tgz")"; \
+      test "${ACTUAL}" = "${UNDICI_INTEGRITY}"; \
+      rm -rf "${UNDICI_DIR}"; \
+      mkdir "${UNDICI_DIR}"; \
+      node -e 'require(process.argv[1]+"/node_modules/tar").x({file:process.argv[2],cwd:process.argv[3],strip:1,sync:true})' "${NPM_ROOT}" "undici-${UNDICI_VERSION}.tgz" "${UNDICI_DIR}"; \
+      chown -R root:root "${UNDICI_DIR}"; \
+      chmod -R a+rX "${UNDICI_DIR}"; \
+      cd /; \
+      rm -rf "${WORK}"; \
+    fi; \
+    ver_ge "$(node -p "require('${UNDICI_DIR}/package.json').version")" "${UNDICI_VERSION}"; \
+    node -e "require('${UNDICI_DIR}')"; \
+    npm --version; \
+    npm cache clean --force; \
+    mkdir -p /licenses/npm/undici; \
+    cp "${UNDICI_DIR}/LICENSE" /licenses/npm/undici/LICENSE; \
     chmod -R a+rX /licenses/npm
 
 # Install Prettier and Biome globally

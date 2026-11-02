@@ -16,6 +16,20 @@
       "license_path": "/licenses/npm/npm/LICENSE"
     },
     {
+      "name": "undici",
+      "version": "6.29.1",
+      "source": "npm",
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl",
+        "goneat-tools-runner-glibc"
+      ],
+      "notes": "Overlay on the undici bundled inside npm's own tree (a node-gyp dependency; npm 12.2.1 bundles 6.29.0, which carries CVE-2026-109383, CVE-2026-109869 and CVE-2026-87018). The Dockerfiles unpack the registry tarball for 6.29.1 over npm's copy after verifying its sha512 integrity sha512-EvRlUt/QqAEvXdQeRMYUfwOQsfzpDztykrG2owGEE/rBOBoYv9uF39ZzsNDh4lTFHhTr2XOZjKkYgueD12ZmGA== (sha256 29c4b8e0b2d86cb8795571c1959012ce057a14ecfd34858335f47c31e770a04f). Published 2026-10-15T14:19:28Z. Removal condition: remove this entry, the Dockerfile overlay step and the validate-pins checks once an npm release bundles undici >= 6.29.1.",
+      "license_spdx": "MIT",
+      "license_source": "npm",
+      "license_path": "/licenses/npm/undici/LICENSE"
+    },
+    {
       "name": "prettier",
       "version": "3.9.6",
       "source": "npm",

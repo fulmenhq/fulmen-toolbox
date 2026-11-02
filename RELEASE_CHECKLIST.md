@@ -53,6 +53,8 @@ This is the SOP for publishing a new `fulmen-toolbox` release (semver-driven).
 
   **The risk this creates is a silent downgrade.** `npm install -g npm@X` sets the version absolutely, so once the base bundles an npm newer than our pin, the override starts _removing_ fixes instead of adding them — and nothing fails loudly when it does. Re-check on **every node base digest bump**, and **delete the override stage entirely** (plus its `manifests/tools.json` entry and `validate-pins` check) once the base has caught up. Carrying it longer than needed is the failure mode, not dropping it.
 
+  **undici overlay.** The Dockerfiles also unpack the registry tarball for `UNDICI_VERSION` over the `undici` bundled in npm's tree, checked against the pinned `UNDICI_INTEGRITY` sha512. Whenever `NPM_VERSION` changes, check what the new npm bundles (`node -p "require('/usr/local/lib/node_modules/npm/node_modules/undici/package.json').version"` in the built image). Remove the overlay step, the `UNDICI_*` ARGs, the `undici` manifest entry and its `validate-pins` checks once an npm release bundles undici at or above the overlay version. The step skips itself when the bundled copy is already new enough.
+
 - [ ] If adding a new image, confirm `manifests/tools.json` includes it (release signing/digests derive from the manifest list)
 - [ ] Run local checks: `make precommit` (manifest + workflows lint) and `make prepush` (quality + build + test)
   - **Timing note**: `make prepush` builds and smoke-tests images cold; expect **~30 minutes** on a clean cache, **~3-5 min** when layers are warm. If running under an automation harness, set the command timeout to **at least 45 min** to avoid spurious cancellation.
