@@ -511,8 +511,9 @@ RUN set -eux; \
 # integrity is checked against ${UNDICI_INTEGRITY}. npm's own bundled node-tar unpacks it.
 #
 # REMOVAL CONDITION: delete this step, the UNDICI_* ARGs, the `undici` entry in
-# manifests/tools.json and its validate-pins checks once an npm release bundles
-# undici >= ${UNDICI_VERSION}. The step skips the overlay when the bundled copy
+# manifests/tools.json and its validate-pins checks when the npm pin moves to a
+# release that bundles undici >= ${UNDICI_VERSION} (npm 12.2.2 does; it leaves
+# the cooling window at 2026-11-11T23:02:59Z). The step skips the overlay when the bundled copy
 # is already >= ${UNDICI_VERSION}, so it never downgrades.
 ARG UNDICI_VERSION
 ARG UNDICI_INTEGRITY
