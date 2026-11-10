@@ -92,7 +92,7 @@ YAMLLINT ?= yamllint
 
 # Bootstrap tooling (sfetch -> goneat trust chain)
 # Note: GONEAT_VERSION is a minimum version; if goneat is already installed, it is used as-is.
-GONEAT_VERSION ?= v0.6.6
+GONEAT_VERSION ?= v0.6.8
 BINDIR ?= $(HOME)/.local/bin
 SFETCH_BIN = $(shell command -v sfetch 2>/dev/null || echo "")
 GONEAT_BIN = $(shell command -v goneat 2>/dev/null || echo "")
@@ -264,11 +264,13 @@ test-goneat-tools-runner:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version | grep -q 'goneat v0.6.6' && \
+		goneat version | grep -q 'goneat v0.6.8' && \
+		npm --version | grep -qx '12.2.1' && \
+		node -p \"require('/usr/local/lib/node_modules/npm/node_modules/undici/package.json').version\" | grep -qx '6.29.1' && \
 		sfetch --help >/dev/null 2>&1 && \
 		shellsentry --version >/dev/null 2>&1 && \
-		syft version >/dev/null 2>&1 && \
-		grype version >/dev/null 2>&1 && \
+		syft version | grep -qE '^Version: +1\.56\.0$$' && \
+		grype version | grep -qE '^Version: +0\.121\.1$$' && \
 		rustc --version >/dev/null 2>&1 && \
 		cargo --version >/dev/null 2>&1 && \
 		rustfmt --version >/dev/null 2>&1 && \
@@ -281,7 +283,7 @@ test-goneat-tools-runner:
 		go version >/dev/null 2>&1 && \
 		zig version >/dev/null 2>&1 && \
 		python3 --version >/dev/null 2>&1 && \
-		uv --version >/dev/null 2>&1 && \
+		uv --version | grep -q '^uv 0\.13\.4 ' && \
 		maturin --version >/dev/null 2>&1 && \
 		pytest --version >/dev/null 2>&1 && \
 		ruff --version >/dev/null 2>&1 && \
@@ -327,7 +329,9 @@ test-goneat-tools-slim:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version | grep -q 'goneat v0.6.6' && \
+		goneat version | grep -q 'goneat v0.6.8' && \
+		npm --version | grep -qx '12.2.1' && \
+		node -p \"require('/usr/local/lib/node_modules/npm/node_modules/undici/package.json').version\" | grep -qx '6.29.1' && \
 		sfetch --help >/dev/null 2>&1 && \
 		! command -v shellsentry >/dev/null 2>&1 && \
 		! command -v syft >/dev/null 2>&1 && \
@@ -371,11 +375,13 @@ test-goneat-tools-runner-glibc:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version | grep -q 'goneat v0.6.6' && \
+		goneat version | grep -q 'goneat v0.6.8' && \
+		npm --version | grep -qx '12.2.1' && \
+		node -p \"require('/usr/local/lib/node_modules/npm/node_modules/undici/package.json').version\" | grep -qx '6.29.1' && \
 		sfetch --help >/dev/null 2>&1 && \
 		shellsentry --version >/dev/null 2>&1 && \
-		syft version >/dev/null 2>&1 && \
-		grype version >/dev/null 2>&1 && \
+		syft version | grep -qE '^Version: +1\.56\.0$$' && \
+		grype version | grep -qE '^Version: +0\.121\.1$$' && \
 		rustc --version >/dev/null 2>&1 && \
 		cargo --version >/dev/null 2>&1 && \
 		rustfmt --version >/dev/null 2>&1 && \
@@ -388,7 +394,7 @@ test-goneat-tools-runner-glibc:
 		go version >/dev/null 2>&1 && \
 		zig version >/dev/null 2>&1 && \
 		python3 --version >/dev/null 2>&1 && \
-		uv --version >/dev/null 2>&1 && \
+		uv --version | grep -q '^uv 0\.13\.4 ' && \
 		maturin --version >/dev/null 2>&1 && \
 		pytest --version >/dev/null 2>&1 && \
 		ruff --version >/dev/null 2>&1 && \
@@ -541,8 +547,8 @@ test-sbom-tools-runner:
 	docker run --rm \
 		-v $(CURDIR)/tests/fixtures/sbom:/fixture:ro \
 		$(SBOM_RUNNER_TAG_LOCAL) -c "\
-		syft version && \
-		grype version && \
+		syft version | grep -qE '^Version: +1\.56\.0$$' && \
+		grype version | grep -qE '^Version: +0\.121\.1$$' && \
 		trivy version && \
 		shellsentry --version >/dev/null 2>&1 && \
 		yamllint --version && \
@@ -571,8 +577,8 @@ test-sbom-tools-slim:
 	docker run --rm \
 		-v $(CURDIR)/tests/fixtures/sbom:/fixture:ro \
 		$(SBOM_SLIM_TAG_LOCAL) -c "\
-		syft version && \
-		grype version && \
+		syft version | grep -qE '^Version: +1\.56\.0$$' && \
+		grype version | grep -qE '^Version: +0\.121\.1$$' && \
 		trivy version && \
 		! command -v shellsentry >/dev/null 2>&1 && \
 		! command -v yamllint >/dev/null 2>&1 && \
@@ -602,8 +608,8 @@ test-sbom-tools-runner-glibc:
 	docker run --rm \
 		-v $(CURDIR)/tests/fixtures/sbom:/fixture:ro \
 		$(SBOM_GLIBC_TAG_LOCAL) -c "\
-		syft version && \
-		grype version && \
+		syft version | grep -qE '^Version: +1\.56\.0$$' && \
+		grype version | grep -qE '^Version: +0\.121\.1$$' && \
 		trivy version && \
 		shellsentry --version >/dev/null 2>&1 && \
 		yamllint --version && \

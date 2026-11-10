@@ -25,9 +25,20 @@ get_version() {
   ' "$MANIFEST"
 }
 
+get_note_match() {
+	local name="$1" image="$2" pattern="$3"
+	jq -r --arg name "$name" --arg image "$image" --arg re "$pattern" '
+    (.tools[] | select(.name == $name and (.images | index($image))) | .notes | capture("(?<m>" + $re + ")") | .m) // empty
+  ' "$MANIFEST"
+}
+
 check_pin() {
 	local file="$1" label="$2" needle="$3"
-	if ! grep -qF "$needle" "$file"; then
+	# ARG declarations must match the whole line, so an appended character
+	# fails; package pins inside RUN lines are matched as substrings.
+	local mode=-qF
+	case "$needle" in "ARG "*) mode=-qxF ;; esac
+	if ! grep "$mode" -- "$needle" "$file"; then
 		echo "❌ $label: missing pin \"$needle\" in $file"
 		return 1
 	fi
@@ -111,6 +122,8 @@ goneat_go=$(get_version "golang-builder" "goneat-tools-slim-musl")
 goneat_prettier=$(get_version "prettier" "goneat-tools-slim-musl")
 goneat_biome=$(get_version "biome" "goneat-tools-slim-musl")
 goneat_npm=$(get_version "npm" "goneat-tools-slim-musl")
+goneat_undici=$(get_version "undici" "goneat-tools-slim-musl")
+goneat_undici_integrity=$(get_note_match "undici" "goneat-tools-slim-musl" "sha512-[A-Za-z0-9+/=]+")
 goneat_yamlfmt=$(get_version "yamlfmt" "goneat-tools-slim-musl")
 goneat_shfmt=$(get_version "shfmt" "goneat-tools-slim-musl")
 goneat_checkmake=$(get_version "checkmake" "goneat-tools-slim-musl")
@@ -134,7 +147,7 @@ goneat_rust=$(get_version "rustc" "goneat-tools-runner-musl")
 goneat_pytest=$(get_version "pytest" "goneat-tools-runner-musl")
 goneat_golangci=$(get_version "golangci-lint" "goneat-tools-runner-musl")
 
-for name in goneat_node goneat_go goneat_prettier goneat_biome goneat_npm goneat_yamlfmt goneat_shfmt goneat_checkmake goneat_actionlint goneat_jq goneat_yq goneat_ripgrep goneat_taplo goneat_bash goneat_libssl goneat_libcrypto goneat_git goneat_curl goneat_minisign goneat_goneat goneat_sfetch goneat_shellsentry goneat_ruff goneat_gover goneat_rust goneat_pytest goneat_golangci; do
+for name in goneat_node goneat_go goneat_prettier goneat_biome goneat_npm goneat_undici goneat_undici_integrity goneat_yamlfmt goneat_shfmt goneat_checkmake goneat_actionlint goneat_jq goneat_yq goneat_ripgrep goneat_taplo goneat_bash goneat_libssl goneat_libcrypto goneat_git goneat_curl goneat_minisign goneat_goneat goneat_sfetch goneat_shellsentry goneat_ruff goneat_gover goneat_rust goneat_pytest goneat_golangci; do
 	if [ -z "${!name:-}" ]; then
 		echo "❌ Missing manifest entry for ${name#goneat_}"
 		fail=1
@@ -146,6 +159,16 @@ check_pin "$goneat_df" "goneat-tools golang builder" "ARG GO_IMAGE=${goneat_go}"
 check_pin "$goneat_df" "goneat-tools prettier" "ARG PRETTIER_VERSION=${goneat_prettier}" || fail=1
 check_pin "$goneat_df" "goneat-tools biome" "ARG BIOME_VERSION=${goneat_biome}" || fail=1
 check_pin "$goneat_df" "goneat-tools npm" "ARG NPM_VERSION=${goneat_npm}" || fail=1
+check_pin "$goneat_df" "goneat-tools undici overlay" "ARG UNDICI_VERSION=${goneat_undici}" || fail=1
+check_pin "$goneat_df" "goneat-tools undici integrity" "ARG UNDICI_INTEGRITY=${goneat_undici_integrity}" || fail=1
+goneat_npm_integrity=$(get_note_match "npm" "goneat-tools-slim-musl" "sha512-[A-Za-z0-9+/=]+")
+goneat_uv_hashes=$(get_note_match "uv" "goneat-tools-runner-musl" "[0-9a-f]{64}( [0-9a-f]{64})*")
+if [ -z "${goneat_npm_integrity}" ] || [ -z "${goneat_uv_hashes}" ]; then
+	echo "❌ Missing npm integrity or uv wheel hashes in manifest notes (goneat)"
+	fail=1
+fi
+check_pin "$goneat_df" "goneat npm integrity" "ARG NPM_INTEGRITY=${goneat_npm_integrity}" || fail=1
+check_pin "$goneat_df" "goneat uv wheel hashes" "ARG UV_WHEEL_SHA256=\"${goneat_uv_hashes}\"" || fail=1
 check_pin "$goneat_df" "goneat-tools yamlfmt" "ARG YAMLFMT_VERSION=${goneat_yamlfmt}" || fail=1
 check_pin "$goneat_df" "goneat-tools shfmt" "ARG SHFMT_VERSION=${goneat_shfmt}" || fail=1
 check_pin "$goneat_df" "goneat-tools checkmake" "ARG CHECKMAKE_VERSION=${goneat_checkmake}" || fail=1
@@ -179,6 +202,8 @@ goneat_glibc_go=$(get_version "golang-builder-glibc" "goneat-tools-runner-glibc"
 goneat_glibc_prettier=$(get_version "prettier" "goneat-tools-runner-glibc")
 goneat_glibc_biome=$(get_version "biome" "goneat-tools-runner-glibc")
 goneat_glibc_npm=$(get_version "npm" "goneat-tools-runner-glibc")
+goneat_glibc_undici=$(get_version "undici" "goneat-tools-runner-glibc")
+goneat_glibc_undici_integrity=$(get_note_match "undici" "goneat-tools-runner-glibc" "sha512-[A-Za-z0-9+/=]+")
 goneat_glibc_yamlfmt=$(get_version "yamlfmt" "goneat-tools-runner-glibc")
 goneat_glibc_shfmt=$(get_version "shfmt" "goneat-tools-runner-glibc")
 goneat_glibc_checkmake=$(get_version "checkmake" "goneat-tools-runner-glibc")
@@ -197,7 +222,7 @@ goneat_glibc_rust=$(get_version "rustc" "goneat-tools-runner-glibc")
 goneat_glibc_pytest=$(get_version "pytest" "goneat-tools-runner-glibc")
 goneat_glibc_golangci=$(get_version "golangci-lint" "goneat-tools-runner-glibc")
 
-for name in goneat_glibc_node goneat_glibc_go goneat_glibc_prettier goneat_glibc_biome goneat_glibc_npm goneat_glibc_yamlfmt goneat_glibc_shfmt goneat_glibc_checkmake goneat_glibc_actionlint goneat_glibc_jq goneat_glibc_yq goneat_glibc_ripgrep goneat_glibc_taplo goneat_glibc_minisign goneat_glibc_goneat goneat_glibc_sfetch goneat_glibc_shellsentry goneat_glibc_ruff goneat_glibc_gover goneat_glibc_rust goneat_glibc_pytest goneat_glibc_golangci; do
+for name in goneat_glibc_node goneat_glibc_go goneat_glibc_prettier goneat_glibc_biome goneat_glibc_npm goneat_glibc_undici goneat_glibc_undici_integrity goneat_glibc_yamlfmt goneat_glibc_shfmt goneat_glibc_checkmake goneat_glibc_actionlint goneat_glibc_jq goneat_glibc_yq goneat_glibc_ripgrep goneat_glibc_taplo goneat_glibc_minisign goneat_glibc_goneat goneat_glibc_sfetch goneat_glibc_shellsentry goneat_glibc_ruff goneat_glibc_gover goneat_glibc_rust goneat_glibc_pytest goneat_glibc_golangci; do
 	if [ -z "${!name:-}" ]; then
 		echo "❌ Missing manifest entry for ${name#goneat_glibc_}"
 		fail=1
@@ -209,6 +234,16 @@ check_pin "$goneat_glibc_df" "goneat-tools-glibc golang builder" "ARG GO_IMAGE=$
 check_pin "$goneat_glibc_df" "goneat-tools-glibc prettier" "ARG PRETTIER_VERSION=${goneat_glibc_prettier}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc biome" "ARG BIOME_VERSION=${goneat_glibc_biome}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc npm" "ARG NPM_VERSION=${goneat_glibc_npm}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc undici overlay" "ARG UNDICI_VERSION=${goneat_glibc_undici}" || fail=1
+check_pin "$goneat_glibc_df" "goneat-tools-glibc undici integrity" "ARG UNDICI_INTEGRITY=${goneat_glibc_undici_integrity}" || fail=1
+goneat_glibc_npm_integrity=$(get_note_match "npm" "goneat-tools-runner-glibc" "sha512-[A-Za-z0-9+/=]+")
+goneat_glibc_uv_hashes=$(get_note_match "uv" "goneat-tools-runner-glibc" "[0-9a-f]{64}( [0-9a-f]{64})*")
+if [ -z "${goneat_glibc_npm_integrity}" ] || [ -z "${goneat_glibc_uv_hashes}" ]; then
+	echo "❌ Missing npm integrity or uv wheel hashes in manifest notes (goneat_glibc)"
+	fail=1
+fi
+check_pin "$goneat_glibc_df" "goneat_glibc npm integrity" "ARG NPM_INTEGRITY=${goneat_glibc_npm_integrity}" || fail=1
+check_pin "$goneat_glibc_df" "goneat_glibc uv wheel hashes" "ARG UV_WHEEL_SHA256=\"${goneat_glibc_uv_hashes}\"" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc yamlfmt" "ARG YAMLFMT_VERSION=${goneat_glibc_yamlfmt}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc shfmt" "ARG SHFMT_VERSION=${goneat_glibc_shfmt}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc checkmake" "ARG CHECKMAKE_VERSION=${goneat_glibc_checkmake}" || fail=1
@@ -236,6 +271,29 @@ if [ -z "${libgnutls30_ver:-}" ]; then
 fi
 check_pin "$goneat_glibc_df" "goneat-tools-glibc libgnutls30 security pin" "libgnutls30=${libgnutls30_ver}" || fail=1
 check_pin "$sbom_glibc_df" "sbom-tools-glibc libgnutls30 security pin" "libgnutls30=${libgnutls30_ver}" || fail=1
+
+apt_ver=$(get_version "apt" "goneat-tools-runner-glibc")
+libapt_ver=$(get_version "libapt-pkg6.0" "goneat-tools-runner-glibc")
+if [ -z "${apt_ver:-}" ] || [ -z "${libapt_ver:-}" ]; then
+	echo "❌ Missing manifest entry for apt or libapt-pkg6.0"
+	fail=1
+fi
+for df in "$goneat_glibc_df" "$sbom_glibc_df"; do
+	check_pin "$df" "apt security pin" "apt=${apt_ver}" || fail=1
+	check_pin "$df" "libapt-pkg6.0 security pin" "libapt-pkg6.0=${libapt_ver}" || fail=1
+done
+
+musl_ver=$(get_version "musl" "goneat-tools-slim-musl")
+musl_utils_ver=$(get_version "musl-utils" "goneat-tools-slim-musl")
+if [ -z "${musl_ver:-}" ] || [ -z "${musl_utils_ver:-}" ]; then
+	echo "❌ Missing manifest entry for musl or musl-utils"
+	fail=1
+fi
+check_pin "$goneat_df" "goneat-tools musl security pin" "ARG MUSL_VERSION=${musl_ver}" || fail=1
+if [ "${musl_ver}" != "${musl_utils_ver}" ]; then
+	echo "❌ musl (${musl_ver}) and musl-utils (${musl_utils_ver}) manifest versions differ"
+	fail=1
+fi
 
 gpg_ver=$(get_version "gpg" "goneat-tools-runner-glibc")
 if [ -z "${gpg_ver:-}" ]; then

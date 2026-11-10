@@ -24,7 +24,13 @@ ARG PRETTIER_VERSION=3.9.6
 ARG BIOME_VERSION=2.5.15
 # Overrides the npm bundled in the node base. See the npm stage below for the
 # maintenance obligation this pin creates.
-ARG NPM_VERSION=12.0.1
+ARG NPM_VERSION=12.2.1
+ARG NPM_INTEGRITY=sha512-bKCmFRVT/BB+YPEYbZwQ1XUI3N5t4xKSpU1MxOjo7z3iWzKBJ0ZXRC1xFdEN+TC7N5TdywaBzf2dMXGJq/e2PQ==
+# undici overlay inside npm's bundled tree; see the undici step below for the
+# removal condition. UNDICI_INTEGRITY is the registry sha512 (SRI) of the
+# undici-${UNDICI_VERSION}.tgz tarball.
+ARG UNDICI_VERSION=6.29.1
+ARG UNDICI_INTEGRITY=sha512-EvRlUt/QqAEvXdQeRMYUfwOQsfzpDztykrG2owGEE/rBOBoYv9uF39ZzsNDh4lTFHhTr2XOZjKkYgueD12ZmGA==
 # Alpine 3.24 package; glibc runners ship the upstream jq 1.8.2 binary with
 # per-architecture checksums.
 ARG JQ_VERSION=1.8.2-r0
@@ -34,13 +40,15 @@ ARG JQ_VERSION=1.8.2-r0
 # 3.5.9-r0 from the Alpine 3.24 repos (validate-apk-pins verifies availability).
 ARG LIBSSL_VERSION=3.5.9-r0
 ARG LIBCRYPTO_VERSION=3.5.9-r0
+# musl/musl-utils: security pin (CVE-2026-107891); the pinned node alpine digest ships 1.2.6-r2.
+ARG MUSL_VERSION=1.2.6-r3
 ARG YQ_VERSION=4.53.3-r2
 ARG RIPGREP_VERSION=15.1.0-r0
 ARG TAPLO_VERSION=0.10.0-r0
 
 # DX tools (Go)
-ARG GONEAT_VERSION=v0.6.6
-ARG SFETCH_VERSION=v0.4.14
+ARG GONEAT_VERSION=v0.6.8
+ARG SFETCH_VERSION=v0.4.15
 ARG SHELLSENTRY_VERSION=v0.1.7
 ARG GOLANGCI_LINT_VERSION=v2.14.0
 
@@ -62,8 +70,12 @@ ARG RUST_TARGETS="x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unk
 ARG ZIG_VERSION=0.15.2
 ARG ZIG_SHA256_AMD64=02aa270f183da276e5b5920b1dac44a63f1a49e55050ebde3aecc9eb82f93239
 ARG ZIG_SHA256_ARM64=958ed7d1e00d0ea76590d27666efbf7a932281b3d7ba0c6b01b0ff26498f667f
-ARG SYFT_VERSION=v1.54.1
-ARG GRYPE_VERSION=v0.120.1
+ARG SYFT_VERSION=v1.56.0
+ARG GRYPE_VERSION=v0.121.1
+ARG SYFT_SHA256_AMD64=1c2493cfcf52d3367d6cb25780d9190c111c2219c34c820574c43e8bae15c528
+ARG SYFT_SHA256_ARM64=ace61b9397ae28189c674ae332d67a8074dafd71e87724dfb8b22412d8253bb5
+ARG GRYPE_SHA256_AMD64=bc3ea3f9e6fd56ac781c08c6c5e614271b79f438200757f6932085c19b0a4657
+ARG GRYPE_SHA256_ARM64=33670612aad351c48cf3c37f4a85d8b043d1b64b21e6034e675bb00b956d78c1
 ARG CARGO_DENY_VERSION=0.20.2
 ARG CARGO_AUDIT_VERSION=0.22.2
 ARG CARGO_AUDIT_SHA256_AMD64=7fb9497f8594b389e5fce5ef9b92db08432996895b2e0c5a0167a69ed445c428
@@ -71,7 +83,9 @@ ARG CARGO_AUDIT_SHA256_ARM64=c6603814ddaa45e51263dafd31c0ac98808f688d26f7395804f
 ARG CARGO_ZIGBUILD_VERSION=0.20.1
 ARG CARGO_NEXTEST_VERSION=0.9.122
 ARG CBINDGEN_VERSION=0.29.0
-ARG UV_VERSION=0.9.28
+ARG UV_VERSION=0.13.4
+# sha256 of the uv 0.13.4 Linux wheels for aarch64/x86_64 (manylinux/musllinux); pip --require-hashes accepts any listed hash.
+ARG UV_WHEEL_SHA256="e90ab42825587821096cb0d071e387468da38cfa22818c91f9c0b3c0453048e8 05e4332791b4d55b6dde8695b7fa6079b26991519f44760887c5dfbd5ca4fe53 7b3cdf868e5415631fe797b648c0d6945d38d388f23367bdd0b6332e80a1fcb0 52b5c753a7c2d5f8323a70bb4c93118988356331d0758afa6446c81f974e7196"
 ARG MATURIN_VERSION=1.11.5
 ARG PYTEST_VERSION=9.1.1
 ARG RUFF_VERSION=0.15.22
@@ -175,6 +189,10 @@ RUN set -eux; \
 FROM ${NODE_IMAGE} AS sbom-fetcher
 ARG SYFT_VERSION
 ARG GRYPE_VERSION
+ARG SYFT_SHA256_AMD64
+ARG SYFT_SHA256_ARM64
+ARG GRYPE_SHA256_AMD64
+ARG GRYPE_SHA256_ARM64
 RUN apk add --no-cache ca-certificates curl tar gzip
 RUN set -eux; \
     mkdir -p \
@@ -197,10 +215,16 @@ RUN set -eux; \
       aarch64) ARCH="arm64" ;; \
       *) echo "Unsupported arch: ${UNAME_ARCH}" >&2; exit 1 ;; \
     esac; \
+    case "${ARCH}" in \
+      amd64) SYFT_SHA256="${SYFT_SHA256_AMD64}"; GRYPE_SHA256="${GRYPE_SHA256_AMD64}" ;; \
+      arm64) SYFT_SHA256="${SYFT_SHA256_ARM64}"; GRYPE_SHA256="${GRYPE_SHA256_ARM64}" ;; \
+    esac; \
     curl -fsSL "https://github.com/anchore/syft/releases/download/${SYFT_VERSION}/syft_${SYFT_VERSION#v}_linux_${ARCH}.tar.gz" -o /tmp/syft.tar.gz; \
+    echo "${SYFT_SHA256}  /tmp/syft.tar.gz" | sha256sum -c -; \
     tar -xzf /tmp/syft.tar.gz -C /out/bin syft; \
     rm /tmp/syft.tar.gz; \
     curl -fsSL "https://github.com/anchore/grype/releases/download/${GRYPE_VERSION}/grype_${GRYPE_VERSION#v}_linux_${ARCH}.tar.gz" -o /tmp/grype.tar.gz; \
+    echo "${GRYPE_SHA256}  /tmp/grype.tar.gz" | sha256sum -c -; \
     tar -xzf /tmp/grype.tar.gz -C /out/bin grype; \
     rm /tmp/grype.tar.gz; \
     chmod +x /out/bin/syft /out/bin/grype; \
@@ -416,6 +440,7 @@ ARG BIOME_VERSION
 ARG JQ_VERSION
 ARG LIBSSL_VERSION
 ARG LIBCRYPTO_VERSION
+ARG MUSL_VERSION
 ARG YQ_VERSION
 ARG RIPGREP_VERSION
 ARG TAPLO_VERSION
@@ -427,6 +452,8 @@ RUN apk add --no-cache \
     jq=${JQ_VERSION} \
     libssl3=${LIBSSL_VERSION} \
     libcrypto3=${LIBCRYPTO_VERSION} \
+    musl=${MUSL_VERSION} \
+    musl-utils=${MUSL_VERSION} \
     yq-go=${YQ_VERSION} \
     ripgrep=${RIPGREP_VERSION} \
     taplo=${TAPLO_VERSION} \
@@ -455,10 +482,68 @@ RUN mkdir -p \
 # still >= the base's bundled npm, and drop this stage entirely once the base
 # catches up. See RELEASE_CHECKLIST.md ("Pinned npm override").
 ARG NPM_VERSION
-RUN npm install -g npm@${NPM_VERSION} && \
-    npm cache clean --force && \
-    mkdir -p /licenses/npm/npm && \
-    cp /usr/local/lib/node_modules/npm/LICENSE /licenses/npm/npm/LICENSE && \
+ARG NPM_INTEGRITY
+# The npm tarball is fetched with the base npm, checked against the committed
+# sha512 integrity ${NPM_INTEGRITY}, and installed from the local file. npm
+# bundles its own dependencies, so the install fetches nothing else.
+RUN set -eux; \
+    WORK="$(mktemp -d)"; \
+    cd "${WORK}"; \
+    npm pack "npm@${NPM_VERSION}" --silent >/dev/null; \
+    ACTUAL="sha512-$(node -e 'process.stdout.write(require("crypto").createHash("sha512").update(require("fs").readFileSync(process.argv[1])).digest("base64"))' "npm-${NPM_VERSION}.tgz")"; \
+    test "${ACTUAL}" = "${NPM_INTEGRITY}"; \
+    npm install -g "./npm-${NPM_VERSION}.tgz"; \
+    cd /; \
+    rm -rf "${WORK}"; \
+    npm cache clean --force; \
+    mkdir -p /licenses/npm/npm; \
+    cp /usr/local/lib/node_modules/npm/LICENSE /licenses/npm/npm/LICENSE; \
+    chmod -R a+rX /licenses/npm
+
+# Overlay the undici bundled inside npm.
+#
+# npm ${NPM_VERSION} bundles undici 6.29.0 (a dependency of node-gyp), which
+# carries HIGH advisories fixed in 6.29.1 (CVE-2026-109383, CVE-2026-109869,
+# CVE-2026-87018). npm 12.2.2 bundles undici 6.29.1 but is inside the 7-day
+# cooling window until 2026-11-11T23:02:59Z. Installing undici
+# from inside npm's tree does not replace a bundled dependency, so the registry
+# tarball for ${UNDICI_VERSION} is unpacked over npm's copy after its sha512
+# integrity is checked against ${UNDICI_INTEGRITY}. npm's own bundled node-tar unpacks it.
+#
+# REMOVAL CONDITION: delete this step, the UNDICI_* ARGs, the `undici` entry in
+# manifests/tools.json and its validate-pins checks when the npm pin moves to a
+# release that bundles undici >= ${UNDICI_VERSION} (npm 12.2.2 does; it leaves
+# the cooling window at 2026-11-11T23:02:59Z). The step skips the overlay when the bundled copy
+# is already >= ${UNDICI_VERSION}, so it never downgrades.
+ARG UNDICI_VERSION
+ARG UNDICI_INTEGRITY
+RUN set -eux; \
+    NPM_ROOT=/usr/local/lib/node_modules/npm; \
+    UNDICI_DIR="${NPM_ROOT}/node_modules/undici"; \
+    ver_ge() { node -e 'const p=v=>v.split(".").map(Number);const a=p(process.argv[1]),b=p(process.argv[2]);for(let i=0;i<3;i++){if(a[i]!==b[i])process.exit(a[i]>b[i]?0:1)}process.exit(0)' "$1" "$2"; }; \
+    BUNDLED="$(node -p "require('${UNDICI_DIR}/package.json').version")"; \
+    if ver_ge "${BUNDLED}" "${UNDICI_VERSION}"; then \
+      echo "bundled undici ${BUNDLED} >= ${UNDICI_VERSION}; overlay skipped"; \
+    else \
+      WORK="$(mktemp -d)"; \
+      cd "${WORK}"; \
+      npm pack "undici@${UNDICI_VERSION}" --silent >/dev/null; \
+      ACTUAL="sha512-$(node -e 'process.stdout.write(require("crypto").createHash("sha512").update(require("fs").readFileSync(process.argv[1])).digest("base64"))' "undici-${UNDICI_VERSION}.tgz")"; \
+      test "${ACTUAL}" = "${UNDICI_INTEGRITY}"; \
+      rm -rf "${UNDICI_DIR}"; \
+      mkdir "${UNDICI_DIR}"; \
+      node -e 'require(process.argv[1]+"/node_modules/tar").x({file:process.argv[2],cwd:process.argv[3],strip:1,sync:true})' "${NPM_ROOT}" "undici-${UNDICI_VERSION}.tgz" "${UNDICI_DIR}"; \
+      chown -R root:root "${UNDICI_DIR}"; \
+      chmod -R a+rX "${UNDICI_DIR}"; \
+      cd /; \
+      rm -rf "${WORK}"; \
+    fi; \
+    ver_ge "$(node -p "require('${UNDICI_DIR}/package.json').version")" "${UNDICI_VERSION}"; \
+    node -e "require('${UNDICI_DIR}')"; \
+    npm --version; \
+    npm cache clean --force; \
+    mkdir -p /licenses/npm/undici; \
+    cp "${UNDICI_DIR}/LICENSE" /licenses/npm/undici/LICENSE; \
     chmod -R a+rX /licenses/npm
 
 # Install Prettier and Biome globally
@@ -506,6 +591,7 @@ ARG BASH_VERSION
 ARG GIT_VERSION
 ARG CURL_VERSION
 ARG UV_VERSION
+ARG UV_WHEEL_SHA256
 ARG MATURIN_VERSION
 ARG PYTEST_VERSION
 ARG RUFF_VERSION
@@ -572,7 +658,13 @@ COPY --from=golangci-lint-builder /out/licenses/github/golangci/golangci-lint/LI
 RUN set -eux; \
     ln -s /opt/zig/zig /usr/local/bin/zig; \
     mkdir -p /opt/gopath; \
-    python3 -m pip install --no-cache-dir uv==${UV_VERSION} maturin==${MATURIN_VERSION} pytest==${PYTEST_VERSION} ruff==${RUFF_VERSION}; \
+    UV_REQ="$(mktemp)"; \
+    printf 'uv==%s' "${UV_VERSION}" > "${UV_REQ}"; \
+    for h in ${UV_WHEEL_SHA256}; do printf ' --hash=sha256:%s' "$h" >> "${UV_REQ}"; done; \
+    echo >> "${UV_REQ}"; \
+    python3 -m pip install --no-cache-dir --require-hashes --no-deps --only-binary=:all: -r "${UV_REQ}"; \
+    rm -f "${UV_REQ}"; \
+    python3 -m pip install --no-cache-dir maturin==${MATURIN_VERSION} pytest==${PYTEST_VERSION} ruff==${RUFF_VERSION}; \
     npm install -g @napi-rs/cli@${NAPI_RS_CLI_VERSION}; \
     mkdir -p /licenses/npm/napi-rs; \
     if [ -f /usr/local/lib/node_modules/@napi-rs/cli/LICENSE ]; then \
