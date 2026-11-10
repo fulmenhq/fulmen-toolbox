@@ -2,7 +2,7 @@
 title: Residual HIGH/CRITICAL findings in upstream tool binaries (v0.5.15)
 date: "2026-11-02"
 updated: "2026-11-10"
-approved_by: "pending"
+approved_by: "@3leapsdave"
 recheck: "2026-11-16"
 ---
 
@@ -10,7 +10,7 @@ recheck: "2026-11-16"
 
 This is not a cooling exception. The findings remain because the newest upstream release of each tool still ships the vulnerable dependency or was built with an older Go toolchain, or because the only fixed package is inside the 7-day cooling window. The images do not rebuild these tools from source.
 
-Approval is pending. Until it is recorded in `approved_by`, the findings below are unapproved residuals.
+Approved 2026-11-10 by @3leapsdave for v0.5.15, until the 2026-11-16 recheck.
 
 Source of the findings: `trivy image` with no `.trivyignore`, HIGH and CRITICAL, today's vulnerability DB, run on 2026-11-10 against the images built for v0.5.15. Debian base-image packages with no fixed version are not listed; the scheduled CVE scan (`ignore-unfixed`) does not count them.
 
