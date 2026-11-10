@@ -515,7 +515,8 @@ RUN set -eux; \
 #
 # npm ${NPM_VERSION} bundles undici 6.29.0 (a dependency of node-gyp), which
 # carries HIGH advisories fixed in 6.29.1 (CVE-2026-109383, CVE-2026-109869,
-# CVE-2026-87018). No npm release bundles the fix yet, and installing undici
+# CVE-2026-87018). npm 12.2.2 bundles undici 6.29.1 but is inside the 7-day
+# cooling window until 2026-11-11T23:02:59Z. Installing undici
 # from inside npm's tree does not replace a bundled dependency, so the registry
 # tarball for ${UNDICI_VERSION} is unpacked over npm's copy after its sha512
 # integrity is checked against ${UNDICI_INTEGRITY}. npm's own bundled node-tar unpacks it.

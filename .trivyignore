@@ -35,7 +35,8 @@ CVE-2026-39822  # 2026-10-10: stdlib in prebuilt yq v4.53.3 (go1.26.4); needs go
 CVE-2026-56852  # 2026-11-10: x/text in yq v4.53.3 (v0.37.0); fixed in v0.39.0; golangci-lint v2.14.0 and trivy v0.76.1 no longer carriers; review by 2026-12-31
 
 # --- Vendored dependencies in prebuilt upstream binaries ---------------------
-# grype still vendors github.com/docker/docker v28.5.2 (fixed in v29.3.1).
-# Re-checked 2026-11-10 against grype v0.121.1 go.mod — the dependency is
-# unchanged, so the version bump taken this cycle did not clear it.
-CVE-2026-34040  # 2026-11-10: grype v0.121.1 vendors docker/docker v28.5.2; fixed in 29.3.1; on-latest-upstream; review by 2026-12-31
+# grype v0.121.1 still vendors github.com/docker/docker v28.5.2 (fixed in
+# v29.3.1). grype v0.121.3 (published 2026-11-09) no longer depends on
+# docker/docker but is inside the 7-day cooling window until 2026-11-16. Drop
+# this entry when the grype pin moves to v0.121.3 or later.
+CVE-2026-34040  # 2026-11-10: grype v0.121.1 vendors docker/docker v28.5.2; fixed in 29.3.1; grype v0.121.3 drops it, cooling until 2026-11-16; review by 2026-11-16

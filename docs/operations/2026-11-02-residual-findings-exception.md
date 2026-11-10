@@ -50,7 +50,7 @@ The two docker/docker findings have no fixed version, so the scheduled CVE scan 
 
 ## Why the newest upstream release still carries them
 
-- **syft and grype**: CVE-2026-78661 (golang.org/x/net/html) was published 2026-10-27 with the fix in x/net v0.62.0. syft v1.56.0 and grype v0.121.1 use v0.61.0. syft v1.57.x and grype v0.121.2+ are inside the cooling window and not yet assessed.
+- **syft and grype**: CVE-2026-78661 (golang.org/x/net/html) was published 2026-10-27 with the fix in x/net v0.62.0. syft v1.56.0 and grype v0.121.1 use v0.61.0. syft v1.57.1 and grype v0.121.3 select x/net v0.62.0, and grype v0.121.3 no longer depends on docker/docker; both are inside the cooling window until 2026-11-16.
 - **trivy v0.76.1** is built with go1.27.3, so its stdlib findings are clear. It pins go-jose v4.1.5 and x/net v0.60.0. trivy v0.76.2 (2026-11-05) is inside the cooling window.
 - **yq v4.53.3** is the pinned release binary, built with go1.26.4. Newer yq releases are built with newer Go and x/net but have not been reassessed for this release; the pin stays at v4.53.3.
 - **zlib**: Alpine 3.24 ships the fix only as zlib 1.4-r0, a minor-version bump built 2026-11-06, inside the cooling window. It can be pinned after 2026-11-13.
