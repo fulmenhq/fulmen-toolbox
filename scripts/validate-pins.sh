@@ -252,6 +252,29 @@ fi
 check_pin "$goneat_glibc_df" "goneat-tools-glibc libgnutls30 security pin" "libgnutls30=${libgnutls30_ver}" || fail=1
 check_pin "$sbom_glibc_df" "sbom-tools-glibc libgnutls30 security pin" "libgnutls30=${libgnutls30_ver}" || fail=1
 
+apt_ver=$(get_version "apt" "goneat-tools-runner-glibc")
+libapt_ver=$(get_version "libapt-pkg6.0" "goneat-tools-runner-glibc")
+if [ -z "${apt_ver:-}" ] || [ -z "${libapt_ver:-}" ]; then
+	echo "❌ Missing manifest entry for apt or libapt-pkg6.0"
+	fail=1
+fi
+for df in "$goneat_glibc_df" "$sbom_glibc_df"; do
+	check_pin "$df" "apt security pin" "apt=${apt_ver}" || fail=1
+	check_pin "$df" "libapt-pkg6.0 security pin" "libapt-pkg6.0=${libapt_ver}" || fail=1
+done
+
+musl_ver=$(get_version "musl" "goneat-tools-slim-musl")
+musl_utils_ver=$(get_version "musl-utils" "goneat-tools-slim-musl")
+if [ -z "${musl_ver:-}" ] || [ -z "${musl_utils_ver:-}" ]; then
+	echo "❌ Missing manifest entry for musl or musl-utils"
+	fail=1
+fi
+check_pin "$goneat_df" "goneat-tools musl security pin" "ARG MUSL_VERSION=${musl_ver}" || fail=1
+if [ "${musl_ver}" != "${musl_utils_ver}" ]; then
+	echo "❌ musl (${musl_ver}) and musl-utils (${musl_utils_ver}) manifest versions differ"
+	fail=1
+fi
+
 gpg_ver=$(get_version "gpg" "goneat-tools-runner-glibc")
 if [ -z "${gpg_ver:-}" ]; then
 	echo "❌ Missing manifest entry for gpg"

@@ -59,8 +59,12 @@ ARG RUST_TARGETS="x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unk
 ARG ZIG_VERSION=0.15.2
 ARG ZIG_SHA256_AMD64=02aa270f183da276e5b5920b1dac44a63f1a49e55050ebde3aecc9eb82f93239
 ARG ZIG_SHA256_ARM64=958ed7d1e00d0ea76590d27666efbf7a932281b3d7ba0c6b01b0ff26498f667f
-ARG SYFT_VERSION=v1.55.0
-ARG GRYPE_VERSION=v0.121.0
+ARG SYFT_VERSION=v1.56.0
+ARG GRYPE_VERSION=v0.121.1
+ARG SYFT_SHA256_AMD64=1c2493cfcf52d3367d6cb25780d9190c111c2219c34c820574c43e8bae15c528
+ARG SYFT_SHA256_ARM64=ace61b9397ae28189c674ae332d67a8074dafd71e87724dfb8b22412d8253bb5
+ARG GRYPE_SHA256_AMD64=bc3ea3f9e6fd56ac781c08c6c5e614271b79f438200757f6932085c19b0a4657
+ARG GRYPE_SHA256_ARM64=33670612aad351c48cf3c37f4a85d8b043d1b64b21e6034e675bb00b956d78c1
 ARG CARGO_DENY_VERSION=0.20.2
 ARG CARGO_AUDIT_VERSION=0.22.2
 ARG CARGO_AUDIT_SHA256_AMD64=ab28a1bdb54db4d5d8ad5981cf1f959410370b3d28250dbd35f6a44248620e39
@@ -175,6 +179,10 @@ RUN set -eux; \
 FROM ${DEBIAN_IMAGE} AS sbom-fetcher
 ARG SYFT_VERSION
 ARG GRYPE_VERSION
+ARG SYFT_SHA256_AMD64
+ARG SYFT_SHA256_ARM64
+ARG GRYPE_SHA256_AMD64
+ARG GRYPE_SHA256_ARM64
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl tar gzip && \
     rm -rf /var/lib/apt/lists/*
 RUN set -eux; \
@@ -198,10 +206,16 @@ RUN set -eux; \
       aarch64) ARCH="arm64" ;; \
       *) echo "Unsupported arch: ${UNAME_ARCH}" >&2; exit 1 ;; \
     esac; \
+    case "${ARCH}" in \
+      amd64) SYFT_SHA256="${SYFT_SHA256_AMD64}"; GRYPE_SHA256="${GRYPE_SHA256_AMD64}" ;; \
+      arm64) SYFT_SHA256="${SYFT_SHA256_ARM64}"; GRYPE_SHA256="${GRYPE_SHA256_ARM64}" ;; \
+    esac; \
     curl -fsSL "https://github.com/anchore/syft/releases/download/${SYFT_VERSION}/syft_${SYFT_VERSION#v}_linux_${ARCH}.tar.gz" -o /tmp/syft.tar.gz; \
+    echo "${SYFT_SHA256}  /tmp/syft.tar.gz" | sha256sum -c -; \
     tar -xzf /tmp/syft.tar.gz -C /out/bin syft; \
     rm /tmp/syft.tar.gz; \
     curl -fsSL "https://github.com/anchore/grype/releases/download/${GRYPE_VERSION}/grype_${GRYPE_VERSION#v}_linux_${ARCH}.tar.gz" -o /tmp/grype.tar.gz; \
+    echo "${GRYPE_SHA256}  /tmp/grype.tar.gz" | sha256sum -c -; \
     tar -xzf /tmp/grype.tar.gz -C /out/bin grype; \
     rm /tmp/grype.tar.gz; \
     chmod +x /out/bin/syft /out/bin/grype; \
@@ -588,6 +602,8 @@ USER root
 # enforced by validate-apt-pins.sh and presence by validate-pins.sh.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgnutls30=3.7.9-2+deb12u7 \
+    apt=2.6.2 \
+    libapt-pkg6.0=2.6.2 \
     gpg=2.2.40-1.1+deb12u2 \
     gpg-agent=2.2.40-1.1+deb12u2 \
     bash \

@@ -200,6 +200,26 @@
       "notes": "Security pin, see libssl3 row."
     },
     {
+      "name": "musl",
+      "version": "1.2.6-r3",
+      "source": "apk",
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl"
+      ],
+      "notes": "Security pin (CVE-2026-107891, HIGH): the pinned node:22-alpine digest ships 1.2.6-r2 and apk add does not upgrade satisfied dependencies, so an explicit pin pulls 1.2.6-r3 from the Alpine 3.24 repos."
+    },
+    {
+      "name": "musl-utils",
+      "version": "1.2.6-r3",
+      "source": "apk",
+      "images": [
+        "goneat-tools-slim-musl",
+        "goneat-tools-runner-musl"
+      ],
+      "notes": "Security pin, see musl row."
+    },
+    {
       "name": "bash",
       "version": "5.3.9-r1",
       "source": "apk",
@@ -287,6 +307,26 @@
         "sbom-tools-runner-glibc"
       ],
       "notes": "Security pin: GnuTLS runtime, pinned to the patched debian bookworm-security build (CVE-2026-33845, CVE-2026-42010 CRITICAL; CVE-2026-33846, CVE-2026-3833, CVE-2026-42009 HIGH). The bookworm-slim base image lags the security repo (ships deb12u6); the explicit apt pin forces the patched deb12u7 at build time. Availability enforced by scripts/validate-apt-pins.sh; presence in the glibc Dockerfiles enforced by scripts/validate-pins.sh."
+    },
+    {
+      "name": "apt",
+      "version": "2.6.2",
+      "source": "apt",
+      "images": [
+        "goneat-tools-runner-glibc",
+        "sbom-tools-runner-glibc"
+      ],
+      "notes": "Security pin (CVE-2026-109518, HIGH; DSA-6607-1): the bookworm base images ship 2.6.1; the explicit pin pulls the patched bookworm-security build. Availability enforced by scripts/validate-apt-pins.sh; presence by scripts/validate-pins.sh."
+    },
+    {
+      "name": "libapt-pkg6.0",
+      "version": "2.6.2",
+      "source": "apt",
+      "images": [
+        "goneat-tools-runner-glibc",
+        "sbom-tools-runner-glibc"
+      ],
+      "notes": "Security pin, see apt row."
     },
     {
       "name": "gpg",
@@ -660,7 +700,7 @@
     },
     {
       "name": "syft",
-      "version": "v1.55.0",
+      "version": "v1.56.0",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",
@@ -677,7 +717,7 @@
     },
     {
       "name": "grype",
-      "version": "v0.121.0",
+      "version": "v0.121.1",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",

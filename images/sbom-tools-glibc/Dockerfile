@@ -11,8 +11,12 @@ ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:7ff6ba31527b9e336162fa061746c366c4b
 # shellsentry is built from this image. Keep it on the same Go patch as the
 # goneat-tools builder (currently 1.26.10).
 ARG GO_IMAGE=golang:1.26.10-bookworm@sha256:632dff7351799a5a9954a48dc06670ade72ee44e8c351cdc0e5a57af2fea21af
-ARG SYFT_VERSION=v1.55.0
-ARG GRYPE_VERSION=v0.121.0
+ARG SYFT_VERSION=v1.56.0
+ARG GRYPE_VERSION=v0.121.1
+ARG SYFT_SHA256_AMD64=1c2493cfcf52d3367d6cb25780d9190c111c2219c34c820574c43e8bae15c528
+ARG SYFT_SHA256_ARM64=ace61b9397ae28189c674ae332d67a8074dafd71e87724dfb8b22412d8253bb5
+ARG GRYPE_SHA256_AMD64=bc3ea3f9e6fd56ac781c08c6c5e614271b79f438200757f6932085c19b0a4657
+ARG GRYPE_SHA256_ARM64=33670612aad351c48cf3c37f4a85d8b043d1b64b21e6034e675bb00b956d78c1
 ARG TRIVY_VERSION=v0.76.1
 ARG TRIVY_SHA256_AMD64=c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0
 ARG TRIVY_SHA256_ARM64=e174dff2a6dba5e3ae41f8d0537a6324405bd08132497340304c6b20e0f16a1f
@@ -24,6 +28,10 @@ ARG YQ_VERSION=v4.53.3
 FROM ${DEBIAN_IMAGE} AS fetcher
 ARG SYFT_VERSION
 ARG GRYPE_VERSION
+ARG SYFT_SHA256_AMD64
+ARG SYFT_SHA256_ARM64
+ARG GRYPE_SHA256_AMD64
+ARG GRYPE_SHA256_ARM64
 ARG TRIVY_VERSION
 ARG TRIVY_SHA256_AMD64
 ARG TRIVY_SHA256_ARM64
@@ -62,10 +70,16 @@ RUN set -eux; \
         aarch64) ARCH="arm64"; TRIVY_ARCH="ARM64"; TRIVY_SHA256="${TRIVY_SHA256_ARM64}" ;; \
         *) echo "Unsupported arch: ${UNAME_ARCH}" && exit 1 ;; \
     esac; \
+    case "${ARCH}" in \
+      amd64) SYFT_SHA256="${SYFT_SHA256_AMD64}"; GRYPE_SHA256="${GRYPE_SHA256_AMD64}" ;; \
+      arm64) SYFT_SHA256="${SYFT_SHA256_ARM64}"; GRYPE_SHA256="${GRYPE_SHA256_ARM64}" ;; \
+    esac; \
     curl -fsSL "https://github.com/anchore/syft/releases/download/${SYFT_VERSION}/syft_${SYFT_VERSION#v}_linux_${ARCH}.tar.gz" -o /tmp/syft.tar.gz; \
+    echo "${SYFT_SHA256}  /tmp/syft.tar.gz" | sha256sum -c -; \
     tar -xzf /tmp/syft.tar.gz -C /out/bin syft; \
     rm /tmp/syft.tar.gz; \
     curl -fsSL "https://github.com/anchore/grype/releases/download/${GRYPE_VERSION}/grype_${GRYPE_VERSION#v}_linux_${ARCH}.tar.gz" -o /tmp/grype.tar.gz; \
+    echo "${GRYPE_SHA256}  /tmp/grype.tar.gz" | sha256sum -c -; \
     tar -xzf /tmp/grype.tar.gz -C /out/bin grype; \
     rm /tmp/grype.tar.gz; \
     curl -fsSL "https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/trivy_${TRIVY_VERSION#v}_Linux-${TRIVY_ARCH}.tar.gz" -o /tmp/trivy.tar.gz; \
@@ -137,6 +151,8 @@ USER root
 # enforced by validate-apt-pins.sh and presence by validate-pins.sh.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgnutls30=3.7.9-2+deb12u7 \
+    apt=2.6.2 \
+    libapt-pkg6.0=2.6.2 \
     bash \
     git \
     curl \

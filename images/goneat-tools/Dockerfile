@@ -39,6 +39,8 @@ ARG JQ_VERSION=1.8.2-r0
 # 3.5.9-r0 from the Alpine 3.24 repos (validate-apk-pins verifies availability).
 ARG LIBSSL_VERSION=3.5.9-r0
 ARG LIBCRYPTO_VERSION=3.5.9-r0
+# musl/musl-utils: security pin (CVE-2026-107891); the pinned node alpine digest ships 1.2.6-r2.
+ARG MUSL_VERSION=1.2.6-r3
 ARG YQ_VERSION=4.53.3-r2
 ARG RIPGREP_VERSION=15.1.0-r0
 ARG TAPLO_VERSION=0.10.0-r0
@@ -67,8 +69,12 @@ ARG RUST_TARGETS="x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unk
 ARG ZIG_VERSION=0.15.2
 ARG ZIG_SHA256_AMD64=02aa270f183da276e5b5920b1dac44a63f1a49e55050ebde3aecc9eb82f93239
 ARG ZIG_SHA256_ARM64=958ed7d1e00d0ea76590d27666efbf7a932281b3d7ba0c6b01b0ff26498f667f
-ARG SYFT_VERSION=v1.55.0
-ARG GRYPE_VERSION=v0.121.0
+ARG SYFT_VERSION=v1.56.0
+ARG GRYPE_VERSION=v0.121.1
+ARG SYFT_SHA256_AMD64=1c2493cfcf52d3367d6cb25780d9190c111c2219c34c820574c43e8bae15c528
+ARG SYFT_SHA256_ARM64=ace61b9397ae28189c674ae332d67a8074dafd71e87724dfb8b22412d8253bb5
+ARG GRYPE_SHA256_AMD64=bc3ea3f9e6fd56ac781c08c6c5e614271b79f438200757f6932085c19b0a4657
+ARG GRYPE_SHA256_ARM64=33670612aad351c48cf3c37f4a85d8b043d1b64b21e6034e675bb00b956d78c1
 ARG CARGO_DENY_VERSION=0.20.2
 ARG CARGO_AUDIT_VERSION=0.22.2
 ARG CARGO_AUDIT_SHA256_AMD64=7fb9497f8594b389e5fce5ef9b92db08432996895b2e0c5a0167a69ed445c428
@@ -180,6 +186,10 @@ RUN set -eux; \
 FROM ${NODE_IMAGE} AS sbom-fetcher
 ARG SYFT_VERSION
 ARG GRYPE_VERSION
+ARG SYFT_SHA256_AMD64
+ARG SYFT_SHA256_ARM64
+ARG GRYPE_SHA256_AMD64
+ARG GRYPE_SHA256_ARM64
 RUN apk add --no-cache ca-certificates curl tar gzip
 RUN set -eux; \
     mkdir -p \
@@ -202,10 +212,16 @@ RUN set -eux; \
       aarch64) ARCH="arm64" ;; \
       *) echo "Unsupported arch: ${UNAME_ARCH}" >&2; exit 1 ;; \
     esac; \
+    case "${ARCH}" in \
+      amd64) SYFT_SHA256="${SYFT_SHA256_AMD64}"; GRYPE_SHA256="${GRYPE_SHA256_AMD64}" ;; \
+      arm64) SYFT_SHA256="${SYFT_SHA256_ARM64}"; GRYPE_SHA256="${GRYPE_SHA256_ARM64}" ;; \
+    esac; \
     curl -fsSL "https://github.com/anchore/syft/releases/download/${SYFT_VERSION}/syft_${SYFT_VERSION#v}_linux_${ARCH}.tar.gz" -o /tmp/syft.tar.gz; \
+    echo "${SYFT_SHA256}  /tmp/syft.tar.gz" | sha256sum -c -; \
     tar -xzf /tmp/syft.tar.gz -C /out/bin syft; \
     rm /tmp/syft.tar.gz; \
     curl -fsSL "https://github.com/anchore/grype/releases/download/${GRYPE_VERSION}/grype_${GRYPE_VERSION#v}_linux_${ARCH}.tar.gz" -o /tmp/grype.tar.gz; \
+    echo "${GRYPE_SHA256}  /tmp/grype.tar.gz" | sha256sum -c -; \
     tar -xzf /tmp/grype.tar.gz -C /out/bin grype; \
     rm /tmp/grype.tar.gz; \
     chmod +x /out/bin/syft /out/bin/grype; \
@@ -421,6 +437,7 @@ ARG BIOME_VERSION
 ARG JQ_VERSION
 ARG LIBSSL_VERSION
 ARG LIBCRYPTO_VERSION
+ARG MUSL_VERSION
 ARG YQ_VERSION
 ARG RIPGREP_VERSION
 ARG TAPLO_VERSION
@@ -432,6 +449,8 @@ RUN apk add --no-cache \
     jq=${JQ_VERSION} \
     libssl3=${LIBSSL_VERSION} \
     libcrypto3=${LIBCRYPTO_VERSION} \
+    musl=${MUSL_VERSION} \
+    musl-utils=${MUSL_VERSION} \
     yq-go=${YQ_VERSION} \
     ripgrep=${RIPGREP_VERSION} \
     taplo=${TAPLO_VERSION} \

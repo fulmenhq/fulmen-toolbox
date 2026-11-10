@@ -4,22 +4,24 @@
 
 **goneat v0.6.8, sfetch v0.4.15, npm 12.2.1, uv 0.13.4, undici 6.29.1 overlay**
 
-The musl slim image and both full goneat runners ship goneat v0.6.8, sfetch v0.4.15, and npm 12.2.1. npm 12.2.1 fixes CVE-2026-14257 (brace-expansion), and its `.trivyignore` entry is removed. goneat v0.6.8 is inside the 7-day cooling window. The exception runs until 2026-11-17T17:29:02Z. The full runners ship uv 0.13.4 (GHSA-hq85-5cpj-mr62), and all three goneat images overlay undici 6.29.1 over the copy bundled in npm. syft v1.55.0 and grype v0.121.0 are the latest upstream releases; they do not clear findings, and the remaining findings in syft, grype, trivy and the glibc yq binary are recorded in `docs/operations/2026-11-02-residual-findings-exception.md` (approval pending). The sbom-tools images move to Alpine 3.21 and Debian bookworm-slim base digests pushed more than 7 days ago. Alpine 3.21 reached end of life on 2026-11-01. `goneat-tools-runner-musl` pins Alpine 3.24 `curl` 8.23.0-r0, and `goneat-tools-runner-glibc` pins `gpg` and `gpg-agent` 2.2.40-1.1+deb12u2. License checks run in a cached parallel CI job.
+The musl slim image and both full goneat runners ship goneat v0.6.8, sfetch v0.4.15, and npm 12.2.1. npm 12.2.1 fixes CVE-2026-14257 (brace-expansion), and its `.trivyignore` entry is removed. goneat v0.6.8 is inside the 7-day cooling window. The exception runs until 2026-11-17T17:29:02Z. The full runners ship uv 0.13.4 (GHSA-hq85-5cpj-mr62), and all three goneat images overlay undici 6.29.1 over the copy bundled in npm. syft v1.56.0 and grype v0.121.1 are built with go1.27.3 and go-jose v4.1.6, which clears their standard-library and go-jose findings, and their tarballs are now SHA256-pinned. `musl` 1.2.6-r3 and `apt` 2.6.2 are pinned to clear CVE-2026-107891 and CVE-2026-109518. The remaining findings in syft, grype, trivy, the glibc yq binary and Alpine zlib are recorded in `docs/operations/2026-11-02-residual-findings-exception.md` (approval pending). The sbom-tools images move to Alpine 3.21 and Debian bookworm-slim base digests pushed more than 7 days ago. Alpine 3.21 reached end of life on 2026-11-01. `goneat-tools-runner-musl` pins Alpine 3.24 `curl` 8.23.0-r0, and `goneat-tools-runner-glibc` pins `gpg` and `gpg-agent` 2.2.40-1.1+deb12u2. License checks run in a cached parallel CI job.
 
 ### Changes
 
-| Area                      | Change                                            |
-| ------------------------- | ------------------------------------------------- |
-| slim + both full runners  | `goneat` `v0.6.6` → `v0.6.8`                      |
-| slim + both full runners  | `sfetch` `v0.4.14` → `v0.4.15`                    |
-| slim + both full runners  | `npm` `12.0.1` → `12.2.1` (CVE-2026-14257)        |
-| slim + both full runners  | undici `6.29.0` → `6.29.1` overlay in npm's tree  |
-| both full runners         | `uv` `0.9.28` → `0.13.4`                          |
-| runners + sbom-tools      | `syft` `v1.55.0`, `grype` `v0.121.0` (latest)     |
-| sbom-tools                | Alpine 3.21 and Debian bookworm-slim digests      |
-| goneat-tools-runner-musl  | Alpine `curl` `8.22.0-r0` → `8.23.0-r0`           |
-| goneat-tools-runner-glibc | `gpg`, `gpg-agent` pinned at `2.2.40-1.1+deb12u2` |
-| CI                        | `validate-licenses` job, parallel and cached      |
+| Area                      | Change                                              |
+| ------------------------- | --------------------------------------------------- |
+| slim + both full runners  | `goneat` `v0.6.6` → `v0.6.8`                        |
+| slim + both full runners  | `sfetch` `v0.4.14` → `v0.4.15`                      |
+| slim + both full runners  | `npm` `12.0.1` → `12.2.1` (CVE-2026-14257)          |
+| slim + both full runners  | undici `6.29.0` → `6.29.1` overlay in npm's tree    |
+| both full runners         | `uv` `0.9.28` → `0.13.4`                            |
+| runners + sbom-tools      | `syft` `v1.56.0`, `grype` `v0.121.1`, SHA256-pinned |
+| musl slim + musl runner   | `musl`, `musl-utils` pinned at `1.2.6-r3`           |
+| both glibc runners        | `apt`, `libapt-pkg6.0` pinned at `2.6.2`            |
+| sbom-tools                | Alpine 3.21 and Debian bookworm-slim digests        |
+| goneat-tools-runner-musl  | Alpine `curl` `8.22.0-r0` → `8.23.0-r0`             |
+| goneat-tools-runner-glibc | `gpg`, `gpg-agent` pinned at `2.2.40-1.1+deb12u2`   |
+| CI                        | `validate-licenses` job, parallel and cached        |
 
 ### Upgrade notes
 
