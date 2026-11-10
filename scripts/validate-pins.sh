@@ -157,6 +157,14 @@ check_pin "$goneat_df" "goneat-tools biome" "ARG BIOME_VERSION=${goneat_biome}" 
 check_pin "$goneat_df" "goneat-tools npm" "ARG NPM_VERSION=${goneat_npm}" || fail=1
 check_pin "$goneat_df" "goneat-tools undici overlay" "ARG UNDICI_VERSION=${goneat_undici}" || fail=1
 check_pin "$goneat_df" "goneat-tools undici integrity" "ARG UNDICI_INTEGRITY=${goneat_undici_integrity}" || fail=1
+goneat_npm_integrity=$(get_note_match "npm" "goneat-tools-slim-musl" "sha512-[A-Za-z0-9+/=]+")
+goneat_uv_hashes=$(get_note_match "uv" "goneat-tools-runner-musl" "[0-9a-f]{64}( [0-9a-f]{64})*")
+if [ -z "${goneat_npm_integrity}" ] || [ -z "${goneat_uv_hashes}" ]; then
+	echo "❌ Missing npm integrity or uv wheel hashes in manifest notes (goneat)"
+	fail=1
+fi
+check_pin "$goneat_df" "goneat npm integrity" "ARG NPM_INTEGRITY=${goneat_npm_integrity}" || fail=1
+check_pin "$goneat_df" "goneat uv wheel hashes" "ARG UV_WHEEL_SHA256=\"${goneat_uv_hashes}\"" || fail=1
 check_pin "$goneat_df" "goneat-tools yamlfmt" "ARG YAMLFMT_VERSION=${goneat_yamlfmt}" || fail=1
 check_pin "$goneat_df" "goneat-tools shfmt" "ARG SHFMT_VERSION=${goneat_shfmt}" || fail=1
 check_pin "$goneat_df" "goneat-tools checkmake" "ARG CHECKMAKE_VERSION=${goneat_checkmake}" || fail=1
@@ -224,6 +232,14 @@ check_pin "$goneat_glibc_df" "goneat-tools-glibc biome" "ARG BIOME_VERSION=${gon
 check_pin "$goneat_glibc_df" "goneat-tools-glibc npm" "ARG NPM_VERSION=${goneat_glibc_npm}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc undici overlay" "ARG UNDICI_VERSION=${goneat_glibc_undici}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc undici integrity" "ARG UNDICI_INTEGRITY=${goneat_glibc_undici_integrity}" || fail=1
+goneat_glibc_npm_integrity=$(get_note_match "npm" "goneat-tools-runner-glibc" "sha512-[A-Za-z0-9+/=]+")
+goneat_glibc_uv_hashes=$(get_note_match "uv" "goneat-tools-runner-glibc" "[0-9a-f]{64}( [0-9a-f]{64})*")
+if [ -z "${goneat_glibc_npm_integrity}" ] || [ -z "${goneat_glibc_uv_hashes}" ]; then
+	echo "❌ Missing npm integrity or uv wheel hashes in manifest notes (goneat_glibc)"
+	fail=1
+fi
+check_pin "$goneat_glibc_df" "goneat_glibc npm integrity" "ARG NPM_INTEGRITY=${goneat_glibc_npm_integrity}" || fail=1
+check_pin "$goneat_glibc_df" "goneat_glibc uv wheel hashes" "ARG UV_WHEEL_SHA256=\"${goneat_glibc_uv_hashes}\"" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc yamlfmt" "ARG YAMLFMT_VERSION=${goneat_glibc_yamlfmt}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc shfmt" "ARG SHFMT_VERSION=${goneat_glibc_shfmt}" || fail=1
 check_pin "$goneat_glibc_df" "goneat-tools-glibc checkmake" "ARG CHECKMAKE_VERSION=${goneat_glibc_checkmake}" || fail=1

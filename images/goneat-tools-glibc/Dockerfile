@@ -26,6 +26,7 @@ ARG BIOME_VERSION=2.5.15
 # Overrides the npm bundled in the node base. See the npm stage below for the
 # maintenance obligation this pin creates.
 ARG NPM_VERSION=12.2.1
+ARG NPM_INTEGRITY=sha512-bKCmFRVT/BB+YPEYbZwQ1XUI3N5t4xKSpU1MxOjo7z3iWzKBJ0ZXRC1xFdEN+TC7N5TdywaBzf2dMXGJq/e2PQ==
 # undici overlay inside npm's bundled tree; see the undici step below for the
 # removal condition. UNDICI_INTEGRITY is the registry sha512 (SRI) of the
 # undici-${UNDICI_VERSION}.tgz tarball.
@@ -73,6 +74,8 @@ ARG CARGO_ZIGBUILD_VERSION=0.20.1
 ARG CARGO_NEXTEST_VERSION=0.9.122
 ARG CBINDGEN_VERSION=0.29.0
 ARG UV_VERSION=0.13.4
+# sha256 of every uv 0.13.4 Linux wheel (aarch64/x86_64, manylinux/musllinux); pip --require-hashes accepts any listed hash.
+ARG UV_WHEEL_SHA256="e90ab42825587821096cb0d071e387468da38cfa22818c91f9c0b3c0453048e8 05e4332791b4d55b6dde8695b7fa6079b26991519f44760887c5dfbd5ca4fe53 7b3cdf868e5415631fe797b648c0d6945d38d388f23367bdd0b6332e80a1fcb0 52b5c753a7c2d5f8323a70bb4c93118988356331d0758afa6446c81f974e7196"
 ARG MATURIN_VERSION=1.11.5
 ARG PYTEST_VERSION=9.1.1
 ARG RUFF_VERSION=0.15.22
@@ -490,10 +493,22 @@ RUN mkdir -p \
 # still >= the base's bundled npm, and drop this stage entirely once the base
 # catches up. See RELEASE_CHECKLIST.md ("Pinned npm override").
 ARG NPM_VERSION
-RUN npm install -g npm@${NPM_VERSION} && \
-    npm cache clean --force && \
-    mkdir -p /licenses/npm/npm && \
-    cp /usr/local/lib/node_modules/npm/LICENSE /licenses/npm/npm/LICENSE && \
+ARG NPM_INTEGRITY
+# The npm tarball is fetched with the base npm, checked against the committed
+# sha512 integrity ${NPM_INTEGRITY}, and installed from the local file. npm
+# bundles its own dependencies, so the install fetches nothing else.
+RUN set -eux; \
+    WORK="$(mktemp -d)"; \
+    cd "${WORK}"; \
+    npm pack "npm@${NPM_VERSION}" --silent >/dev/null; \
+    ACTUAL="sha512-$(node -e 'process.stdout.write(require("crypto").createHash("sha512").update(require("fs").readFileSync(process.argv[1])).digest("base64"))' "npm-${NPM_VERSION}.tgz")"; \
+    test "${ACTUAL}" = "${NPM_INTEGRITY}"; \
+    npm install -g "./npm-${NPM_VERSION}.tgz"; \
+    cd /; \
+    rm -rf "${WORK}"; \
+    npm cache clean --force; \
+    mkdir -p /licenses/npm/npm; \
+    cp /usr/local/lib/node_modules/npm/LICENSE /licenses/npm/npm/LICENSE; \
     chmod -R a+rX /licenses/npm
 
 # Overlay the undici bundled inside npm.
@@ -589,6 +604,7 @@ ENTRYPOINT ["/bin/sh"]
 FROM slim AS runner
 
 ARG UV_VERSION
+ARG UV_WHEEL_SHA256
 ARG MATURIN_VERSION
 ARG PYTEST_VERSION
 ARG RUFF_VERSION
@@ -665,7 +681,13 @@ COPY --from=golangci-lint-builder /out/licenses/github/golangci/golangci-lint/LI
 RUN set -eux; \
     ln -s /opt/zig/zig /usr/local/bin/zig; \
     mkdir -p /opt/gopath; \
-    python3 -m pip install --no-cache-dir uv==${UV_VERSION} maturin==${MATURIN_VERSION} pytest==${PYTEST_VERSION} ruff==${RUFF_VERSION}; \
+    UV_REQ="$(mktemp)"; \
+    printf 'uv==%s' "${UV_VERSION}" > "${UV_REQ}"; \
+    for h in ${UV_WHEEL_SHA256}; do printf ' --hash=sha256:%s' "$h" >> "${UV_REQ}"; done; \
+    echo >> "${UV_REQ}"; \
+    python3 -m pip install --no-cache-dir --require-hashes --no-deps --only-binary=:all: -r "${UV_REQ}"; \
+    rm -f "${UV_REQ}"; \
+    python3 -m pip install --no-cache-dir maturin==${MATURIN_VERSION} pytest==${PYTEST_VERSION} ruff==${RUFF_VERSION}; \
     npm install -g @napi-rs/cli@${NAPI_RS_CLI_VERSION}; \
     mkdir -p /licenses/npm/napi-rs; \
     if [ -f /usr/local/lib/node_modules/@napi-rs/cli/LICENSE ]; then \
