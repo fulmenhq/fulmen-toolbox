@@ -74,7 +74,7 @@ ARG CARGO_ZIGBUILD_VERSION=0.20.1
 ARG CARGO_NEXTEST_VERSION=0.9.122
 ARG CBINDGEN_VERSION=0.29.0
 ARG UV_VERSION=0.13.4
-# sha256 of every uv 0.13.4 Linux wheel (aarch64/x86_64, manylinux/musllinux); pip --require-hashes accepts any listed hash.
+# sha256 of the uv 0.13.4 Linux wheels for aarch64/x86_64 (manylinux/musllinux); pip --require-hashes accepts any listed hash.
 ARG UV_WHEEL_SHA256="e90ab42825587821096cb0d071e387468da38cfa22818c91f9c0b3c0453048e8 05e4332791b4d55b6dde8695b7fa6079b26991519f44760887c5dfbd5ca4fe53 7b3cdf868e5415631fe797b648c0d6945d38d388f23367bdd0b6332e80a1fcb0 52b5c753a7c2d5f8323a70bb4c93118988356331d0758afa6446c81f974e7196"
 ARG MATURIN_VERSION=1.11.5
 ARG PYTEST_VERSION=9.1.1

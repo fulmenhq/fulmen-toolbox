@@ -611,7 +611,7 @@
         "goneat-tools-runner-musl",
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Fast Python package manager (installed via pip). 0.13.4 is the first release with the bundled CA store fix (GHSA-hq85-5cpj-mr62). Installed with pip --require-hashes; Linux wheel sha256: e90ab42825587821096cb0d071e387468da38cfa22818c91f9c0b3c0453048e8 05e4332791b4d55b6dde8695b7fa6079b26991519f44760887c5dfbd5ca4fe53 7b3cdf868e5415631fe797b648c0d6945d38d388f23367bdd0b6332e80a1fcb0 52b5c753a7c2d5f8323a70bb4c93118988356331d0758afa6446c81f974e7196.",
+      "notes": "Fast Python package manager (installed via pip). 0.13.4 is the first release with the bundled CA store fix (GHSA-hq85-5cpj-mr62). Installed with pip --require-hashes; Linux amd64/arm64 wheel sha256: e90ab42825587821096cb0d071e387468da38cfa22818c91f9c0b3c0453048e8 05e4332791b4d55b6dde8695b7fa6079b26991519f44760887c5dfbd5ca4fe53 7b3cdf868e5415631fe797b648c0d6945d38d388f23367bdd0b6332e80a1fcb0 52b5c753a7c2d5f8323a70bb4c93118988356331d0758afa6446c81f974e7196.",
       "license_spdx": "MIT",
       "license_source": "manual",
       "license_path": "/licenses/pypi/uv/LICENSE"

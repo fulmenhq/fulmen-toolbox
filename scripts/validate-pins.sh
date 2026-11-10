@@ -34,7 +34,11 @@ get_note_match() {
 
 check_pin() {
 	local file="$1" label="$2" needle="$3"
-	if ! grep -qF "$needle" "$file"; then
+	# ARG declarations must match the whole line, so an appended character
+	# fails; package pins inside RUN lines are matched as substrings.
+	local mode=-qF
+	case "$needle" in "ARG "*) mode=-qxF ;; esac
+	if ! grep "$mode" -- "$needle" "$file"; then
 		echo "❌ $label: missing pin \"$needle\" in $file"
 		return 1
 	fi
