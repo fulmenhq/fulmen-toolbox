@@ -269,8 +269,8 @@ test-goneat-tools-runner:
 		node -p \"require('/usr/local/lib/node_modules/npm/node_modules/undici/package.json').version\" | grep -qx '6.29.1' && \
 		sfetch --help >/dev/null 2>&1 && \
 		shellsentry --version >/dev/null 2>&1 && \
-		syft version | grep -qE '^Version: +1\.56\.0$$' && \
-		grype version | grep -qE '^Version: +0\.121\.1$$' && \
+		syft version | grep -qE '^Version: +1\.57\.1$$' && \
+		grype version | grep -qE '^Version: +0\.121\.3$$' && \
 		rustc --version >/dev/null 2>&1 && \
 		cargo --version >/dev/null 2>&1 && \
 		rustfmt --version >/dev/null 2>&1 && \
@@ -280,7 +280,7 @@ test-goneat-tools-runner:
 		cargo-zigbuild --version >/dev/null 2>&1 && \
 		([ \$$(uname -m) = 'aarch64' ] || cargo nextest --version >/dev/null 2>&1) && \
 		cbindgen --version >/dev/null 2>&1 && \
-		go version >/dev/null 2>&1 && \
+		go version | grep -qE '^go version go1\.26\.11 linux/(amd64|arm64)$$' && \
 		zig version >/dev/null 2>&1 && \
 		python3 --version >/dev/null 2>&1 && \
 		uv --version | grep -q '^uv 0\.13\.4 ' && \
@@ -380,8 +380,8 @@ test-goneat-tools-runner-glibc:
 		node -p \"require('/usr/local/lib/node_modules/npm/node_modules/undici/package.json').version\" | grep -qx '6.29.1' && \
 		sfetch --help >/dev/null 2>&1 && \
 		shellsentry --version >/dev/null 2>&1 && \
-		syft version | grep -qE '^Version: +1\.56\.0$$' && \
-		grype version | grep -qE '^Version: +0\.121\.1$$' && \
+		syft version | grep -qE '^Version: +1\.57\.1$$' && \
+		grype version | grep -qE '^Version: +0\.121\.3$$' && \
 		rustc --version >/dev/null 2>&1 && \
 		cargo --version >/dev/null 2>&1 && \
 		rustfmt --version >/dev/null 2>&1 && \
@@ -391,7 +391,7 @@ test-goneat-tools-runner-glibc:
 		cargo-zigbuild --version >/dev/null 2>&1 && \
 		cargo nextest --version >/dev/null 2>&1 && \
 		cbindgen --version >/dev/null 2>&1 && \
-		go version >/dev/null 2>&1 && \
+		go version | grep -qE '^go version go1\.26\.11 linux/(amd64|arm64)$$' && \
 		zig version >/dev/null 2>&1 && \
 		python3 --version >/dev/null 2>&1 && \
 		uv --version | grep -q '^uv 0\.13\.4 ' && \
@@ -446,7 +446,7 @@ inventory-goneat-tools-runner:
 		cargo-zigbuild --version && \
 		cargo nextest --version && \
 		cbindgen --version && \
-		go version && \
+		go version | grep -qE '^go version go1\.26\.11 linux/(amd64|arm64)$$' && \
 		zig version && \
 		python3 --version && \
 		uv --version && \
@@ -474,7 +474,7 @@ inventory-goneat-tools-runner-glibc:
 		cargo-zigbuild --version && \
 		cargo nextest --version && \
 		cbindgen --version && \
-		go version && \
+		go version | grep -qE '^go version go1\.26\.11 linux/(amd64|arm64)$$' && \
 		zig version && \
 		python3 --version && \
 		uv --version && \
@@ -547,9 +547,9 @@ test-sbom-tools-runner:
 	docker run --rm \
 		-v $(CURDIR)/tests/fixtures/sbom:/fixture:ro \
 		$(SBOM_RUNNER_TAG_LOCAL) -c "\
-		syft version | grep -qE '^Version: +1\.56\.0$$' && \
-		grype version | grep -qE '^Version: +0\.121\.1$$' && \
-		trivy version && \
+		syft version | grep -qE '^Version: +1\.57\.1$$' && \
+		grype version | grep -qE '^Version: +0\.121\.3$$' && \
+		trivy version | grep -qE '^Version: +0\.76\.2$$' && \
 		shellsentry --version >/dev/null 2>&1 && \
 		yamllint --version && \
 		jq --version && \
@@ -577,9 +577,9 @@ test-sbom-tools-slim:
 	docker run --rm \
 		-v $(CURDIR)/tests/fixtures/sbom:/fixture:ro \
 		$(SBOM_SLIM_TAG_LOCAL) -c "\
-		syft version | grep -qE '^Version: +1\.56\.0$$' && \
-		grype version | grep -qE '^Version: +0\.121\.1$$' && \
-		trivy version && \
+		syft version | grep -qE '^Version: +1\.57\.1$$' && \
+		grype version | grep -qE '^Version: +0\.121\.3$$' && \
+		trivy version | grep -qE '^Version: +0\.76\.2$$' && \
 		! command -v shellsentry >/dev/null 2>&1 && \
 		! command -v yamllint >/dev/null 2>&1 && \
 		jq --version && \
@@ -608,9 +608,9 @@ test-sbom-tools-runner-glibc:
 	docker run --rm \
 		-v $(CURDIR)/tests/fixtures/sbom:/fixture:ro \
 		$(SBOM_GLIBC_TAG_LOCAL) -c "\
-		syft version | grep -qE '^Version: +1\.56\.0$$' && \
-		grype version | grep -qE '^Version: +0\.121\.1$$' && \
-		trivy version && \
+		syft version | grep -qE '^Version: +1\.57\.1$$' && \
+		grype version | grep -qE '^Version: +0\.121\.3$$' && \
+		trivy version | grep -qE '^Version: +0\.76\.2$$' && \
 		shellsentry --version >/dev/null 2>&1 && \
 		yamllint --version && \
 		jq --version && \

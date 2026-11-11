@@ -13,9 +13,9 @@ This image bundles upstream license texts under `/licenses/` and upstream notice
 
 | Tool              | Purpose                               | Source         |
 | ----------------- | ------------------------------------- | -------------- |
-| syft (v1.56.0)    | SBOM generation (CycloneDX, SPDX)     | GitHub release |
-| grype (v0.121.1)  | Vulnerability scanning                | GitHub release |
-| trivy (v0.76.1)   | SBOM + vuln + config scanning         | GitHub release |
+| syft (v1.57.1)    | SBOM generation (CycloneDX, SPDX)     | GitHub release |
+| grype (v0.121.3)  | Vulnerability scanning                | GitHub release |
+| trivy (v0.76.2)   | SBOM + vuln + config scanning         | GitHub release |
 | jq (1.7.1-r0)     | JSON shaping for SBOM outputs         | apk            |
 | yq-go (4.44.5-r5) | YAML/JSON filtering                   | apk            |
 | git (2.47.3-r0)   | Repo checkout inside containerized CI | apk            |

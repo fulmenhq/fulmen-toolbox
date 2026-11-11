@@ -229,7 +229,7 @@
     },
     {
       "name": "git",
-      "version": "2.54.0-r0",
+      "version": "2.54.1-r0",
       "source": "apk",
       "images": [
         "goneat-tools-runner-musl"
@@ -348,24 +348,24 @@
     },
     {
       "name": "golang-builder",
-      "version": "golang:1.26.10-alpine@sha256:9ce231b28998b32e116927c61aa5c406183061d4f3f2d61b292c88e7f6bdf7ca",
+      "version": "golang:1.26.11-alpine@sha256:ae52b5bc6ed045a9ed26ab03dc19327a802a9cc9aa8b27ed57f5c6b60579b0bb",
       "source": "other",
       "images": [
         "goneat-tools-slim-musl",
         "goneat-tools-runner-musl",
         "sbom-tools-runner-musl"
       ],
-      "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint) and for shellsentry. Patch-pinned tag: the GO_IMAGE ↔ GO_VERSION coupling requires the same patch version (1.26.10). sbom-tools-runner-musl uses the same digest to build shellsentry."
+      "notes": "Pinned builder image digest for Go tools (yamlfmt, shfmt, checkmake, actionlint) and for shellsentry. Patch-pinned tag: the GO_IMAGE ↔ GO_VERSION coupling requires the same patch version (1.26.11). sbom-tools-runner-musl uses the same digest to build shellsentry."
     },
     {
       "name": "golang-builder-glibc",
-      "version": "golang:1.26.10-bookworm@sha256:632dff7351799a5a9954a48dc06670ade72ee44e8c351cdc0e5a57af2fea21af",
+      "version": "golang:1.26.11-bookworm@sha256:dc40a13b61304647ed7e5d581d246b86413dfc29d63c6d018310feb93cd98fc0",
       "source": "other",
       "images": [
         "goneat-tools-runner-glibc",
         "sbom-tools-runner-glibc"
       ],
-      "notes": "Pinned builder image tag for Go tools in the glibc runner and for shellsentry in sbom-tools-runner-glibc. Patch-pinned tag; index digest for golang:1.26.10-bookworm."
+      "notes": "Pinned builder image tag for Go tools in the glibc runner and for shellsentry in sbom-tools-runner-glibc. Patch-pinned tag; index digest for golang:1.26.11-bookworm."
     },
     {
       "name": "shfmt",
@@ -441,7 +441,7 @@
     },
     {
       "name": "go",
-      "version": "1.26.10",
+      "version": "1.26.11",
       "source": "binary",
       "images": [
         "goneat-tools-runner-musl",
@@ -693,14 +693,14 @@
         "goneat-tools-runner-musl",
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Go linter aggregator. Built in-runner against the runner's pinned Go (currently 1.26.10) so consumer configs targeting that Go version don't fail with 'language version too low'. Runner is copyleft-by-design; bundled GPL-3.0 binary aligns with that posture.",
+      "notes": "Go linter aggregator. Built in-runner against the runner's pinned Go (currently 1.26.11) so consumer configs targeting that Go version don't fail with 'language version too low'. Runner is copyleft-by-design; bundled GPL-3.0 binary aligns with that posture.",
       "license_spdx": "GPL-3.0-only",
       "license_source": "gomodcache",
       "license_path": "/licenses/github/golangci/golangci-lint/LICENSE"
     },
     {
       "name": "syft",
-      "version": "v1.56.0",
+      "version": "v1.57.1",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",
@@ -717,7 +717,7 @@
     },
     {
       "name": "grype",
-      "version": "v0.121.1",
+      "version": "v0.121.3",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",
@@ -734,14 +734,14 @@
     },
     {
       "name": "trivy",
-      "version": "v0.76.1",
+      "version": "v0.76.2",
       "source": "binary",
       "images": [
         "sbom-tools-slim-musl",
         "sbom-tools-runner-musl",
         "sbom-tools-runner-glibc"
       ],
-      "notes": "SBOM/vuln scanner from Aqua Security (GitHub release binary). Also provides Dockerfile config scanning. Cooling exception until 2026-10-28T11:18:34Z; see docs/operations/2026-10-21-trivy-v0761-cooling-exception.md. SHA256-verified in the Dockerfiles: Linux-64bit c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0, Linux-ARM64 e174dff2a6dba5e3ae41f8d0537a6324405bd08132497340304c6b20e0f16a1f.",
+      "notes": "SBOM/vuln scanner from Aqua Security (GitHub release binary). Also provides Dockerfile config scanning. SHA256-verified in the Dockerfiles: Linux-64bit bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf, Linux-ARM64 ab9d51f86e6a5fb936f605faff6b593ac51bc378fff4d3e8b9d58358b9c367c3.",
       "license_spdx": "Apache-2.0",
       "license_source": "upstream-url",
       "license_path": "/licenses/github/aquasecurity/trivy/LICENSE",
