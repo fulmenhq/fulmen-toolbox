@@ -265,8 +265,7 @@ test-goneat-tools-runner:
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
 		goneat version | grep -q 'goneat v0.6.9' && \
-		npm --version | grep -qx '12.2.1' && \
-		node -p \"require('/usr/local/lib/node_modules/npm/node_modules/undici/package.json').version\" | grep -qx '6.29.1' && \
+		npm --version | grep -qx '12.2.2' && \
 		sfetch --help >/dev/null 2>&1 && \
 		shellsentry --version >/dev/null 2>&1 && \
 		syft version | grep -qE '^Version: +1\.57\.1$$' && \
@@ -330,8 +329,7 @@ test-goneat-tools-slim:
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
 		goneat version | grep -q 'goneat v0.6.9' && \
-		npm --version | grep -qx '12.2.1' && \
-		node -p \"require('/usr/local/lib/node_modules/npm/node_modules/undici/package.json').version\" | grep -qx '6.29.1' && \
+		npm --version | grep -qx '12.2.2' && \
 		sfetch --help >/dev/null 2>&1 && \
 		! command -v shellsentry >/dev/null 2>&1 && \
 		! command -v syft >/dev/null 2>&1 && \
@@ -376,8 +374,7 @@ test-goneat-tools-runner-glibc:
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
 		goneat version | grep -q 'goneat v0.6.9' && \
-		npm --version | grep -qx '12.2.1' && \
-		node -p \"require('/usr/local/lib/node_modules/npm/node_modules/undici/package.json').version\" | grep -qx '6.29.1' && \
+		npm --version | grep -qx '12.2.2' && \
 		sfetch --help >/dev/null 2>&1 && \
 		shellsentry --version >/dev/null 2>&1 && \
 		syft version | grep -qE '^Version: +1\.57\.1$$' && \

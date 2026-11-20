@@ -3,31 +3,17 @@
   "tools": [
     {
       "name": "npm",
-      "version": "12.2.1",
+      "version": "12.2.2",
       "source": "npm",
       "images": [
         "goneat-tools-slim-musl",
         "goneat-tools-runner-musl",
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Overrides the npm bundled in the node base image, whose dependency tree carries HIGH/CRITICAL advisories (tar, sigstore, brace-expansion). Re-verify this pin is still >= the base's bundled npm on every node base digest bump, and drop the override once the base catches up. See RELEASE_CHECKLIST.md. The tarball is installed only after its sha512 integrity sha512-bKCmFRVT/BB+YPEYbZwQ1XUI3N5t4xKSpU1MxOjo7z3iWzKBJ0ZXRC1xFdEN+TC7N5TdywaBzf2dMXGJq/e2PQ== is verified.",
+      "notes": "Overrides the npm bundled in the node base image, whose dependency tree carries HIGH/CRITICAL advisories (tar, sigstore, brace-expansion). Re-verify this pin is still >= the base's bundled npm on every node base digest bump, and drop the override once the base catches up. See RELEASE_CHECKLIST.md. The tarball is installed only after its sha512 integrity sha512-KglgbZyacf7jH+FHuNRqVuCzQi8VhI2a7J87Ix43FsPTuZoGWmIXXGdZtBUOA79vwL+IJREqURVzupA7PsQTcA== is verified.",
       "license_spdx": "Artistic-2.0",
       "license_source": "npm",
       "license_path": "/licenses/npm/npm/LICENSE"
-    },
-    {
-      "name": "undici",
-      "version": "6.29.1",
-      "source": "npm",
-      "images": [
-        "goneat-tools-slim-musl",
-        "goneat-tools-runner-musl",
-        "goneat-tools-runner-glibc"
-      ],
-      "notes": "Overlay on the undici bundled inside npm's own tree (a node-gyp dependency; npm 12.2.1 bundles 6.29.0, which carries CVE-2026-109383, CVE-2026-109869 and CVE-2026-87018). The Dockerfiles unpack the registry tarball for 6.29.1 over npm's copy after verifying its sha512 integrity sha512-EvRlUt/QqAEvXdQeRMYUfwOQsfzpDztykrG2owGEE/rBOBoYv9uF39ZzsNDh4lTFHhTr2XOZjKkYgueD12ZmGA== (sha256 29c4b8e0b2d86cb8795571c1959012ce057a14ecfd34858335f47c31e770a04f). Published 2026-10-15T14:19:28Z. Removal condition: remove this entry, the Dockerfile overlay step and the validate-pins checks when the npm pin moves to a release that bundles undici >= 6.29.1. npm 12.2.2 (published 2026-11-04T23:02:59Z) bundles undici 6.29.1 but is inside the 7-day cooling window until 2026-11-11T23:02:59Z.",
-      "license_spdx": "MIT",
-      "license_source": "npm",
-      "license_path": "/licenses/npm/undici/LICENSE"
     },
     {
       "name": "prettier",
@@ -287,7 +273,7 @@
         "goneat-tools-slim-musl",
         "goneat-tools-runner-musl"
       ],
-      "notes": "Pinned base image digest for multi-arch. Ships node 22.23.4. Base npm stays below the pinned npm 12.2.1 override."
+      "notes": "Pinned base image digest for multi-arch. Ships node 22.23.4. Base npm stays below the pinned npm 12.2.2 override."
     },
     {
       "name": "node-base-glibc",
@@ -296,7 +282,7 @@
       "images": [
         "goneat-tools-runner-glibc"
       ],
-      "notes": "Pinned base image tag for glibc runner. Ships node 22.23.4. Base npm stays below the pinned npm 12.2.1 override."
+      "notes": "Pinned base image tag for glibc runner. Ships node 22.23.4. Base npm stays below the pinned npm 12.2.2 override."
     },
     {
       "name": "libgnutls30",
