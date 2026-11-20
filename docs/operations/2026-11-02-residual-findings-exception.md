@@ -1,12 +1,15 @@
 ---
-title: Residual HIGH/CRITICAL findings in upstream tool binaries (v0.5.15)
+title: Residual HIGH/CRITICAL findings in upstream tool binaries (v0.5.15, closed in v0.5.16)
 date: "2026-11-02"
 updated: "2026-11-20"
 approved_by: "@3leapsdave"
-recheck: "2026-11-16"
+status: closed
+closed: "2026-11-20"
 ---
 
 # Residual HIGH/CRITICAL findings in upstream tool binaries
+
+> **Closed 2026-11-20 (v0.5.16).** The sections below record the v0.5.15 state. See [Closed (v0.5.16)](#closed-v0516).
 
 This is not a cooling exception. The findings remain because the newest upstream release of each tool still ships the vulnerable dependency or was built with an older Go toolchain, or because the only fixed package is inside the 7-day cooling window. The images do not rebuild these tools from source.
 

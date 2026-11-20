@@ -28,7 +28,6 @@ ARG BIOME_VERSION=2.5.15
 ARG NPM_VERSION=12.2.2
 ARG NPM_INTEGRITY=sha512-KglgbZyacf7jH+FHuNRqVuCzQi8VhI2a7J87Ix43FsPTuZoGWmIXXGdZtBUOA79vwL+IJREqURVzupA7PsQTcA==
 # Upstream GitHub release binary (jqlang/jq), checksum-verified per arch below.
-# The musl runners keep the Alpine apk jq (1.8.1-r0) until Alpine 3.24 ships 1.8.2.
 ARG JQ_VERSION=1.8.2
 ARG JQ_SHA256_AMD64=b1c22172dd303f3be49e935aa56aa48a8b7a46e0bc838b4997d3bb451495870f
 ARG JQ_SHA256_ARM64=8b85c817833814ddca00a144c33705546355afccf0cf39b188f3cdb48b852309

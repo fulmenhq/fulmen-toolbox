@@ -18,6 +18,7 @@ The musl slim image and both full goneat runners ship goneat v0.6.9 and npm 12.2
 | musl slim + musl runner      | `libcrypto3`, `libssl3` `3.5.9-r1`; `zlib` `1.4-r0`    |
 | musl sbom-tools              | Alpine 3.21 `jq` `1.7.1-r0` → `1.8.2-r0`               |
 | both glibc runners           | `yq` `v4.53.3` → `v4.54.3`, SHA256-verified            |
+| sbom-tools glibc runner      | `jq` `1.8.1` → `1.8.2`, SHA256-verified                |
 | goneat-tools-runner-musl     | Alpine `git` `2.54.0-r0` → `2.54.1-r0`                 |
 | `.trivyignore`               | CVE-2026-34040, CVE-2026-39822, CVE-2026-56852 removed |
 

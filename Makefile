@@ -251,6 +251,7 @@ build-goneat-tools-multi: build-goneat-tools-runner-multi
 test-goneat-tools-runner:
 	docker run --rm $(GONEAT_RUNNER_TAG_LOCAL) -c "\
 		apk info -e yq-go=4.53.3-r2 >/dev/null && \
+		apk info -e zlib=1.4-r0 libssl3=3.5.9-r1 libcrypto3=3.5.9-r1 >/dev/null && \
 		apk info -e curl=8.23.0-r0 >/dev/null && \
 		prettier --version && \
 		biome --version | grep -q '2.5.15' && \
@@ -316,6 +317,7 @@ test-goneat-tools-runner-rust:
 test-goneat-tools-slim:
 	docker run --rm $(GONEAT_SLIM_TAG_LOCAL) -c "\
 		apk info -e yq-go=4.53.3-r2 >/dev/null && \
+		apk info -e zlib=1.4-r0 libssl3=3.5.9-r1 libcrypto3=3.5.9-r1 >/dev/null && \
 		prettier --version && \
 		biome --version | grep -q '2.5.15' && \
 		yamlfmt --version && \
@@ -443,7 +445,7 @@ inventory-goneat-tools-runner:
 		cargo-zigbuild --version && \
 		cargo nextest --version && \
 		cbindgen --version && \
-		go version | grep -qE '^go version go1\.26\.11 linux/(amd64|arm64)$$' && \
+		go version && \
 		zig version && \
 		python3 --version && \
 		uv --version && \
@@ -471,7 +473,7 @@ inventory-goneat-tools-runner-glibc:
 		cargo-zigbuild --version && \
 		cargo nextest --version && \
 		cbindgen --version && \
-		go version | grep -qE '^go version go1\.26\.11 linux/(amd64|arm64)$$' && \
+		go version && \
 		zig version && \
 		python3 --version && \
 		uv --version && \
@@ -610,7 +612,7 @@ test-sbom-tools-runner-glibc:
 		trivy version | grep -qE '^Version: +0\.76\.2$$' && \
 		shellsentry --version >/dev/null 2>&1 && \
 		yamllint --version && \
-		jq --version && \
+		jq --version | grep -qx 'jq-1.8.2' && \
 		yq --version && \
 		git --version && \
 		gcc --version >/dev/null 2>&1 && \

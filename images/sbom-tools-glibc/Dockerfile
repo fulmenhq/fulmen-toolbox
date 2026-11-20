@@ -21,7 +21,10 @@ ARG TRIVY_VERSION=v0.76.2
 ARG TRIVY_SHA256_AMD64=bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf
 ARG TRIVY_SHA256_ARM64=ab9d51f86e6a5fb936f605faff6b593ac51bc378fff4d3e8b9d58358b9c367c3
 ARG SHELLSENTRY_VERSION=v0.1.7
-ARG JQ_VERSION=1.8.1
+# Upstream GitHub release binary (jqlang/jq), checksum-verified per arch below.
+ARG JQ_VERSION=1.8.2
+ARG JQ_SHA256_AMD64=b1c22172dd303f3be49e935aa56aa48a8b7a46e0bc838b4997d3bb451495870f
+ARG JQ_SHA256_ARM64=8b85c817833814ddca00a144c33705546355afccf0cf39b188f3cdb48b852309
 # Upstream GitHub release binary (mikefarah/yq), checksum-verified per arch below.
 ARG YQ_VERSION=v4.54.3
 ARG YQ_SHA256_AMD64=129534601871538efe0ba4c5e62a34fb1d5f469bcb975c4fddeb467d82974973
@@ -39,6 +42,8 @@ ARG TRIVY_VERSION
 ARG TRIVY_SHA256_AMD64
 ARG TRIVY_SHA256_ARM64
 ARG JQ_VERSION
+ARG JQ_SHA256_AMD64
+ARG JQ_SHA256_ARM64
 ARG YQ_VERSION
 ARG YQ_SHA256_AMD64
 ARG YQ_SHA256_ARM64
@@ -76,8 +81,8 @@ RUN set -eux; \
         *) echo "Unsupported arch: ${UNAME_ARCH}" && exit 1 ;; \
     esac; \
     case "${ARCH}" in \
-      amd64) SYFT_SHA256="${SYFT_SHA256_AMD64}"; GRYPE_SHA256="${GRYPE_SHA256_AMD64}"; YQ_SHA256="${YQ_SHA256_AMD64}" ;; \
-      arm64) SYFT_SHA256="${SYFT_SHA256_ARM64}"; GRYPE_SHA256="${GRYPE_SHA256_ARM64}"; YQ_SHA256="${YQ_SHA256_ARM64}" ;; \
+      amd64) SYFT_SHA256="${SYFT_SHA256_AMD64}"; GRYPE_SHA256="${GRYPE_SHA256_AMD64}"; JQ_SHA256="${JQ_SHA256_AMD64}"; YQ_SHA256="${YQ_SHA256_AMD64}" ;; \
+      arm64) SYFT_SHA256="${SYFT_SHA256_ARM64}"; GRYPE_SHA256="${GRYPE_SHA256_ARM64}"; JQ_SHA256="${JQ_SHA256_ARM64}"; YQ_SHA256="${YQ_SHA256_ARM64}" ;; \
     esac; \
     curl -fsSL "https://github.com/anchore/syft/releases/download/${SYFT_VERSION}/syft_${SYFT_VERSION#v}_linux_${ARCH}.tar.gz" -o /tmp/syft.tar.gz; \
     echo "${SYFT_SHA256}  /tmp/syft.tar.gz" | sha256sum -c -; \
@@ -92,6 +97,7 @@ RUN set -eux; \
     tar -xzf /tmp/trivy.tar.gz -C /out/bin trivy; \
     rm /tmp/trivy.tar.gz; \
     curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${ARCH}" -o /out/bin/jq; \
+    echo "${JQ_SHA256}  /out/bin/jq" | sha256sum -c -; \
     curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${ARCH}" -o /out/bin/yq; \
     echo "${YQ_SHA256}  /out/bin/yq" | sha256sum -c -; \
     chmod +x /out/bin/syft /out/bin/grype /out/bin/trivy /out/bin/jq /out/bin/yq
