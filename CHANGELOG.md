@@ -2,6 +2,21 @@
 
 Adheres to Keep a Changelog format. Versions follow semver.
 
+## 0.5.16 - 2026-11-20
+
+### Changed
+
+- **`goneat` `v0.6.8` → `v0.6.9`** in the musl slim image and both full runners (Dockerfile ARGs, Makefile bootstrap minimum, `manifests/tools.json`, image README, and built-image version checks). goneat v0.6.9 is inside the 7-day cooling window. The exception runs until 2026-11-27T14:34:44Z (`docs/operations/2026-11-20-cooling-exception.md`).
+- **`npm` `12.2.1` → `12.2.2`** in the musl slim image and both full runners, installed after its sha512 integrity matches `NPM_INTEGRITY`. npm 12.2.2 bundles undici 6.29.1, so the undici overlay step, the `UNDICI_*` ARGs, the `undici` manifest entry and its `validate-pins` checks are removed.
+- **Go `1.26.10` → `1.26.11`** for the Go toolchain in both full runners and the `golang` builder images. Built-image checks assert the Go version.
+- **`syft` `v1.56.0` → `v1.57.1`** and **`grype` `v0.121.1` → `v0.121.3`** on both full runners and all three sbom-tools images, and **`trivy` `v0.76.1` → `v0.76.2`** on the sbom-tools images, with per-architecture SHA256 pins. syft and grype use golang.org/x/net v0.62.0, and grype v0.121.3 no longer vendors docker/docker; the `CVE-2026-34040` entry is removed from `.trivyignore`. Built-image checks assert the trivy version.
+- **Alpine 3.24 `git` `2.54.0-r0` → `2.54.1-r0`** in `goneat-tools-runner-musl`.
+- **OS security pins** in the musl goneat images: `libcrypto3` and `libssl3` `3.5.9-r0` → `3.5.9-r1` (Alpine no longer serves 3.5.9-r0; cooling exception until 2026-11-25T23:31Z), and `zlib` `1.4-r0` (CVE-2026-85091).
+- **Alpine 3.21 `jq` `1.7.1-r0` → `1.8.2-r0`** in the musl sbom-tools images. Alpine 3.21 no longer serves 1.7.1-r0; cooling exception until 2026-11-22T23:21Z.
+- **`yq` `v4.53.3` → `v4.54.3`** in both glibc runners. The release binary is now verified against pinned per-architecture SHA256 values. The `CVE-2026-39822` and `CVE-2026-56852` entries are removed from `.trivyignore`.
+- **`jq` `1.8.1` → `1.8.2`** in `sbom-tools-runner-glibc`. The release binary is now verified against the same pinned per-architecture SHA256 values as `goneat-tools-runner-glibc`.
+- **Residual findings closed.** `docs/operations/2026-11-02-residual-findings-exception.md` records that a 2026-11-20 linux/arm64 scan with no `.trivyignore` finds no fixable HIGH/CRITICAL findings in the goneat-tools and sbom-tools images.
+
 ## 0.5.15 - 2026-11-10
 
 ### Changed

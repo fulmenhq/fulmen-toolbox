@@ -55,6 +55,10 @@ tools:
     description: Dockerfile linting and config scanning
     kind: system
     detect_command: trivy --version
+    version_args: [--version]
+    version_scheme: semver
+    minimum_version: "0.76.2"
+    recommended_version: "0.76.2"
     platforms:
       - darwin
       - linux

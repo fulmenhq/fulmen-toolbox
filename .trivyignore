@@ -20,23 +20,3 @@
 # toolchain those releases require. Re-scan published images after GA and drop
 # anything that no longer appears. Do not carry an entry forward on trust.
 # ---------------------------------------------------------------------------
-
-# --- Go stdlib embedded in PREBUILT upstream binaries ------------------------
-# yq v4.53.3 remains built with go1.26.4 (unchanged pin). syft v1.56.0,
-# grype v0.121.1 and trivy v0.76.1 are built with go1.27.3, past the go1.26.5
-# stdlib fix line. This leftover needs go1.26.5.
-CVE-2026-39822  # 2026-10-10: stdlib in prebuilt yq v4.53.3 (go1.26.4); needs go1.26.5; yq pin unchanged; review by 2026-12-31
-
-# --- golang.org/x/text in prebuilt / upstream-pinned binaries ----------------
-# One remaining carrier: yq v4.53.3 (unchanged pin) -> x/text v0.37.0.
-# golangci-lint v2.14.0 selects x/text v0.41.0 and trivy v0.76.1 vendors a
-# release past the v0.39.0 fix, so neither is a carrier. Clears when the yq pin
-# moves to a release built with x/text v0.39.0 or later.
-CVE-2026-56852  # 2026-11-10: x/text in yq v4.53.3 (v0.37.0); fixed in v0.39.0; golangci-lint v2.14.0 and trivy v0.76.1 no longer carriers; review by 2026-12-31
-
-# --- Vendored dependencies in prebuilt upstream binaries ---------------------
-# grype v0.121.1 still vendors github.com/docker/docker v28.5.2 (fixed in
-# v29.3.1). grype v0.121.3 (published 2026-11-09) no longer depends on
-# docker/docker but is inside the 7-day cooling window until 2026-11-16. Drop
-# this entry when the grype pin moves to v0.121.3 or later.
-CVE-2026-34040  # 2026-11-10: grype v0.121.1 vendors docker/docker v28.5.2; fixed in 29.3.1; grype v0.121.3 drops it, cooling until 2026-11-16; review by 2026-11-16

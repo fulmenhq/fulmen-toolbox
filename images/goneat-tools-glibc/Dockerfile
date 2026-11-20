@@ -14,7 +14,7 @@
 # golang:1.X-bookworm tag containing the same Go patch version. The two ARGs
 # must stay in sync — a mismatch silently ships a runner whose builder Go
 # differs from its runtime Go, defeating the consumer fix landed in v0.4.0.
-ARG GO_IMAGE=golang:1.26.10-bookworm@sha256:632dff7351799a5a9954a48dc06670ade72ee44e8c351cdc0e5a57af2fea21af
+ARG GO_IMAGE=golang:1.26.11-bookworm@sha256:dc40a13b61304647ed7e5d581d246b86413dfc29d63c6d018310feb93cd98fc0
 ARG NODE_IMAGE=node:22.23.4-bookworm-slim@sha256:de170b39439eb0e5a3444ad7d60b015614a381e10fecae2e30ec9e735122f38d
 ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b7ea838a042bbd5acbfca6ec875818
 ARG YAMLFMT_VERSION=v0.21.0
@@ -25,24 +25,21 @@ ARG PRETTIER_VERSION=3.9.6
 ARG BIOME_VERSION=2.5.15
 # Overrides the npm bundled in the node base. See the npm stage below for the
 # maintenance obligation this pin creates.
-ARG NPM_VERSION=12.2.1
-ARG NPM_INTEGRITY=sha512-bKCmFRVT/BB+YPEYbZwQ1XUI3N5t4xKSpU1MxOjo7z3iWzKBJ0ZXRC1xFdEN+TC7N5TdywaBzf2dMXGJq/e2PQ==
-# undici overlay inside npm's bundled tree; see the undici step below for the
-# removal condition. UNDICI_INTEGRITY is the registry sha512 (SRI) of the
-# undici-${UNDICI_VERSION}.tgz tarball.
-ARG UNDICI_VERSION=6.29.1
-ARG UNDICI_INTEGRITY=sha512-EvRlUt/QqAEvXdQeRMYUfwOQsfzpDztykrG2owGEE/rBOBoYv9uF39ZzsNDh4lTFHhTr2XOZjKkYgueD12ZmGA==
+ARG NPM_VERSION=12.2.2
+ARG NPM_INTEGRITY=sha512-KglgbZyacf7jH+FHuNRqVuCzQi8VhI2a7J87Ix43FsPTuZoGWmIXXGdZtBUOA79vwL+IJREqURVzupA7PsQTcA==
 # Upstream GitHub release binary (jqlang/jq), checksum-verified per arch below.
-# The musl runners keep the Alpine apk jq (1.8.1-r0) until Alpine 3.24 ships 1.8.2.
 ARG JQ_VERSION=1.8.2
 ARG JQ_SHA256_AMD64=b1c22172dd303f3be49e935aa56aa48a8b7a46e0bc838b4997d3bb451495870f
 ARG JQ_SHA256_ARM64=8b85c817833814ddca00a144c33705546355afccf0cf39b188f3cdb48b852309
-ARG YQ_VERSION=v4.53.3
+# Upstream GitHub release binary (mikefarah/yq), checksum-verified per arch below.
+ARG YQ_VERSION=v4.54.3
+ARG YQ_SHA256_AMD64=129534601871538efe0ba4c5e62a34fb1d5f469bcb975c4fddeb467d82974973
+ARG YQ_SHA256_ARM64=89f69310b61b68d1245065a1241d1fc843f7a36cd6103ffd77ad987613bd1b67
 ARG RIPGREP_VERSION=15.1.0
 ARG TAPLO_VERSION=0.10.0
 
 # DX tools (Go)
-ARG GONEAT_VERSION=v0.6.8
+ARG GONEAT_VERSION=v0.6.9
 ARG SFETCH_VERSION=v0.4.15
 ARG SHELLSENTRY_VERSION=v0.1.7
 ARG GOLANGCI_LINT_VERSION=v2.14.0
@@ -51,21 +48,21 @@ ARG GOLANGCI_LINT_VERSION=v2.14.0
 ARG MINISIGN_VERSION=0.12
 
 # Toolchain pins (runner-only)
-ARG GO_VERSION=1.26.10
-ARG GO_SHA256_AMD64=ccfe7ae822d2c2f41f4fe7c956199967a4dac22d0ee0d2b2bfdb440aab3b20c5
-ARG GO_SHA256_ARM64=3f4227ce7b206a513e794f1393adb473a07b46e94d18bd15d1c684bbb7319797
+ARG GO_VERSION=1.26.11
+ARG GO_SHA256_AMD64=9849f4e04ee35303714e34fbc3ac8ab44ea3e448a95aa182f91e3b9b79c710ec
+ARG GO_SHA256_ARM64=6c2f29b458b5add0835f18b776f69c8881a6d88428f1484a6da55755e620757e
 ARG RUST_VERSION=1.94.1
 ARG RUSTUP_VERSION=1.28.2
 ARG RUST_TARGETS="x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu aarch64-unknown-linux-musl x86_64-apple-darwin aarch64-apple-darwin x86_64-pc-windows-gnu"
 ARG ZIG_VERSION=0.15.2
 ARG ZIG_SHA256_AMD64=02aa270f183da276e5b5920b1dac44a63f1a49e55050ebde3aecc9eb82f93239
 ARG ZIG_SHA256_ARM64=958ed7d1e00d0ea76590d27666efbf7a932281b3d7ba0c6b01b0ff26498f667f
-ARG SYFT_VERSION=v1.56.0
-ARG GRYPE_VERSION=v0.121.1
-ARG SYFT_SHA256_AMD64=1c2493cfcf52d3367d6cb25780d9190c111c2219c34c820574c43e8bae15c528
-ARG SYFT_SHA256_ARM64=ace61b9397ae28189c674ae332d67a8074dafd71e87724dfb8b22412d8253bb5
-ARG GRYPE_SHA256_AMD64=bc3ea3f9e6fd56ac781c08c6c5e614271b79f438200757f6932085c19b0a4657
-ARG GRYPE_SHA256_ARM64=33670612aad351c48cf3c37f4a85d8b043d1b64b21e6034e675bb00b956d78c1
+ARG SYFT_VERSION=v1.57.1
+ARG GRYPE_VERSION=v0.121.3
+ARG SYFT_SHA256_AMD64=bf52519eb57f675d47c07d43213cb6dff6449f3d6d1147ff6701ed91f44eef0c
+ARG SYFT_SHA256_ARM64=aa3d3e07344f590bcce8d31043b752daa76c8a56c2aa34ceeee63c6168152582
+ARG GRYPE_SHA256_AMD64=e9da18cc1429e786722e32161288103600efffd8e483c90761f90485bd1bec85
+ARG GRYPE_SHA256_ARM64=b7815598d48da78bfd16f5b98ef28e1bb09c03d34fc8c3e350f99b6ccb3c7cba
 ARG CARGO_DENY_VERSION=0.20.2
 ARG CARGO_AUDIT_VERSION=0.22.2
 ARG CARGO_AUDIT_SHA256_AMD64=ab28a1bdb54db4d5d8ad5981cf1f959410370b3d28250dbd35f6a44248620e39
@@ -437,6 +434,8 @@ ARG JQ_VERSION
 ARG JQ_SHA256_AMD64
 ARG JQ_SHA256_ARM64
 ARG YQ_VERSION
+ARG YQ_SHA256_AMD64
+ARG YQ_SHA256_ARM64
 ARG RIPGREP_VERSION
 ARG TAPLO_VERSION
 ARG MINISIGN_VERSION
@@ -445,13 +444,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 RUN set -eux; \
     mkdir -p /out/bin /tmp/rg /tmp/minisign; \
     case "$(uname -m)" in \
-      x86_64) ARCH="amd64"; RG_ARCH="x86_64"; RG_LIBC="musl"; TAPLO_ARCH="x86_64"; JQ_SHA256="${JQ_SHA256_AMD64}" ;; \
-      aarch64) ARCH="arm64"; RG_ARCH="aarch64"; RG_LIBC="gnu"; TAPLO_ARCH="aarch64"; JQ_SHA256="${JQ_SHA256_ARM64}" ;; \
+      x86_64) ARCH="amd64"; RG_ARCH="x86_64"; RG_LIBC="musl"; TAPLO_ARCH="x86_64"; JQ_SHA256="${JQ_SHA256_AMD64}"; YQ_SHA256="${YQ_SHA256_AMD64}" ;; \
+      aarch64) ARCH="arm64"; RG_ARCH="aarch64"; RG_LIBC="gnu"; TAPLO_ARCH="aarch64"; JQ_SHA256="${JQ_SHA256_ARM64}"; YQ_SHA256="${YQ_SHA256_ARM64}" ;; \
       *) echo "Unsupported arch: $(uname -m)" >&2; exit 1 ;; \
     esac; \
     curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${ARCH}" -o /out/bin/jq; \
     echo "${JQ_SHA256}  /out/bin/jq" | sha256sum -c -; \
     curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${ARCH}" -o /out/bin/yq; \
+    echo "${YQ_SHA256}  /out/bin/yq" | sha256sum -c -; \
     curl -fsSL "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VERSION}/ripgrep-${RIPGREP_VERSION}-${RG_ARCH}-unknown-linux-${RG_LIBC}.tar.gz" -o /tmp/rg.tar.gz; \
     tar -xzf /tmp/rg.tar.gz -C /tmp/rg --strip-components=1; \
     install -m 0755 /tmp/rg/rg /out/bin/rg; \
@@ -509,52 +509,6 @@ RUN set -eux; \
     npm cache clean --force; \
     mkdir -p /licenses/npm/npm; \
     cp /usr/local/lib/node_modules/npm/LICENSE /licenses/npm/npm/LICENSE; \
-    chmod -R a+rX /licenses/npm
-
-# Overlay the undici bundled inside npm.
-#
-# npm ${NPM_VERSION} bundles undici 6.29.0 (a dependency of node-gyp), which
-# carries HIGH advisories fixed in 6.29.1 (CVE-2026-109383, CVE-2026-109869,
-# CVE-2026-87018). npm 12.2.2 bundles undici 6.29.1 but is inside the 7-day
-# cooling window until 2026-11-11T23:02:59Z. Installing undici
-# from inside npm's tree does not replace a bundled dependency, so the registry
-# tarball for ${UNDICI_VERSION} is unpacked over npm's copy after its sha512
-# integrity is checked against ${UNDICI_INTEGRITY}. npm's own bundled node-tar unpacks it.
-#
-# REMOVAL CONDITION: delete this step, the UNDICI_* ARGs, the `undici` entry in
-# manifests/tools.json and its validate-pins checks when the npm pin moves to a
-# release that bundles undici >= ${UNDICI_VERSION} (npm 12.2.2 does; it leaves
-# the cooling window at 2026-11-11T23:02:59Z). The step skips the overlay when the bundled copy
-# is already >= ${UNDICI_VERSION}, so it never downgrades.
-ARG UNDICI_VERSION
-ARG UNDICI_INTEGRITY
-RUN set -eux; \
-    NPM_ROOT=/usr/local/lib/node_modules/npm; \
-    UNDICI_DIR="${NPM_ROOT}/node_modules/undici"; \
-    ver_ge() { node -e 'const p=v=>v.split(".").map(Number);const a=p(process.argv[1]),b=p(process.argv[2]);for(let i=0;i<3;i++){if(a[i]!==b[i])process.exit(a[i]>b[i]?0:1)}process.exit(0)' "$1" "$2"; }; \
-    BUNDLED="$(node -p "require('${UNDICI_DIR}/package.json').version")"; \
-    if ver_ge "${BUNDLED}" "${UNDICI_VERSION}"; then \
-      echo "bundled undici ${BUNDLED} >= ${UNDICI_VERSION}; overlay skipped"; \
-    else \
-      WORK="$(mktemp -d)"; \
-      cd "${WORK}"; \
-      npm pack "undici@${UNDICI_VERSION}" --silent >/dev/null; \
-      ACTUAL="sha512-$(node -e 'process.stdout.write(require("crypto").createHash("sha512").update(require("fs").readFileSync(process.argv[1])).digest("base64"))' "undici-${UNDICI_VERSION}.tgz")"; \
-      test "${ACTUAL}" = "${UNDICI_INTEGRITY}"; \
-      rm -rf "${UNDICI_DIR}"; \
-      mkdir "${UNDICI_DIR}"; \
-      node -e 'require(process.argv[1]+"/node_modules/tar").x({file:process.argv[2],cwd:process.argv[3],strip:1,sync:true})' "${NPM_ROOT}" "undici-${UNDICI_VERSION}.tgz" "${UNDICI_DIR}"; \
-      chown -R root:root "${UNDICI_DIR}"; \
-      chmod -R a+rX "${UNDICI_DIR}"; \
-      cd /; \
-      rm -rf "${WORK}"; \
-    fi; \
-    ver_ge "$(node -p "require('${UNDICI_DIR}/package.json').version")" "${UNDICI_VERSION}"; \
-    node -e "require('${UNDICI_DIR}')"; \
-    npm --version; \
-    npm cache clean --force; \
-    mkdir -p /licenses/npm/undici; \
-    cp "${UNDICI_DIR}/LICENSE" /licenses/npm/undici/LICENSE; \
     chmod -R a+rX /licenses/npm
 
 # Install Prettier and Biome globally

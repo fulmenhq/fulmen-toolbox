@@ -1,12 +1,15 @@
 ---
-title: Residual HIGH/CRITICAL findings in upstream tool binaries (v0.5.15)
+title: Residual HIGH/CRITICAL findings in upstream tool binaries (v0.5.15, closed in v0.5.16)
 date: "2026-11-02"
-updated: "2026-11-10"
+updated: "2026-11-20"
 approved_by: "@3leapsdave"
-recheck: "2026-11-16"
+status: closed
+closed: "2026-11-20"
 ---
 
 # Residual HIGH/CRITICAL findings in upstream tool binaries
+
+> **Closed 2026-11-20 (v0.5.16).** The sections below record the v0.5.15 state. See [Closed (v0.5.16)](#closed-v0516).
 
 This is not a cooling exception. The findings remain because the newest upstream release of each tool still ships the vulnerable dependency or was built with an older Go toolchain, or because the only fixed package is inside the 7-day cooling window. The images do not rebuild these tools from source.
 
@@ -64,3 +67,14 @@ Recheck date: 2026-11-16. Then:
 1. Check for syft, grype, trivy and yq releases newer than the pins above, and for Alpine zlib 1.4-r0 leaving the cooling window.
 2. If a release clears its findings and is outside the 7-day cooling window, take it and rescan.
 3. Rescan every image with no `.trivyignore` and update this document, or remove it when no fixable HIGH/CRITICAL findings remain.
+
+## Closed (v0.5.16)
+
+A `trivy image` scan on 2026-11-20 with no `.trivyignore`, HIGH and CRITICAL, of the six goneat-tools and sbom-tools images built for v0.5.16 (linux/arm64) found no fixable findings in any image. Each carrier is cleared:
+
+- syft v1.57.1 and grype v0.121.3 use golang.org/x/net v0.62.0, and grype v0.121.3 no longer vendors docker/docker.
+- trivy v0.76.2.
+- yq v4.54.3 in the glibc images.
+- zlib 1.4-r0 in the musl goneat images.
+
+The remaining findings are Debian base-image packages with no fixed version (231 HIGH/CRITICAL in each glibc runner), which the scheduled CVE scan (`ignore-unfixed`) does not count.

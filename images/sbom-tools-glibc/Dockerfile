@@ -9,20 +9,26 @@
 
 ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:7ff6ba31527b9e336162fa061746c366c4b2032f4d2cff2078bea43f78efe3f8
 # shellsentry is built from this image. Keep it on the same Go patch as the
-# goneat-tools builder (currently 1.26.10).
-ARG GO_IMAGE=golang:1.26.10-bookworm@sha256:632dff7351799a5a9954a48dc06670ade72ee44e8c351cdc0e5a57af2fea21af
-ARG SYFT_VERSION=v1.56.0
-ARG GRYPE_VERSION=v0.121.1
-ARG SYFT_SHA256_AMD64=1c2493cfcf52d3367d6cb25780d9190c111c2219c34c820574c43e8bae15c528
-ARG SYFT_SHA256_ARM64=ace61b9397ae28189c674ae332d67a8074dafd71e87724dfb8b22412d8253bb5
-ARG GRYPE_SHA256_AMD64=bc3ea3f9e6fd56ac781c08c6c5e614271b79f438200757f6932085c19b0a4657
-ARG GRYPE_SHA256_ARM64=33670612aad351c48cf3c37f4a85d8b043d1b64b21e6034e675bb00b956d78c1
-ARG TRIVY_VERSION=v0.76.1
-ARG TRIVY_SHA256_AMD64=c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0
-ARG TRIVY_SHA256_ARM64=e174dff2a6dba5e3ae41f8d0537a6324405bd08132497340304c6b20e0f16a1f
+# goneat-tools builder (currently 1.26.11).
+ARG GO_IMAGE=golang:1.26.11-bookworm@sha256:dc40a13b61304647ed7e5d581d246b86413dfc29d63c6d018310feb93cd98fc0
+ARG SYFT_VERSION=v1.57.1
+ARG GRYPE_VERSION=v0.121.3
+ARG SYFT_SHA256_AMD64=bf52519eb57f675d47c07d43213cb6dff6449f3d6d1147ff6701ed91f44eef0c
+ARG SYFT_SHA256_ARM64=aa3d3e07344f590bcce8d31043b752daa76c8a56c2aa34ceeee63c6168152582
+ARG GRYPE_SHA256_AMD64=e9da18cc1429e786722e32161288103600efffd8e483c90761f90485bd1bec85
+ARG GRYPE_SHA256_ARM64=b7815598d48da78bfd16f5b98ef28e1bb09c03d34fc8c3e350f99b6ccb3c7cba
+ARG TRIVY_VERSION=v0.76.2
+ARG TRIVY_SHA256_AMD64=bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf
+ARG TRIVY_SHA256_ARM64=ab9d51f86e6a5fb936f605faff6b593ac51bc378fff4d3e8b9d58358b9c367c3
 ARG SHELLSENTRY_VERSION=v0.1.7
-ARG JQ_VERSION=1.8.1
-ARG YQ_VERSION=v4.53.3
+# Upstream GitHub release binary (jqlang/jq), checksum-verified per arch below.
+ARG JQ_VERSION=1.8.2
+ARG JQ_SHA256_AMD64=b1c22172dd303f3be49e935aa56aa48a8b7a46e0bc838b4997d3bb451495870f
+ARG JQ_SHA256_ARM64=8b85c817833814ddca00a144c33705546355afccf0cf39b188f3cdb48b852309
+# Upstream GitHub release binary (mikefarah/yq), checksum-verified per arch below.
+ARG YQ_VERSION=v4.54.3
+ARG YQ_SHA256_AMD64=129534601871538efe0ba4c5e62a34fb1d5f469bcb975c4fddeb467d82974973
+ARG YQ_SHA256_ARM64=89f69310b61b68d1245065a1241d1fc843f7a36cd6103ffd77ad987613bd1b67
 
 # Stage 1: Fetch binaries and stage licenses/notices (kept out of runtime layers)
 FROM ${DEBIAN_IMAGE} AS fetcher
@@ -36,7 +42,11 @@ ARG TRIVY_VERSION
 ARG TRIVY_SHA256_AMD64
 ARG TRIVY_SHA256_ARM64
 ARG JQ_VERSION
+ARG JQ_SHA256_AMD64
+ARG JQ_SHA256_ARM64
 ARG YQ_VERSION
+ARG YQ_SHA256_AMD64
+ARG YQ_SHA256_ARM64
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl tar gzip xz-utils && \
     rm -rf /var/lib/apt/lists/*
 RUN set -eux; \
@@ -71,8 +81,8 @@ RUN set -eux; \
         *) echo "Unsupported arch: ${UNAME_ARCH}" && exit 1 ;; \
     esac; \
     case "${ARCH}" in \
-      amd64) SYFT_SHA256="${SYFT_SHA256_AMD64}"; GRYPE_SHA256="${GRYPE_SHA256_AMD64}" ;; \
-      arm64) SYFT_SHA256="${SYFT_SHA256_ARM64}"; GRYPE_SHA256="${GRYPE_SHA256_ARM64}" ;; \
+      amd64) SYFT_SHA256="${SYFT_SHA256_AMD64}"; GRYPE_SHA256="${GRYPE_SHA256_AMD64}"; JQ_SHA256="${JQ_SHA256_AMD64}"; YQ_SHA256="${YQ_SHA256_AMD64}" ;; \
+      arm64) SYFT_SHA256="${SYFT_SHA256_ARM64}"; GRYPE_SHA256="${GRYPE_SHA256_ARM64}"; JQ_SHA256="${JQ_SHA256_ARM64}"; YQ_SHA256="${YQ_SHA256_ARM64}" ;; \
     esac; \
     curl -fsSL "https://github.com/anchore/syft/releases/download/${SYFT_VERSION}/syft_${SYFT_VERSION#v}_linux_${ARCH}.tar.gz" -o /tmp/syft.tar.gz; \
     echo "${SYFT_SHA256}  /tmp/syft.tar.gz" | sha256sum -c -; \
@@ -87,7 +97,9 @@ RUN set -eux; \
     tar -xzf /tmp/trivy.tar.gz -C /out/bin trivy; \
     rm /tmp/trivy.tar.gz; \
     curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${ARCH}" -o /out/bin/jq; \
+    echo "${JQ_SHA256}  /out/bin/jq" | sha256sum -c -; \
     curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${ARCH}" -o /out/bin/yq; \
+    echo "${YQ_SHA256}  /out/bin/yq" | sha256sum -c -; \
     chmod +x /out/bin/syft /out/bin/grype /out/bin/trivy /out/bin/jq /out/bin/yq
 
 # Stage 1b: Build shellsentry (runner-only)

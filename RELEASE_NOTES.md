@@ -1,5 +1,31 @@
 # Release Notes
 
+## v0.5.16 (2026-11-20)
+
+**goneat v0.6.9, Go 1.26.11, npm 12.2.2, syft v1.57.1, grype v0.121.3, trivy v0.76.2**
+
+The musl slim image and both full goneat runners ship goneat v0.6.9 and npm 12.2.2. npm 12.2.2 bundles undici 6.29.1, so the undici overlay is removed. goneat v0.6.9 is inside the 7-day cooling window. The exception runs until 2026-11-27T14:34:44Z. Go moves to 1.26.11, and syft v1.57.1, grype v0.121.3 and trivy v0.76.2 clear their remaining findings; grype no longer vendors docker/docker. The musl goneat images pin OpenSSL 3.5.9-r1 (cooling exception until 2026-11-25T23:31Z) and zlib 1.4-r0 (CVE-2026-85091). The musl sbom-tools images pin Alpine 3.21 jq 1.8.2-r0 (cooling exception until 2026-11-22T23:21Z). Alpine replaced the earlier OpenSSL and jq builds, which are no longer served. The glibc images ship yq v4.54.3, now SHA256-verified per architecture. `.trivyignore` has no entries, and `docs/operations/2026-11-02-residual-findings-exception.md` is closed: a linux/arm64 scan with no ignore file finds no fixable HIGH/CRITICAL findings. `goneat-tools-runner-musl` pins Alpine `git` 2.54.1-r0.
+
+### Changes
+
+| Area                         | Change                                                 |
+| ---------------------------- | ------------------------------------------------------ |
+| slim + both full runners     | `goneat` `v0.6.8` → `v0.6.9`                           |
+| slim + both full runners     | `npm` `12.2.1` → `12.2.2`; undici overlay removed      |
+| both full runners + builders | Go `1.26.10` → `1.26.11`                               |
+| runners + sbom-tools         | `syft` `v1.57.1`, `grype` `v0.121.3`                   |
+| sbom-tools                   | `trivy` `v0.76.1` → `v0.76.2`                          |
+| musl slim + musl runner      | `libcrypto3`, `libssl3` `3.5.9-r1`; `zlib` `1.4-r0`    |
+| musl sbom-tools              | Alpine 3.21 `jq` `1.7.1-r0` → `1.8.2-r0`               |
+| both glibc runners           | `yq` `v4.53.3` → `v4.54.3`, SHA256-verified            |
+| sbom-tools glibc runner      | `jq` `1.8.1` → `1.8.2`, SHA256-verified                |
+| goneat-tools-runner-musl     | Alpine `git` `2.54.0-r0` → `2.54.1-r0`                 |
+| `.trivyignore`               | CVE-2026-34040, CVE-2026-39822, CVE-2026-56852 removed |
+
+### Upgrade notes
+
+Consumers pinned to `:v0.5.15` should retag to `:v0.5.16` after GA. Full detail: `docs/releases/v0.5.16.md`.
+
 ## v0.5.15 (2026-11-10)
 
 **goneat v0.6.8, sfetch v0.4.15, npm 12.2.1, uv 0.13.4, undici 6.29.1 overlay**

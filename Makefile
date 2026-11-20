@@ -92,7 +92,7 @@ YAMLLINT ?= yamllint
 
 # Bootstrap tooling (sfetch -> goneat trust chain)
 # Note: GONEAT_VERSION is a minimum version; if goneat is already installed, it is used as-is.
-GONEAT_VERSION ?= v0.6.8
+GONEAT_VERSION ?= v0.6.9
 BINDIR ?= $(HOME)/.local/bin
 SFETCH_BIN = $(shell command -v sfetch 2>/dev/null || echo "")
 GONEAT_BIN = $(shell command -v goneat 2>/dev/null || echo "")
@@ -251,6 +251,7 @@ build-goneat-tools-multi: build-goneat-tools-runner-multi
 test-goneat-tools-runner:
 	docker run --rm $(GONEAT_RUNNER_TAG_LOCAL) -c "\
 		apk info -e yq-go=4.53.3-r2 >/dev/null && \
+		apk info -e zlib=1.4-r0 libssl3=3.5.9-r1 libcrypto3=3.5.9-r1 >/dev/null && \
 		apk info -e curl=8.23.0-r0 >/dev/null && \
 		prettier --version && \
 		biome --version | grep -q '2.5.15' && \
@@ -264,13 +265,12 @@ test-goneat-tools-runner:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version | grep -q 'goneat v0.6.8' && \
-		npm --version | grep -qx '12.2.1' && \
-		node -p \"require('/usr/local/lib/node_modules/npm/node_modules/undici/package.json').version\" | grep -qx '6.29.1' && \
+		goneat version | grep -q 'goneat v0.6.9' && \
+		npm --version | grep -qx '12.2.2' && \
 		sfetch --help >/dev/null 2>&1 && \
 		shellsentry --version >/dev/null 2>&1 && \
-		syft version | grep -qE '^Version: +1\.56\.0$$' && \
-		grype version | grep -qE '^Version: +0\.121\.1$$' && \
+		syft version | grep -qE '^Version: +1\.57\.1$$' && \
+		grype version | grep -qE '^Version: +0\.121\.3$$' && \
 		rustc --version >/dev/null 2>&1 && \
 		cargo --version >/dev/null 2>&1 && \
 		rustfmt --version >/dev/null 2>&1 && \
@@ -280,7 +280,7 @@ test-goneat-tools-runner:
 		cargo-zigbuild --version >/dev/null 2>&1 && \
 		([ \$$(uname -m) = 'aarch64' ] || cargo nextest --version >/dev/null 2>&1) && \
 		cbindgen --version >/dev/null 2>&1 && \
-		go version >/dev/null 2>&1 && \
+		go version | grep -qE '^go version go1\.26\.11 linux/(amd64|arm64)$$' && \
 		zig version >/dev/null 2>&1 && \
 		python3 --version >/dev/null 2>&1 && \
 		uv --version | grep -q '^uv 0\.13\.4 ' && \
@@ -317,6 +317,7 @@ test-goneat-tools-runner-rust:
 test-goneat-tools-slim:
 	docker run --rm $(GONEAT_SLIM_TAG_LOCAL) -c "\
 		apk info -e yq-go=4.53.3-r2 >/dev/null && \
+		apk info -e zlib=1.4-r0 libssl3=3.5.9-r1 libcrypto3=3.5.9-r1 >/dev/null && \
 		prettier --version && \
 		biome --version | grep -q '2.5.15' && \
 		yamlfmt --version && \
@@ -329,9 +330,8 @@ test-goneat-tools-slim:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version | grep -q 'goneat v0.6.8' && \
-		npm --version | grep -qx '12.2.1' && \
-		node -p \"require('/usr/local/lib/node_modules/npm/node_modules/undici/package.json').version\" | grep -qx '6.29.1' && \
+		goneat version | grep -q 'goneat v0.6.9' && \
+		npm --version | grep -qx '12.2.2' && \
 		sfetch --help >/dev/null 2>&1 && \
 		! command -v shellsentry >/dev/null 2>&1 && \
 		! command -v syft >/dev/null 2>&1 && \
@@ -375,13 +375,12 @@ test-goneat-tools-runner-glibc:
 		rg --version && \
 		taplo --version && \
 		minisign -v >/dev/null 2>&1 && \
-		goneat version | grep -q 'goneat v0.6.8' && \
-		npm --version | grep -qx '12.2.1' && \
-		node -p \"require('/usr/local/lib/node_modules/npm/node_modules/undici/package.json').version\" | grep -qx '6.29.1' && \
+		goneat version | grep -q 'goneat v0.6.9' && \
+		npm --version | grep -qx '12.2.2' && \
 		sfetch --help >/dev/null 2>&1 && \
 		shellsentry --version >/dev/null 2>&1 && \
-		syft version | grep -qE '^Version: +1\.56\.0$$' && \
-		grype version | grep -qE '^Version: +0\.121\.1$$' && \
+		syft version | grep -qE '^Version: +1\.57\.1$$' && \
+		grype version | grep -qE '^Version: +0\.121\.3$$' && \
 		rustc --version >/dev/null 2>&1 && \
 		cargo --version >/dev/null 2>&1 && \
 		rustfmt --version >/dev/null 2>&1 && \
@@ -391,7 +390,7 @@ test-goneat-tools-runner-glibc:
 		cargo-zigbuild --version >/dev/null 2>&1 && \
 		cargo nextest --version >/dev/null 2>&1 && \
 		cbindgen --version >/dev/null 2>&1 && \
-		go version >/dev/null 2>&1 && \
+		go version | grep -qE '^go version go1\.26\.11 linux/(amd64|arm64)$$' && \
 		zig version >/dev/null 2>&1 && \
 		python3 --version >/dev/null 2>&1 && \
 		uv --version | grep -q '^uv 0\.13\.4 ' && \
@@ -547,9 +546,9 @@ test-sbom-tools-runner:
 	docker run --rm \
 		-v $(CURDIR)/tests/fixtures/sbom:/fixture:ro \
 		$(SBOM_RUNNER_TAG_LOCAL) -c "\
-		syft version | grep -qE '^Version: +1\.56\.0$$' && \
-		grype version | grep -qE '^Version: +0\.121\.1$$' && \
-		trivy version && \
+		syft version | grep -qE '^Version: +1\.57\.1$$' && \
+		grype version | grep -qE '^Version: +0\.121\.3$$' && \
+		trivy version | grep -qE '^Version: +0\.76\.2$$' && \
 		shellsentry --version >/dev/null 2>&1 && \
 		yamllint --version && \
 		jq --version && \
@@ -577,9 +576,9 @@ test-sbom-tools-slim:
 	docker run --rm \
 		-v $(CURDIR)/tests/fixtures/sbom:/fixture:ro \
 		$(SBOM_SLIM_TAG_LOCAL) -c "\
-		syft version | grep -qE '^Version: +1\.56\.0$$' && \
-		grype version | grep -qE '^Version: +0\.121\.1$$' && \
-		trivy version && \
+		syft version | grep -qE '^Version: +1\.57\.1$$' && \
+		grype version | grep -qE '^Version: +0\.121\.3$$' && \
+		trivy version | grep -qE '^Version: +0\.76\.2$$' && \
 		! command -v shellsentry >/dev/null 2>&1 && \
 		! command -v yamllint >/dev/null 2>&1 && \
 		jq --version && \
@@ -608,12 +607,12 @@ test-sbom-tools-runner-glibc:
 	docker run --rm \
 		-v $(CURDIR)/tests/fixtures/sbom:/fixture:ro \
 		$(SBOM_GLIBC_TAG_LOCAL) -c "\
-		syft version | grep -qE '^Version: +1\.56\.0$$' && \
-		grype version | grep -qE '^Version: +0\.121\.1$$' && \
-		trivy version && \
+		syft version | grep -qE '^Version: +1\.57\.1$$' && \
+		grype version | grep -qE '^Version: +0\.121\.3$$' && \
+		trivy version | grep -qE '^Version: +0\.76\.2$$' && \
 		shellsentry --version >/dev/null 2>&1 && \
 		yamllint --version && \
-		jq --version && \
+		jq --version | grep -qx 'jq-1.8.2' && \
 		yq --version && \
 		git --version && \
 		gcc --version >/dev/null 2>&1 && \
