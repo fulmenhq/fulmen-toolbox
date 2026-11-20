@@ -22,7 +22,10 @@ ARG TRIVY_SHA256_AMD64=bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54
 ARG TRIVY_SHA256_ARM64=ab9d51f86e6a5fb936f605faff6b593ac51bc378fff4d3e8b9d58358b9c367c3
 ARG SHELLSENTRY_VERSION=v0.1.7
 ARG JQ_VERSION=1.8.1
-ARG YQ_VERSION=v4.53.3
+# Upstream GitHub release binary (mikefarah/yq), checksum-verified per arch below.
+ARG YQ_VERSION=v4.54.3
+ARG YQ_SHA256_AMD64=129534601871538efe0ba4c5e62a34fb1d5f469bcb975c4fddeb467d82974973
+ARG YQ_SHA256_ARM64=89f69310b61b68d1245065a1241d1fc843f7a36cd6103ffd77ad987613bd1b67
 
 # Stage 1: Fetch binaries and stage licenses/notices (kept out of runtime layers)
 FROM ${DEBIAN_IMAGE} AS fetcher
@@ -37,6 +40,8 @@ ARG TRIVY_SHA256_AMD64
 ARG TRIVY_SHA256_ARM64
 ARG JQ_VERSION
 ARG YQ_VERSION
+ARG YQ_SHA256_AMD64
+ARG YQ_SHA256_ARM64
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl tar gzip xz-utils && \
     rm -rf /var/lib/apt/lists/*
 RUN set -eux; \
@@ -71,8 +76,8 @@ RUN set -eux; \
         *) echo "Unsupported arch: ${UNAME_ARCH}" && exit 1 ;; \
     esac; \
     case "${ARCH}" in \
-      amd64) SYFT_SHA256="${SYFT_SHA256_AMD64}"; GRYPE_SHA256="${GRYPE_SHA256_AMD64}" ;; \
-      arm64) SYFT_SHA256="${SYFT_SHA256_ARM64}"; GRYPE_SHA256="${GRYPE_SHA256_ARM64}" ;; \
+      amd64) SYFT_SHA256="${SYFT_SHA256_AMD64}"; GRYPE_SHA256="${GRYPE_SHA256_AMD64}"; YQ_SHA256="${YQ_SHA256_AMD64}" ;; \
+      arm64) SYFT_SHA256="${SYFT_SHA256_ARM64}"; GRYPE_SHA256="${GRYPE_SHA256_ARM64}"; YQ_SHA256="${YQ_SHA256_ARM64}" ;; \
     esac; \
     curl -fsSL "https://github.com/anchore/syft/releases/download/${SYFT_VERSION}/syft_${SYFT_VERSION#v}_linux_${ARCH}.tar.gz" -o /tmp/syft.tar.gz; \
     echo "${SYFT_SHA256}  /tmp/syft.tar.gz" | sha256sum -c -; \
@@ -88,6 +93,7 @@ RUN set -eux; \
     rm /tmp/trivy.tar.gz; \
     curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${ARCH}" -o /out/bin/jq; \
     curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${ARCH}" -o /out/bin/yq; \
+    echo "${YQ_SHA256}  /out/bin/yq" | sha256sum -c -; \
     chmod +x /out/bin/syft /out/bin/grype /out/bin/trivy /out/bin/jq /out/bin/yq
 
 # Stage 1b: Build shellsentry (runner-only)

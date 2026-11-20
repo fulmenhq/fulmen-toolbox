@@ -32,7 +32,10 @@ ARG NPM_INTEGRITY=sha512-KglgbZyacf7jH+FHuNRqVuCzQi8VhI2a7J87Ix43FsPTuZoGWmIXXGd
 ARG JQ_VERSION=1.8.2
 ARG JQ_SHA256_AMD64=b1c22172dd303f3be49e935aa56aa48a8b7a46e0bc838b4997d3bb451495870f
 ARG JQ_SHA256_ARM64=8b85c817833814ddca00a144c33705546355afccf0cf39b188f3cdb48b852309
-ARG YQ_VERSION=v4.53.3
+# Upstream GitHub release binary (mikefarah/yq), checksum-verified per arch below.
+ARG YQ_VERSION=v4.54.3
+ARG YQ_SHA256_AMD64=129534601871538efe0ba4c5e62a34fb1d5f469bcb975c4fddeb467d82974973
+ARG YQ_SHA256_ARM64=89f69310b61b68d1245065a1241d1fc843f7a36cd6103ffd77ad987613bd1b67
 ARG RIPGREP_VERSION=15.1.0
 ARG TAPLO_VERSION=0.10.0
 
@@ -432,6 +435,8 @@ ARG JQ_VERSION
 ARG JQ_SHA256_AMD64
 ARG JQ_SHA256_ARM64
 ARG YQ_VERSION
+ARG YQ_SHA256_AMD64
+ARG YQ_SHA256_ARM64
 ARG RIPGREP_VERSION
 ARG TAPLO_VERSION
 ARG MINISIGN_VERSION
@@ -440,13 +445,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 RUN set -eux; \
     mkdir -p /out/bin /tmp/rg /tmp/minisign; \
     case "$(uname -m)" in \
-      x86_64) ARCH="amd64"; RG_ARCH="x86_64"; RG_LIBC="musl"; TAPLO_ARCH="x86_64"; JQ_SHA256="${JQ_SHA256_AMD64}" ;; \
-      aarch64) ARCH="arm64"; RG_ARCH="aarch64"; RG_LIBC="gnu"; TAPLO_ARCH="aarch64"; JQ_SHA256="${JQ_SHA256_ARM64}" ;; \
+      x86_64) ARCH="amd64"; RG_ARCH="x86_64"; RG_LIBC="musl"; TAPLO_ARCH="x86_64"; JQ_SHA256="${JQ_SHA256_AMD64}"; YQ_SHA256="${YQ_SHA256_AMD64}" ;; \
+      aarch64) ARCH="arm64"; RG_ARCH="aarch64"; RG_LIBC="gnu"; TAPLO_ARCH="aarch64"; JQ_SHA256="${JQ_SHA256_ARM64}"; YQ_SHA256="${YQ_SHA256_ARM64}" ;; \
       *) echo "Unsupported arch: $(uname -m)" >&2; exit 1 ;; \
     esac; \
     curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${ARCH}" -o /out/bin/jq; \
     echo "${JQ_SHA256}  /out/bin/jq" | sha256sum -c -; \
     curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${ARCH}" -o /out/bin/yq; \
+    echo "${YQ_SHA256}  /out/bin/yq" | sha256sum -c -; \
     curl -fsSL "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VERSION}/ripgrep-${RIPGREP_VERSION}-${RG_ARCH}-unknown-linux-${RG_LIBC}.tar.gz" -o /tmp/rg.tar.gz; \
     tar -xzf /tmp/rg.tar.gz -C /tmp/rg --strip-components=1; \
     install -m 0755 /tmp/rg/rg /out/bin/rg; \

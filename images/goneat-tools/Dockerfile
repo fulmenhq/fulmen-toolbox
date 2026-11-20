@@ -32,11 +32,13 @@ ARG JQ_VERSION=1.8.2-r0
 # Security pins for the openssl libs bundled in the node base. The pinned
 # node:22.23.4-alpine digest ships 3.5.8-r0 and `apk add` does not upgrade
 # satisfied dependencies, so an explicit pin is required to pull the patched
-# 3.5.9-r0 from the Alpine 3.24 repos (validate-apk-pins verifies availability).
-ARG LIBSSL_VERSION=3.5.9-r0
-ARG LIBCRYPTO_VERSION=3.5.9-r0
+# 3.5.9-r1 from the Alpine 3.24 repos (validate-apk-pins verifies availability).
+ARG LIBSSL_VERSION=3.5.9-r1
+ARG LIBCRYPTO_VERSION=3.5.9-r1
 # musl/musl-utils: security pin (CVE-2026-107891); the pinned node alpine digest ships 1.2.6-r2.
 ARG MUSL_VERSION=1.2.6-r3
+# zlib: security pin (CVE-2026-85091); the pinned node alpine digest ships 1.3.2-r0.
+ARG ZLIB_VERSION=1.4-r0
 ARG YQ_VERSION=4.53.3-r2
 ARG RIPGREP_VERSION=15.1.0-r0
 ARG TAPLO_VERSION=0.10.0-r0
@@ -436,6 +438,7 @@ ARG JQ_VERSION
 ARG LIBSSL_VERSION
 ARG LIBCRYPTO_VERSION
 ARG MUSL_VERSION
+ARG ZLIB_VERSION
 ARG YQ_VERSION
 ARG RIPGREP_VERSION
 ARG TAPLO_VERSION
@@ -449,6 +452,7 @@ RUN apk add --no-cache \
     libcrypto3=${LIBCRYPTO_VERSION} \
     musl=${MUSL_VERSION} \
     musl-utils=${MUSL_VERSION} \
+    zlib=${ZLIB_VERSION} \
     yq-go=${YQ_VERSION} \
     ripgrep=${RIPGREP_VERSION} \
     taplo=${TAPLO_VERSION} \

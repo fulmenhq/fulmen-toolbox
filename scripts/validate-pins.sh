@@ -287,6 +287,25 @@ if [ "${musl_ver}" != "${musl_utils_ver}" ]; then
 	fail=1
 fi
 
+zlib_ver=$(get_version "zlib" "goneat-tools-slim-musl")
+if [ -z "${zlib_ver:-}" ]; then
+	echo "❌ Missing manifest entry for zlib"
+	fail=1
+fi
+check_pin "$goneat_df" "goneat-tools zlib security pin" "ARG ZLIB_VERSION=${zlib_ver}" || fail=1
+
+# yq release-binary checksums (glibc runners) — recorded in the manifest notes.
+yq_sha_amd64=$(get_note_match "yq-go" "goneat-tools-runner-glibc" "amd64 [0-9a-f]{64}")
+yq_sha_arm64=$(get_note_match "yq-go" "goneat-tools-runner-glibc" "arm64 [0-9a-f]{64}")
+if [ -z "${yq_sha_amd64}" ] || [ -z "${yq_sha_arm64}" ]; then
+	echo "❌ Missing yq sha256 in manifest notes (glibc)"
+	fail=1
+fi
+for df in "$goneat_glibc_df" "$sbom_glibc_df"; do
+	check_pin "$df" "yq sha256 amd64" "ARG YQ_SHA256_AMD64=${yq_sha_amd64#amd64 }" || fail=1
+	check_pin "$df" "yq sha256 arm64" "ARG YQ_SHA256_ARM64=${yq_sha_arm64#arm64 }" || fail=1
+done
+
 gpg_ver=$(get_version "gpg" "goneat-tools-runner-glibc")
 if [ -z "${gpg_ver:-}" ]; then
 	echo "❌ Missing manifest entry for gpg"

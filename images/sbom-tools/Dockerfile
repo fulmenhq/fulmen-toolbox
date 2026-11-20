@@ -25,7 +25,7 @@ ARG SHELLSENTRY_VERSION=v0.1.7
 # Runner-baseline pinned packages (subset)
 ARG GIT_VERSION=2.47.3-r0
 ARG CURL_VERSION=8.14.1-r3
-ARG JQ_VERSION=1.7.1-r0
+ARG JQ_VERSION=1.8.2-r0
 ARG YQ_VERSION=4.44.5-r5
 
 # Stage 1: Fetch binaries and stage licenses/notices (kept out of runtime layers)
